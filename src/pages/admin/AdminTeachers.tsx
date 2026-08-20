@@ -133,7 +133,7 @@ export default function AdminTeachers() {
         if (!deleteTarget || deletingTeacher) return;
         setDeletingTeacher(true);
         try {
-            await deleteAPICall<null>(`/teachers/${deleteTarget.id}`);
+            await deleteAPICall<null, null>(`/teachers/${deleteTarget.id}`);
             fetchTeachers("/teachers");
             setDeleteTarget(null);
             deleteTriggerRef.current?.focus();

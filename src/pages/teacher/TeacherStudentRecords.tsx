@@ -7,6 +7,7 @@ import {
     FiLock,
     FiRefreshCw,
     FiSend,
+    FiShield,
     FiUsers,
     FiX,
 } from "react-icons/fi";
@@ -52,6 +53,7 @@ export default function TeacherStudentRecords() {
     const [records, setRecords] = useState<ClassRecordsResponse | null>(null);
     // Records could not be loaded (e.g. this teacher is not a class adviser).
     const [loadFailed, setLoadFailed] = useState(false);
+    const [submissionsLocked, setSubmissionsLocked] = useState(false);
 
     // Review modal: the student whose record is being reviewed before freezing.
     const [reviewing, setReviewing] = useState<StudentClassRecordRow | null>(null);
@@ -89,6 +91,26 @@ export default function TeacherStudentRecords() {
             setLoadFailed(true);
         });
     }, [quarter]);
+
+    // Load academic settings to check if submissions are locked.
+    useEffect(() => {
+        let cancelled = false;
+        async function loadAcademicSettings() {
+            try {
+                const response = await getAPICall<{ submissionsLocked: boolean | number }>(
+                    "/academic-settings",
+                    { toast: false },
+                );
+                if (!cancelled && response.data) {
+                    setSubmissionsLocked(Boolean(response.data.submissionsLocked));
+                }
+            } catch {
+                // Non-critical — default to unlocked if request fails.
+            }
+        }
+        loadAcademicSettings();
+        return () => { cancelled = true; };
+    }, []);
 
     function handleQuarterChange(targetQuarter: number) {
         if (targetQuarter === quarter) return;
@@ -239,6 +261,19 @@ export default function TeacherStudentRecords() {
                 </div>
             </div>
 
+            {/* ==================== Submissions locked banner ==================== */}
+            {submissionsLocked && (
+                <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                    <FiShield className="mt-0.5 shrink-0 text-amber-600" aria-hidden="true" />
+                    <div className="min-w-0">
+                        <p className="text-[0.8125rem] font-bold text-amber-800">Grade submissions are locked</p>
+                        <p className="mt-0.5 text-[0.75rem] leading-relaxed text-amber-700">
+                            The administrator has locked grade submissions. You cannot submit or reopen student records until submissions are unlocked.
+                        </p>
+                    </div>
+                </div>
+            )}
+
             {/* ==================== Quarter tabs + submit all ==================== */}
             <div className="teacher-records__toolbar flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm">
                 <div className="teacher-records__tabs flex items-center gap-1.5" role="tablist" aria-label="Select quarter">
@@ -262,7 +297,7 @@ export default function TeacherStudentRecords() {
                     <button
                         type="button"
                         className="teacher-records__submit-all inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold"
-                        disabled={progress.pending === 0 || submittingAll}
+                        disabled={progress.pending === 0 || submittingAll || submissionsLocked}
                         onClick={() => setConfirmSubmitAll(true)}
                     >
                         {submittingAll ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiSend aria-hidden="true" />}
@@ -440,6 +475,7 @@ export default function TeacherStudentRecords() {
                                                     <button
                                                         type="button"
                                                         className="teacher-records__reopen inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[0.6875rem] font-bold"
+                                                        disabled={submissionsLocked}
                                                         onClick={() => setReopenTarget(student)}
                                                     >
                                                         <FiRefreshCw aria-hidden="true" />
@@ -449,7 +485,7 @@ export default function TeacherStudentRecords() {
                                                     <button
                                                         type="button"
                                                         className="teacher-records__review inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-[0.6875rem] font-bold"
-                                                        disabled={isBusy}
+                                                        disabled={isBusy || submissionsLocked}
                                                         onClick={() => setReviewing(student)}
                                                     >
                                                         {isBusy ? (

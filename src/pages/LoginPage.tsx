@@ -10,6 +10,7 @@ import { Validate } from '../helper/validate'
 import { postAPICall } from "../api/api";
 
 import { DASHBOARD_PATH } from "../constant/navigation";
+import { useUser } from "../hooks/useUser";
 // Types
 import type { UserRoles } from '../constant/users'
 // Styles
@@ -28,6 +29,7 @@ const RedirectToDashboard = (userRole: UserRoles) => {
 
 function LoginPage() {
   const navigate = useNavigate()
+  const { fetchUser } = useUser()
   const [showPassword, setShowPassword] = useState(false)
   const [loginCredentials, setLoginCredentials] = useState<LoginCredentials>({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
@@ -61,9 +63,11 @@ function LoginPage() {
         return
       }
 
+      await fetchUser()
+
       const userRole = responseData.role as UserRoles;
       const dashboard = RedirectToDashboard(userRole)
-      console.log('Redirecting to dashboard:', dashboard)
+      
       navigate(dashboard)
     } catch (err) {
       console.error('Login error:', err);

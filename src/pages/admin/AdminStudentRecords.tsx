@@ -6,12 +6,15 @@ import {
     FiClock,
     FiClipboard,
     FiRefreshCw,
+    FiSkipForward,
     FiUsers,
     FiX,
 } from "react-icons/fi";
 
-import { getAPICall } from "../../api/api";
+import { getAPICall, patchAPICall } from "../../api/api";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { getInitials } from "../../helper/initials";
+import { toast } from "../../helper/toast";
 
 import type { ClassRecordsResponse, SubmissionSummaryRow } from "../../constant/studentRecord";
 
@@ -30,6 +33,7 @@ interface AcademicSettingsData {
     id: number;
     currentQuarter: number;
     enrollmentOpen: boolean | number;
+    submissionsLocked: boolean | number;
 }
 
 interface DrilldownState {
@@ -71,6 +75,10 @@ export default function AdminStudentRecords() {
     // Drill-down modal: class + quarter -> roster with submission statuses.
     const [drilldown, setDrilldown] = useState<DrilldownState | null>(null);
     const [drilldownLoading, setDrilldownLoading] = useState(false);
+
+    // Advance quarter state.
+    const [confirmAdvance, setConfirmAdvance] = useState(false);
+    const [advancing, setAdvancing] = useState(false);
 
     // ================= Load school years + current quarter =================
     useEffect(() => {
@@ -139,6 +147,35 @@ export default function AdminStudentRecords() {
 
     const selectedYear = years.find((sy) => String(sy.id) === selectedYearId) ?? null;
 
+    // ================= Advance quarter =================
+    const canAdvance = (() => {
+        if (currentQuarter === null || currentQuarter >= 4) return false;
+        return summary.every((row) => {
+            if (!row.adviserId) return false;
+            if (row.totalStudents === 0) return true;
+            const submitted = row.submitted[currentQuarter] ?? 0;
+            return submitted >= row.totalStudents;
+        });
+    })();
+
+    async function handleAdvanceQuarter() {
+        if (currentQuarter === null || currentQuarter >= 4 || advancing) return;
+        setAdvancing(true);
+        try {
+            const nextQuarter = currentQuarter + 1;
+            await patchAPICall("/academic-settings", {
+                currentQuarter: nextQuarter,
+            });
+            setCurrentQuarter(nextQuarter);
+            toast.success(`Quarter advanced to Q${nextQuarter}`);
+            setConfirmAdvance(false);
+        } catch {
+            // Error toast handled by API interceptor (409 if records incomplete)
+        } finally {
+            setAdvancing(false);
+        }
+    }
+
     // ================= Drill-down =================
     async function openDrilldown(row: SubmissionSummaryRow, quarter: number) {
         setDrilldown({ row, quarter, data: null });
@@ -202,8 +239,7 @@ export default function AdminStudentRecords() {
                             Submission Tracker
                         </h2>
                         <p className="tracker__hero-role mt-0.5 truncate text-[0.8125rem]">
-                            Which classes have submitted their student records — the quarter only advances once every
-                            record is in.
+                            Which classes have submitted their student records for each quarter.
                         </p>
                     </div>
                 </div>
@@ -225,22 +261,34 @@ export default function AdminStudentRecords() {
                         Click any quarter cell to see which students still need to be submitted.
                     </p>
                 </div>
-                <label className="tracker__year flex items-center gap-2 rounded-lg border px-3 py-2 text-[0.8125rem] font-semibold">
-                    <FiCalendar className="tracker__year-icon" aria-hidden="true" />
-                    <span className="tracker__year-label">School Year</span>
-                    <select
-                        className="tracker__year-select cursor-pointer bg-transparent font-semibold outline-none"
-                        value={selectedYearId}
-                        onChange={(event) => handleYearChange(event.target.value)}
-                        aria-label="Select school year"
+                <div className="flex items-center gap-2">
+                    <label className="tracker__year flex items-center gap-2 rounded-lg border px-3 py-2 text-[0.8125rem] font-semibold">
+                        <FiCalendar className="tracker__year-icon" aria-hidden="true" />
+                        <span className="tracker__year-label">School Year</span>
+                        <select
+                            className="tracker__year-select cursor-pointer bg-transparent font-semibold outline-none"
+                            value={selectedYearId}
+                            onChange={(event) => handleYearChange(event.target.value)}
+                            aria-label="Select school year"
+                        >
+                            {years.map((sy) => (
+                                <option key={sy.id} value={sy.id}>
+                                    SY {sy.startYear}–{sy.endYear}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <button
+                        type="button"
+                        className="settings__btn inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled={!canAdvance || advancing}
+                        onClick={() => setConfirmAdvance(true)}
+                        title={!canAdvance ? (currentQuarter === null || currentQuarter >= 4 ? "Quarter 4 is the final quarter" : "Not all classes have completed submission for the current quarter") : "Advance to the next quarter"}
                     >
-                        {years.map((sy) => (
-                            <option key={sy.id} value={sy.id}>
-                                SY {sy.startYear}–{sy.endYear}
-                            </option>
-                        ))}
-                    </select>
-                </label>
+                        {advancing ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiSkipForward aria-hidden="true" />}
+                        {advancing ? "Advancing…" : `Advance to Q${(currentQuarter ?? 0) + 1}`}
+                    </button>
+                </div>
             </div>
 
             {/* ==================== Matrix ==================== */}
@@ -382,8 +430,8 @@ export default function AdminStudentRecords() {
                 <div className="tracker__card-foot flex flex-wrap items-center justify-between gap-3 p-5">
                     <p className="tracker__foot-note flex items-center gap-2 text-[0.8125rem]">
                         <FiAlertTriangle className="tracker__foot-warn" aria-hidden="true" />
-                        The quarter cannot advance until every class has an adviser and all students are submitted
-                        for the current quarter.
+                        The administrator can lock grade submissions from the Settings page to prevent teachers from
+                        submitting student records.
                     </p>
                 </div>
             </div>
@@ -509,6 +557,20 @@ export default function AdminStudentRecords() {
                     </div>
                 </div>
             )}
+
+            {/* ==================== Advance quarter confirm ==================== */}
+            <ConfirmDialog
+                open={confirmAdvance}
+                title={`Advance to Quarter ${(currentQuarter ?? 0) + 1}?`
+                }
+                description={`This will change the active quarter from Q${currentQuarter} to Q${(currentQuarter ?? 0) + 1}. Teachers will then be able to submit records for the new quarter. This action cannot be undone from this page.`}
+                confirmLabel={advancing ? "Advancing…" : "Advance Quarter"}
+                confirmIcon={advancing ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiSkipForward aria-hidden="true" />}
+                tone="primary"
+                pending={advancing}
+                onConfirm={handleAdvanceQuarter}
+                onClose={() => setConfirmAdvance(false)}
+            />
         </section>
     );
 }

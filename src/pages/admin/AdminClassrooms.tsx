@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FiPlus, FiX, FiArrowLeft, FiEdit, FiTrash2, FiHome, FiUsers, FiBookOpen, FiUserPlus, FiUserCheck } from "react-icons/fi";
+import { FiPlus, FiX, FiArrowLeft, FiEdit, FiTrash2, FiHome, FiUsers, FiBookOpen, FiUserPlus, FiUserCheck, FiRefreshCw } from "react-icons/fi";
 
 import { 
     getAPICall, 
@@ -8,6 +8,7 @@ import {
     putAPICall,
     deleteAPICall
 } from "../../api/api";
+import { toast } from "../../helper/toast";
 
 import "../../style/adminClassrooms.css";
 
@@ -83,6 +84,10 @@ const [removingStudent, setRemovingStudent] = useState(false);
 const [removeTarget, setRemoveTarget] = useState<{ enrollmentId: number; studentName: string } | null>(null);
 const [bulkRemoveOpen, setBulkRemoveOpen] = useState(false);
 const removeTriggerRef = useRef<HTMLButtonElement>(null);
+
+// Clear all students from classroom states
+const [clearClassConfirm, setClearClassConfirm] = useState(false);
+const [clearingClass, setClearingClass] = useState(false);
 
 // Selected classroom Functions
 function handleSelectedClassroom(e: React.MouseEvent<HTMLElement>) {
@@ -302,7 +307,7 @@ async function handleConfirmDeleteSubject() {
 
     setDeletingSubject(true);
     try {
-        await deleteAPICall<null>(`/classrooms/${deleteTarget.classId}/subjects/${deleteTarget.subjectId}/teachers/${deleteTarget.teacherId}`);
+        await deleteAPICall<null, null>(`/classrooms/${deleteTarget.classId}/subjects/${deleteTarget.subjectId}/teachers/${deleteTarget.teacherId}`);
         fetchClassroomTeachersWithSubject();
         setDeleteTarget(null);
         deleteTriggerRef.current?.focus();
@@ -328,7 +333,7 @@ async function handleConfirmArchiveClassroom() {
 
     setArchiving(true);
     try {
-        await deleteAPICall<null>(`/classrooms/${archiveTarget.id}`);
+        await deleteAPICall<null, null>(`/classrooms/${archiveTarget.id}`);
         refetchClassroom();
         setArchiveTarget(null);
         archiveTriggerRef.current?.focus();
@@ -411,6 +416,27 @@ async function handleConfirmBulkRemove() {
         // Error toast is handled by the axios interceptor in api.ts
     } finally {
         setRemovingStudent(false);
+    }
+}
+
+// Clear all students from the selected classroom
+async function handleConfirmClearClass() {
+    if (!selectedClassroom || clearingClass) return;
+
+    setClearingClass(true);
+    try {
+        await deleteAPICall(`/classrooms/${selectedClassroom.id}/enrollments/clear`);
+        toast.success(`All students cleared from ${selectedClassroom.section}.`);
+        // Refresh the classroom data
+        const response = await getAPICall<ClassroomWithStudentsProps>(`/class/${selectedClassroom.id}/students`);
+        setSelectedClassroom(response.data ?? null);
+        setSelectedStudentIds([]);
+        setClearClassConfirm(false);
+        refetchClassroom();
+    } catch {
+        // Error toast handled by API interceptor
+    } finally {
+        setClearingClass(false);
     }
 }
 
@@ -552,18 +578,31 @@ return (
             
 
             {selectedClassroom ? (
-                <button
-                    type="button"
-                    className="classrooms__back inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
-                    onClick={() => (
-                        setSelectedClassroom(null),
-                        setClassroomTeachersWithSubject(null),
-                        setPageStatus("view-students")
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        className="classrooms__back inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
+                        onClick={() => (
+                            setSelectedClassroom(null),
+                            setClassroomTeachersWithSubject(null),
+                            setPageStatus("view-students")
+                        )}
+                        aria-label="Back to classroom list"
+                    >
+                        <FiArrowLeft /> <span className="text-sm font-bold">Back to List</span>
+                    </button>
+                    {(selectedClassroom.students?.length ?? 0) > 0 && (
+                        <button
+                            type="button"
+                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3.5 py-2 text-[0.8125rem] font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={clearingClass}
+                            onClick={() => setClearClassConfirm(true)}
+                        >
+                            {clearingClass ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiTrash2 aria-hidden="true" />}
+                            {clearingClass ? "Clearing…" : `Clear All (${selectedClassroom.students.length})`}
+                        </button>
                     )}
-                    aria-label="Back to classroom list"
-                >
-                    <FiArrowLeft /> <span className="text-sm font-bold">Back to List</span>
-                </button>
+                </div>
             ) : (
             <>
                 <span className="classrooms__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">{classrooms?.length ?? 0} {classrooms?.length === 1 ? "classroom" : "classrooms"}</span>
@@ -1398,6 +1437,21 @@ return (
     onConfirm={handleConfirmBulkRemove}
     onClose={closeBulkRemoveConfirm}
     triggerRef={removeTriggerRef}
+/>
+
+{/* Clear all students from classroom confirmation dialog */}
+<ConfirmDialog
+    open={clearClassConfirm}
+    title={`Clear all students from ${selectedClassroom?.section ?? "this classroom"}?`}
+    description={`This will remove all ${selectedClassroom?.students?.length ?? 0} student(s) from ${selectedClassroom?.section ?? "this classroom"}. Scores, attendance, and submission records will be deleted. Enrollments will be marked as completed. This cannot be undone from this page.`}
+    confirmLabel={clearingClass ? "Clearing…" : "Clear All Students"}
+    confirmIcon={clearingClass ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiTrash2 aria-hidden="true" />}
+    icon={<FiTrash2 aria-hidden="true" />}
+    tone="danger"
+    pending={clearingClass}
+    pendingLabel="Clearing…"
+    onConfirm={handleConfirmClearClass}
+    onClose={() => setClearClassConfirm(false)}
 />
 </section>
 );

@@ -7,13 +7,18 @@ import {
     FiInfo,
     FiLock,
     FiPercent,
+    FiRefreshCw,
     FiSave,
     FiSettings,
+    FiTrash2,
+    FiUsers,
 } from "react-icons/fi";
 
 import { useUser } from "../../hooks/useUser";
 import { invalidateSchoolInfoCache } from "../../hooks/useSchoolInfo";
-import { getAPICall, patchAPICall, putAPICall } from "../../api/api.js";
+import { getAPICall, patchAPICall, putAPICall, deleteAPICall } from "../../api/api.js";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { toast } from "../../helper/toast";
 
 import type { SchoolInfoProps } from "../../constant/schoolInfo.js";
 import type { GradeWeights } from "../../constant/gradingWeights.js";
@@ -31,6 +36,7 @@ interface AcademicSettingsData {
     id: number;
     currentQuarter: number;
     enrollmentOpen: boolean | number;
+    submissionsLocked: boolean | number;
 }
 
 interface SchoolYear {
@@ -38,6 +44,128 @@ interface SchoolYear {
     startYear: string;
     endYear: string;
     isActive?: boolean | number;
+}
+
+// ==================== Bulk Enrollment Management ====================
+interface BulkEnrollmentProps {
+    savedSection: string | null;
+    handleSave: (section: string) => void;
+}
+
+function BulkEnrollmentSection({ savedSection, handleSave }: BulkEnrollmentProps) {
+    const [loading, setLoading] = useState(true);
+    const [clearing, setClearing] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [totalEnrollments, setTotalEnrollments] = useState(0);
+
+    useEffect(() => {
+        let cancelled = false;
+        async function loadCount() {
+            try {
+                const response = await getAPICall<{ count: number }>("/enrollments/active-count", { toast: false });
+                if (!cancelled && response.data) {
+                    setTotalEnrollments(response.data.count);
+                }
+            } catch {
+                // Non-critical
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        }
+        loadCount();
+        return () => { cancelled = true; };
+    }, []);
+
+    async function handleClearAll() {
+        if (clearing) return;
+        setClearing(true);
+        try {
+            const response = await deleteAPICall<null, { totalCleared: number; classroomsCleared: number }>("/enrollments/clear-all");
+            const result = response.data;
+            if (result) {
+                toast.success(`${result.totalCleared} student(s) cleared from ${result.classroomsCleared} classroom(s).`);
+                setTotalEnrollments(0);
+                handleSave("enrollment-clear");
+            }
+            setConfirmOpen(false);
+        } catch {
+            // Error toast handled by API interceptor
+        } finally {
+            setClearing(false);
+        }
+    }
+
+    return (
+        <div className="settings__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <div className="settings__head flex flex-wrap items-center justify-between gap-4 border-b p-5">
+                <div className="flex items-start gap-3">
+                    <span className="settings__icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
+                        <FiUsers />
+                    </span>
+                    <div className="min-w-0">
+                        <h3 className="settings__title text-base font-bold">Bulk Enrollment Management</h3>
+                        <p className="settings__subtitle mt-1 text-[0.8125rem]">Clear all student enrollments across classrooms in the active school year.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="p-5">
+                <div className="flex flex-col gap-4 rounded-xl border border-dashed border-red-200 bg-red-50 p-5">
+                    <div className="flex items-start gap-3">
+                        <FiTrash2 className="mt-0.5 shrink-0 text-red-600" aria-hidden="true" />
+                        <div className="min-w-0">
+                            <p className="text-[0.9375rem] font-bold text-red-800">Clear All Classrooms</p>
+                            <p className="mt-1 text-[0.8125rem] leading-relaxed text-red-700">
+                                {loading ? (
+                                    "Loading enrollment count…"
+                                ) : totalEnrollments > 0 ? (
+                                    <>This will clear <strong>{totalEnrollments}</strong> enrolled student(s) from all active classrooms. Their scores, attendance, submission records, and assessments will be removed. Enrollments will be marked as completed.</>
+                                ) : (
+                                    "No active enrollments found. All classrooms are already empty."
+                                )}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-red-300 bg-white px-4 py-2.5 text-[0.8125rem] font-bold text-red-700 shadow-sm transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={loading || clearing || totalEnrollments === 0}
+                            onClick={() => setConfirmOpen(true)}
+                        >
+                            {clearing ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiTrash2 aria-hidden="true" />}
+                            {clearing ? "Clearing…" : "Clear All Classrooms"}
+                        </button>
+
+                        {savedSection === "enrollment-clear" && (
+                            <span className="settings__saved inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold">
+                                <FiCheck aria-hidden="true" />
+                                Done
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                <p className="settings__note mt-4 flex items-center gap-2 text-[0.8125rem]">
+                    <FiInfo className="settings__note-icon" aria-hidden="true" />
+                    This action affects the active school year only. Historical data and frozen grade records are preserved.
+                </p>
+            </div>
+
+            <ConfirmDialog
+                open={confirmOpen}
+                title="Clear all classrooms?"
+                description={`This will remove all ${totalEnrollments} enrolled student(s) from every active classroom. Scores, attendance, submission records, and assessments will be deleted. Enrollments will be marked as completed. This cannot be undone from this page.`}
+                confirmLabel={clearing ? "Clearing…" : "Clear All"}
+                confirmIcon={clearing ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiTrash2 aria-hidden="true" />}
+                tone="danger"
+                pending={clearing}
+                onConfirm={handleClearAll}
+                onClose={() => setConfirmOpen(false)}
+            />
+        </div>
+    );
 }
 
 export default function AdminSettings() {
@@ -247,12 +375,13 @@ export default function AdminSettings() {
     const [academicError, setAcademicError] = useState<string | null>(null);
     const [academicForm, setAcademicForm] = useState({
         currentQuarter: "1",
-        enrollmentOpen: true
+        enrollmentOpen: true,
+        submissionsLocked: false
     });
     const [schoolYears, setSchoolYears] = useState<SchoolYear[]>([]);
     const [selectedSchoolYearId, setSelectedSchoolYearId] = useState("");
-    // The school year that was active when the page loaded — only re-activate
-    // when the admin actually picks a different year.
+    // The school year that was active when the page loaded — used to sync
+    // the dropdown after activation succeeds.
     const [initialActiveSchoolYearId, setInitialActiveSchoolYearId] = useState("");
 
     useEffect(() => {
@@ -269,7 +398,8 @@ export default function AdminSettings() {
                 if (settings) {
                     setAcademicForm({
                         currentQuarter: String(settings.currentQuarter),
-                        enrollmentOpen: Boolean(settings.enrollmentOpen)
+                        enrollmentOpen: Boolean(settings.enrollmentOpen),
+                        submissionsLocked: Boolean(settings.submissionsLocked)
                     });
                 }
 
@@ -295,8 +425,8 @@ export default function AdminSettings() {
         const { name, value } = event.currentTarget;
         if (name === "enrollmentOpen") {
             setAcademicForm((prev) => ({ ...prev, enrollmentOpen: value === "open" }));
-        } else if (name === "currentQuarter") {
-            setAcademicForm((prev) => ({ ...prev, currentQuarter: value }));
+        } else if (name === "submissionsLocked") {
+            setAcademicForm((prev) => ({ ...prev, submissionsLocked: value === "locked" }));
         }
     }
 
@@ -307,11 +437,14 @@ export default function AdminSettings() {
         try {
             await patchAPICall("/academic-settings", {
                 currentQuarter: Number(academicForm.currentQuarter),
-                enrollmentOpen: academicForm.enrollmentOpen ? 1 : 0
+                enrollmentOpen: academicForm.enrollmentOpen ? 1 : 0,
+                submissionsLocked: academicForm.submissionsLocked ? 1 : 0
             });
 
-            // Activate the chosen school year if it isn't already the active one.
-            if (selectedSchoolYearId && selectedSchoolYearId !== initialActiveSchoolYearId) {
+            // Always activate the chosen school year — ensures the database
+            // reflects the selection even if no year was previously active
+            // or the user didn't change the dropdown.
+            if (selectedSchoolYearId) {
                 const response = await patchAPICall<object, SchoolYear[]>(
                     `/schoolYear/${selectedSchoolYearId}/activate`,
                     {},
@@ -573,20 +706,28 @@ export default function AdminSettings() {
                         </select>
                     </div>
                     <div className="settings__field flex flex-col gap-1.5">
-                        <label htmlFor="settings-quarter" className="settings__field-label text-[0.6875rem] font-bold uppercase tracking-[0.08em]">Current Quarter</label>
-                        <select
-                            id="settings-quarter"
-                            name="currentQuarter"
-                            className="settings__select w-full rounded-lg border px-3 py-2.5 text-sm"
-                            value={academicForm.currentQuarter}
-                            onChange={handleAcademicChange}
-                            disabled={academicLoading}
+                        <label htmlFor="settings-submissions-lock" className="settings__field-label text-[0.6875rem] font-bold uppercase tracking-[0.08em]">Grade Submissions</label>
+                        <div
+                            className={`settings__status ${academicForm.submissionsLocked ? "settings__status--closed" : "settings__status--open"}`}
                         >
-                            <option value="1">Quarter 1</option>
-                            <option value="2">Quarter 2</option>
-                            <option value="3">Quarter 3</option>
-                            <option value="4">Quarter 4</option>
-                        </select>
+                            <span
+                                className={`settings__status-dot ${academicForm.submissionsLocked ? "settings__status-dot--closed" : ""}`}
+                                aria-hidden="true"
+                            />
+                            <select
+                                id="settings-submissions-lock"
+                                name="submissionsLocked"
+                                className="settings__status-select"
+                                value={academicForm.submissionsLocked ? "locked" : "unlocked"}
+                                onChange={handleAcademicChange}
+                                disabled={academicLoading}
+                                aria-label="Grade submissions status"
+                            >
+                                <option value="unlocked">Open — Teachers can submit</option>
+                                <option value="locked">Locked — Submissions blocked</option>
+                            </select>
+                            <FiChevronDown className="settings__status-chevron" aria-hidden="true" />
+                        </div>
                     </div>
                     <div className="settings__field flex flex-col gap-1.5">
                         <label htmlFor="settings-enrollment-status" className="settings__field-label text-[0.6875rem] font-bold uppercase tracking-[0.08em]">Enrollment Status</label>
@@ -622,8 +763,8 @@ export default function AdminSettings() {
                                 </p>
                             ) : (
                                 <p className="settings__note flex items-center gap-2 text-[0.8125rem]">
-                                    <FiInfo className="settings__note-icon" aria-hidden="true" />
-                                    Closing enrollment blocks new enrollments on the Enrollments page; changing the active school year affects reporting.
+                            <FiInfo className="settings__note-icon" aria-hidden="true" />
+                            Closing enrollment blocks new enrollments on the Enrollments page. Locking grade submissions prevents teachers from submitting quarterly student records.
                                 </p>
                             )}
                         </div>
@@ -896,6 +1037,8 @@ export default function AdminSettings() {
                     </footer>
                 </form>
             </div>
+            {/* ==================== Bulk Enrollment Management ==================== */}
+            <BulkEnrollmentSection savedSection={savedSection} handleSave={handleSave} />
         </section>
     );
 }

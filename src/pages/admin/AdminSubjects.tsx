@@ -178,7 +178,7 @@ async function handleConfirmDeleteSubject() {
 
     setDeletingSubject(true);
     try {
-        await deleteAPICall<null>(`/subjects/${deleteTarget.id}`);
+        await deleteAPICall<null, null>(`/subjects/${deleteTarget.id}`);
         await fetchSubjects();
         // If the deleted subject was open in the detail view, go back to the list.
         if (selectedSubject?.id === deleteTarget.id) {
@@ -199,7 +199,7 @@ async function handleConfirmRemoveTeacher() {
 
     setRemovingTeacher(true);
     try {
-        await deleteAPICall<{ removed: boolean; warning: string | null }>(
+        await deleteAPICall<{ removed: boolean; warning: string | null }, null>(
             `/subjects/${selectedSubject.id}/teachers/${removeTarget.teacherId}`
         );
         // Refresh both the assigned list and the assign-modal pool so the

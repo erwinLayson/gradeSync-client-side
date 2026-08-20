@@ -2,10 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { FiChevronsLeft, FiChevronsRight, FiLogOut } from "react-icons/fi";
 import { DASHBOARD_LINKS, SCHOOL_NAME } from "../constant/navigation";
-import { useUser } from "../hooks/useUser";
+
 import { useSchoolInfo } from "../hooks/useSchoolInfo";
 import { ConfirmDialog } from "./ConfirmDialog";
 import "../style/sidebar.css";
+
+// ================== Hooks ===============
+import { useAuth } from "../hooks/useAuth";
+import {useUser} from "../hooks/useUser";
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -16,7 +20,8 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, loading, logout } = useUser();
+  const { loading, logout } = useAuth();
+  const {user} = useUser();
   const { schoolName } = useSchoolInfo();
   const [loggingOut, setLoggingOut] = useState(false);
   const logoutTriggerRef = useRef<HTMLButtonElement>(null);

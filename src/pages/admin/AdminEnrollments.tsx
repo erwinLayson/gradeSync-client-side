@@ -99,15 +99,16 @@ export default function AdminEnrollments() {
         return;
       }
 
+      const schoolYearParam = selectedSchoolYearId ? `&schoolYearId=${selectedSchoolYearId}` : "";
       const response = await getAPICall<StudentResponseProps[]>(
-        `/students/not-enrolled?search=${encodeURIComponent(searchDebounced)}`,
+        `/students/not-enrolled?search=${encodeURIComponent(searchDebounced)}${schoolYearParam}`,
       );
 
       setStudents(response.data ?? null);
     } finally {
       setLoading(false);
     }
-  }, [searchDebounced, setLoading]);
+  }, [searchDebounced, setLoading, selectedSchoolYearId]);
 
   useEffect(() => {
     fetchStudents();

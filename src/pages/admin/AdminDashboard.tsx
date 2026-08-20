@@ -20,7 +20,7 @@ import { getAPICall } from "../../api/api";
 import "../../style/analyticsReports.css";
 import "../../style/adminDashboard.css";
 
-// ==================== Sample fallback data ====================
+// ==================== Static UI data ====================
 
 const SY = "2026–2027";
 
@@ -31,14 +31,6 @@ const QUICK_ACTIONS = [
     { label: "Manage Classes", path: "/admin/classrooms", icon: FiBookOpen, accent: true },
 ] as const;
 
-// Fallback used when the /analytics endpoint is unavailable.
-const ENROLLMENT_BY_SCHOOL_YEAR = [
-    { year: "2022", count: 1102 },
-    { year: "2023", count: 1158 },
-    { year: "2024", count: 1189 },
-    { year: "2025", count: 1221 },
-    { year: "2026", count: 1248 },
-];
 
 interface AnalyticsData {
     students?: number;
@@ -59,12 +51,6 @@ interface AcademicSettingsData {
     currentQuarter: number;
     enrollmentOpen: boolean | number;
 }
-
-// Male / female enrollment for the current school year.
-const SEX_ENROLLMENT = {
-    male: 642,
-    female: 606,
-};
 
 function getGreeting(): string {
     const hour = new Date().getHours();
@@ -97,7 +83,7 @@ export default function AdminDashboard() {
                 if (!cancelled) setAnalytics(response.data ?? null);
             })
             .catch(() => {
-                // Error toast is handled by the axios interceptor; keep sample data.
+                // Error toast is handled by the axios interceptor; keep the no-data state.
             });
         return () => {
             cancelled = true;
@@ -118,7 +104,7 @@ export default function AdminDashboard() {
         };
     }, []);
 
-    const live = analytics !== null;
+    const hasAnalyticsData = analytics !== null && Object.keys(analytics).length > 0;
 
     // Enrollment status: null while loading, true/false once known.
     const enrollmentOpen =
@@ -131,51 +117,58 @@ export default function AdminDashboard() {
         state: quarter < activeQuarter ? "done" : quarter === activeQuarter ? "active" : "upcoming",
     }));
 
-    // KPI values come from /analytics when available; otherwise fall back to sample data.
+    // KPI values come from /analytics; show a no-data state when unavailable.
     const kpis = [
         {
             label: "Total Students",
-            value: live ? (analytics?.students ?? 0).toLocaleString() : "1,248",
-            delta: live ? "Live data" : "+4.2% vs last year",
+            value:
+                hasAnalyticsData && analytics?.students != null
+                    ? analytics.students.toLocaleString()
+                    : "No data found",
+            delta: hasAnalyticsData ? "Live data" : "No data found",
             icon: FiUsers,
-            trend: live ? "live" : "up",
+            trend: hasAnalyticsData ? "live" : "flat",
         },
         {
             label: "Teaching Staff",
-            value: live ? (analytics?.teachers ?? 0).toLocaleString() : "84",
-            delta: live ? "Live data" : "+2 new this term",
+            value:
+                hasAnalyticsData && analytics?.teachers != null
+                    ? analytics.teachers.toLocaleString()
+                    : "No data found",
+            delta: hasAnalyticsData ? "Live data" : "No data found",
             icon: FiBookOpen,
-            trend: live ? "live" : "up",
+            trend: hasAnalyticsData ? "live" : "flat",
         },
         {
             label: "Active Classes",
-            value: live ? (analytics?.classrooms ?? 0).toLocaleString() : "32",
-            delta: live ? "Live data" : "Grades 7–12",
+            value:
+                hasAnalyticsData && analytics?.classrooms != null
+                    ? analytics.classrooms.toLocaleString()
+                    : "No data found",
+            delta: hasAnalyticsData ? "Live data" : "No data found",
             icon: FiActivity,
-            trend: live ? "live" : "flat",
+            trend: hasAnalyticsData ? "live" : "flat",
         },
         {
             label: "Average Grade",
-            value: live
+            value: hasAnalyticsData
                 ? analytics?.averageGrade != null
                     ? analytics.averageGrade.toFixed(1)
-                    : "—"
-                : "87.4",
-            delta: live ? "Live data" : "+1.3 pts this quarter",
+                    : "0"
+                : "0",
+            delta: hasAnalyticsData ? "Live data" : "flat",
             icon: FiBookOpen,
-            trend: live ? "live" : "up",
+            trend: hasAnalyticsData ? "live" : "flat",
         },
     ];
 
     const liveSeries = analytics?.studentsPerSchoolYear ?? [];
-    const chartSeries =
-        liveSeries.length > 0
-            ? liveSeries.map((row) => ({ year: row.startYear, count: row.count }))
-            : ENROLLMENT_BY_SCHOOL_YEAR;
+    const chartSeries = liveSeries.map((row) => ({ year: row.startYear, count: row.count }));
+    const hasChartData = chartSeries.length > 0;
 
     // Build the SVG line/area points for the per-school-year enrollment trend.
     // Scaled to the min–max count range so year-over-year growth is visible.
-    const enrollmentCounts = chartSeries.map((row) => row.count);
+    const enrollmentCounts = hasChartData ? chartSeries.map((row) => row.count) : [0];
     const minEnrollment = Math.min(...enrollmentCounts);
     const enrollmentRange = Math.max(1, Math.max(...enrollmentCounts) - minEnrollment);
     const stepX = 315 / Math.max(1, chartSeries.length - 1);
@@ -185,51 +178,61 @@ export default function AdminDashboard() {
         return `${x},${y}`;
     });
     const enrollmentLinePoints = enrollmentPoints.join(" ");
-    const lastEnrollmentPoint = enrollmentPoints[enrollmentPoints.length - 1]!;
-    const enrollmentAreaPoints = `${enrollmentLinePoints} ${lastEnrollmentPoint.split(",")[0]},120 0,120`;
+    const lastEnrollmentPoint = enrollmentPoints[enrollmentPoints.length - 1] ?? "0,120";
+    const lastEnrollmentX = lastEnrollmentPoint.split(",")[0] ?? "0";
+    const enrollmentAreaPoints = hasChartData
+        ? `${enrollmentLinePoints} ${lastEnrollmentX},120 0,120`
+        : "0,120 0,120";
 
-    // Male / female counts come from /analytics when available; otherwise fall back to sample data.
+    // Male / female counts come from /analytics; show a no-data state when unavailable.
     const sexRows = analytics?.enrollmentBySex ?? [];
-    const sexEnrollment =
-        sexRows.length > 0
-            ? {
-                  male: sexRows.find((row) => row.sex === "Male")?.count ?? 0,
-                  female: sexRows.find((row) => row.sex === "Female")?.count ?? 0,
-              }
-            : SEX_ENROLLMENT;
-    const totalSexEnrollment = sexEnrollment.male + sexEnrollment.female;
+    const hasSexEnrollmentData = sexRows.length > 0;
+    const sexEnrollment = hasSexEnrollmentData
+        ? {
+              male: sexRows.find((row) => row.sex === "Male")?.count ?? 0,
+              female: sexRows.find((row) => row.sex === "Female")?.count ?? 0,
+          }
+        : null;
+    const totalSexEnrollment = (sexEnrollment?.male ?? 0) + (sexEnrollment?.female ?? 0);
     const malePercent =
-        totalSexEnrollment > 0 ? Math.round((sexEnrollment.male / totalSexEnrollment) * 1000) / 10 : 0;
+        totalSexEnrollment > 0
+            ? Math.round((((sexEnrollment?.male ?? 0) / totalSexEnrollment) * 1000)) / 10
+            : 0;
     const femalePercent =
-        totalSexEnrollment > 0 ? Math.round((sexEnrollment.female / totalSexEnrollment) * 1000) / 10 : 0;
+        totalSexEnrollment > 0
+            ? Math.round((((sexEnrollment?.female ?? 0) / totalSexEnrollment) * 1000)) / 10
+            : 0;
 
-    // At-a-glance tiles come from /analytics when available; otherwise fall back to sample data.
+    // At-a-glance tiles come from /analytics; show a no-data state when unavailable.
     const gradedEnrollments = analytics?.gradedEnrollments ?? 0;
     const enrollmentCount = analytics?.enrollmentCount ?? 0;
     const pendingActions = Math.max(0, enrollmentCount - gradedEnrollments);
     const snapshot = [
         {
             label: "Attendance Today",
-            value: live
+            value: hasAnalyticsData
                 ? analytics?.attendanceToday?.rate != null
                     ? `${analytics.attendanceToday.rate}%`
-                    : "—"
-                : "96.4%",
+                    : "0"
+                : "0",
             icon: FiCheckCircle,
         },
         {
             label: "New This Week",
-            value: live ? (analytics?.newStudentsThisWeek ?? 0).toLocaleString() : "12",
+            value:
+                hasAnalyticsData && analytics?.newStudentsThisWeek != null
+                    ? analytics.newStudentsThisWeek.toLocaleString()
+                    : "No data found",
             icon: FiUserPlus,
         },
         {
             label: "Grades Finalized",
-            value: live ? gradedEnrollments.toLocaleString() : "1,035",
+            value: hasAnalyticsData ? gradedEnrollments.toLocaleString() : "No data found",
             icon: FiClipboard,
         },
         {
             label: "Pending Actions",
-            value: live ? pendingActions.toLocaleString() : "3",
+            value: hasAnalyticsData ? pendingActions.toLocaleString() : "No data found",
             icon: FiAlertCircle,
         },
     ];
@@ -406,59 +409,67 @@ export default function AdminDashboard() {
                         </div>
                         <span className="analytics__chip inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1 text-xs font-semibold">
                             <FiUsers aria-hidden="true" />
-                            {chartSeries.length} school years
+                            {hasChartData ? `${chartSeries.length} school years` : "No data found"}
                         </span>
                     </div>
 
-                    <div className="px-5 pb-2 overflow-y-auto">
-                        <svg className="analytics__line-chart" viewBox="0 0 320 130" role="img" aria-label="Students per school year line chart">
-                            <defs>
-                                <linearGradient id="dashboard-line-gradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.28" />
-                                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
-                                </linearGradient>
-                            </defs>
-                            <g stroke="var(--neutral-border)" strokeDasharray="4 6" strokeWidth="1">
-                                <line x1="0" y1="30" x2="320" y2="30" />
-                                <line x1="0" y1="60" x2="320" y2="60" />
-                                <line x1="0" y1="90" x2="320" y2="90" />
-                            </g>
-                            <polygon className="dashboard__line-area" points={enrollmentAreaPoints} />
-                            <polyline
-                                points={enrollmentLinePoints}
-                                fill="none"
-                                stroke="var(--primary)"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                            {chartSeries.map((row, index) => {
-                                const [x, y] = enrollmentLinePoints.split(" ")[index]!.split(",").map(Number);
-                                return (
-                                    <g key={row.year}>
-                                        <text
-                                            x={x}
-                                            y={y - 9}
-                                            textAnchor="middle"
-                                            className="dashboard__line-label"
-                                        >
-                                            {row.count.toLocaleString()}
-                                        </text>
-                                        <circle cx={x} cy={y} r="3.5" fill="var(--surface-white)" stroke="var(--primary)" strokeWidth="2">
-                                            <title>{`SY ${row.year}: ${row.count.toLocaleString()} students`}</title>
-                                        </circle>
-                                    </g>
-                                );
-                            })}
-                        </svg>
-                        <div className="mt-2 flex gap-3 border-t pt-2.5">
-                            {chartSeries.map((row) => (
-                                <span key={row.year} className="analytics__bar-label flex-1 text-center text-[0.75rem]">
-                                    {row.year}
-                                </span>
-                            ))}
+                    {hasChartData ? (
+                        <div className="px-5 pb-2 overflow-y-auto">
+                            <svg className="analytics__line-chart" viewBox="0 0 320 130" role="img" aria-label="Students per school year line chart">
+                                <defs>
+                                    <linearGradient id="dashboard-line-gradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.28" />
+                                        <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+                                    </linearGradient>
+                                </defs>
+                                <g stroke="var(--neutral-border)" strokeDasharray="4 6" strokeWidth="1">
+                                    <line x1="0" y1="30" x2="320" y2="30" />
+                                    <line x1="0" y1="60" x2="320" y2="60" />
+                                    <line x1="0" y1="90" x2="320" y2="90" />
+                                </g>
+                                <polygon className="dashboard__line-area" points={enrollmentAreaPoints} />
+                                <polyline
+                                    points={enrollmentLinePoints}
+                                    fill="none"
+                                    stroke="var(--primary)"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                                {chartSeries.map((row, index) => {
+                                    const [x, y] = enrollmentLinePoints.split(" ")[index]!.split(",").map(Number);
+                                    return (
+                                        <g key={row.year}>
+                                            <text
+                                                x={x}
+                                                y={y - 9}
+                                                textAnchor="middle"
+                                                className="dashboard__line-label"
+                                            >
+                                                {row.count.toLocaleString()}
+                                            </text>
+                                            <circle cx={x} cy={y} r="3.5" fill="var(--surface-white)" stroke="var(--primary)" strokeWidth="2">
+                                                <title>{`SY ${row.year}: ${row.count.toLocaleString()} students`}</title>
+                                            </circle>
+                                        </g>
+                                    );
+                                })}
+                            </svg>
+                            <div className="mt-2 flex gap-3 border-t pt-2.5">
+                                {chartSeries.map((row) => (
+                                    <span key={row.year} className="analytics__bar-label flex-1 text-center text-[0.75rem]">
+                                        {row.year}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="px-5 pb-5">
+                            <p className="rounded-xl border border-dashed border-neutral-200 px-4 py-6 text-center text-sm font-semibold text-neutral-500">
+                                No data found
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -473,39 +484,47 @@ export default function AdminDashboard() {
                         </div>
                         <span className="analytics__chip inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1 text-xs font-semibold">
                             <FiUsers aria-hidden="true" />
-                            {totalSexEnrollment.toLocaleString()} students
+                            {hasSexEnrollmentData ? `${totalSexEnrollment.toLocaleString()} students` : "No data found"}
                         </span>
                     </div>
 
-                    <div className="flex flex-col gap-5 p-5">
-                        <div className="flex h-4 w-full overflow-hidden rounded-full" role="img" aria-label={`${malePercent}% male, ${femalePercent}% female`}>
-                            <span className="dashboard__sex-seg dashboard__sex-seg--male" style={{ width: `${malePercent}%` }} />
-                            <span className="dashboard__sex-seg dashboard__sex-seg--female" style={{ width: `${femalePercent}%` }} />
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            <div className="rounded-xl border border-[#D1FAE5] bg-[#F6FBF7] p-4">
-                                <div className="flex items-center gap-2.5">
-                                    <span className="inline-block h-3 w-3 rounded-full bg-[var(--primary)]" aria-hidden="true" />
-                                    <span className="text-[0.8125rem] font-semibold text-neutral-700">Male</span>
-                                </div>
-                                <p className="mt-2 text-[1.375rem] font-bold leading-none text-neutral-900">{sexEnrollment.male.toLocaleString()}</p>
-                                <p className="mt-1 text-[0.6875rem] font-semibold text-neutral-500">{malePercent}% of enrollment</p>
+                    {hasSexEnrollmentData && sexEnrollment ? (
+                        <div className="flex flex-col gap-5 p-5">
+                            <div className="flex h-4 w-full overflow-hidden rounded-full" role="img" aria-label={`${malePercent}% male, ${femalePercent}% female`}>
+                                <span className="dashboard__sex-seg dashboard__sex-seg--male" style={{ width: `${malePercent}%` }} />
+                                <span className="dashboard__sex-seg dashboard__sex-seg--female" style={{ width: `${femalePercent}%` }} />
                             </div>
-                            <div className="rounded-xl border border-[#FDE68A] bg-[#FFFBEB] p-4">
-                                <div className="flex items-center gap-2.5">
-                                    <span className="inline-block h-3 w-3 rounded-full bg-[var(--warning)]" aria-hidden="true" />
-                                    <span className="text-[0.8125rem] font-semibold text-neutral-700">Female</span>
-                                </div>
-                                <p className="mt-2 text-[1.375rem] font-bold leading-none text-neutral-900">{sexEnrollment.female.toLocaleString()}</p>
-                                <p className="mt-1 text-[0.6875rem] font-semibold text-neutral-500">{femalePercent}% of enrollment</p>
-                            </div>
-                        </div>
 
-                        <p className="text-[0.75rem] text-neutral-500">
-                            Based on {totalSexEnrollment.toLocaleString()} enrollments recorded for SY {SY}.
-                        </p>
-                    </div>
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <div className="rounded-xl border border-[#D1FAE5] bg-[#F6FBF7] p-4">
+                                    <div className="flex items-center gap-2.5">
+                                        <span className="inline-block h-3 w-3 rounded-full bg-[var(--primary)]" aria-hidden="true" />
+                                        <span className="text-[0.8125rem] font-semibold text-neutral-700">Male</span>
+                                    </div>
+                                    <p className="mt-2 text-[1.375rem] font-bold leading-none text-neutral-900">{sexEnrollment!.male.toLocaleString()}</p>
+                                    <p className="mt-1 text-[0.6875rem] font-semibold text-neutral-500">{malePercent}% of enrollment</p>
+                                </div>
+                                <div className="rounded-xl border border-[#FDE68A] bg-[#FFFBEB] p-4">
+                                    <div className="flex items-center gap-2.5">
+                                        <span className="inline-block h-3 w-3 rounded-full bg-[var(--warning)]" aria-hidden="true" />
+                                        <span className="text-[0.8125rem] font-semibold text-neutral-700">Female</span>
+                                    </div>
+                                    <p className="mt-2 text-[1.375rem] font-bold leading-none text-neutral-900">{sexEnrollment!.female.toLocaleString()}</p>
+                                    <p className="mt-1 text-[0.6875rem] font-semibold text-neutral-500">{femalePercent}% of enrollment</p>
+                                </div>
+                            </div>
+
+                            <p className="text-[0.75rem] text-neutral-500">
+                                Based on {totalSexEnrollment.toLocaleString()} enrollments recorded for SY {SY}.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="px-5 pb-5">
+                            <p className="rounded-xl border border-dashed border-neutral-200 px-4 py-6 text-center text-sm font-semibold text-neutral-500">
+                                No data found
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
@@ -539,7 +558,7 @@ export default function AdminDashboard() {
             {/* ==================== Footer note ==================== */}
             <p className="analytics__subtitle flex items-center gap-2 px-1 text-[0.75rem]">
                 <FiActivity aria-hidden="true" />
-                All widgets on this page show live data; values fall back to sample previews only when the API is unavailable.
+                All widgets on this page show live data from analytics.
             </p>
         </section>
     );

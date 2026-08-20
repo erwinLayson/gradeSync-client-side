@@ -268,7 +268,7 @@ export default function AdminStudents() {
         if (!deleteTarget || deletingStudent) return;
         setDeletingStudent(true);
         try {
-            await deleteAPICall<null>(`/students/${deleteTarget.id}`);
+            await deleteAPICall<null, null>(`/students/${deleteTarget.id}`);
             refetchStudents("/students", { toast: false });
             setDeleteTarget(null);
             deleteTriggerRef.current?.focus();
