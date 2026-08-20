@@ -1,0 +1,292 @@
+/* ============================================================
+   AdminDashboard — component stylesheet (hybrid approach)
+   Complex layer only: hero gradients, chips, transitions.
+   Layout lives as Tailwind utilities in AdminDashboard.tsx.
+   Chart components (KPIs, bars, donut, tables) reuse the
+   shared analytics classes from analyticsReports.css.
+   ============================================================ */
+
+/* ---------- Hero ---------- */
+.dashboard__hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--radius-2xl);
+  color: var(--text-on-dark);
+  background: var(--gradient-page);
+  box-shadow: var(--shadow-lg);
+}
+
+.dashboard__hero-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+.dashboard__hero-glow--accent {
+  top: -6rem;
+  right: -4rem;
+  width: 22rem;
+  height: 22rem;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  opacity: 0.35;
+  animation: dashboard-glow-drift 14s ease-in-out infinite alternate;
+}
+
+.dashboard__hero-glow--leaf {
+  bottom: -8rem;
+  left: -5rem;
+  width: 24rem;
+  height: 24rem;
+  background: radial-gradient(circle, var(--primary-light) 0%, transparent 70%);
+  opacity: 0.3;
+  animation: dashboard-glow-drift 18s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes dashboard-glow-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(1.5rem, 1rem, 0) scale(1.15);
+  }
+}
+
+.dashboard__hero-icon {
+  border-radius: var(--radius-lg);
+  color: var(--text-on-dark);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border-on-dark);
+  box-shadow: 0 12px 24px -8px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.dashboard__hero-eyebrow {
+  color: var(--accent-light);
+}
+
+.dashboard__hero-title {
+  color: var(--text-on-dark);
+}
+
+.dashboard__hero-subtitle {
+  color: var(--text-on-dark-soft);
+}
+
+.dashboard__hero-badge {
+  border: 1px solid var(--border-on-dark);
+  color: var(--text-on-dark);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.dashboard__hero-badge--open {
+  color: #ecfdf5;
+  background: rgba(16, 185, 129, 0.22);
+}
+
+.dashboard__hero-badge--closed {
+  color: #fef2f2;
+  background: rgba(220, 38, 38, 0.22);
+}
+
+/* ---------- Quick action buttons ---------- */
+.dashboard__quick {
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base),
+    transform var(--transition-base);
+}
+
+.dashboard__quick:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.dashboard__quick:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.dashboard__quick-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+  transition: filter var(--transition-fast);
+}
+
+.dashboard__quick:hover .dashboard__quick-icon {
+  filter: brightness(1.08);
+}
+
+.dashboard__quick-icon--accent {
+  color: var(--warning);
+  background: var(--accent-light);
+}
+
+/* ---------- Recent activity ---------- */
+.dashboard__activity-item {
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.dashboard__activity-item:last-child {
+  border-bottom: none;
+}
+
+.dashboard__activity-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.dashboard__activity-icon--ok {
+  color: var(--success);
+  background: #ecfdf5;
+}
+
+.dashboard__activity-icon--warn {
+  color: var(--warning);
+  background: var(--accent-light);
+}
+
+.dashboard__activity-time {
+  color: var(--text-muted);
+}
+
+/* ---------- Enrollment status ---------- */
+.dashboard__status {
+  border-color: #d1fae5;
+  background: #f6fbf7;
+}
+
+.dashboard__status--closed {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.dashboard__status-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--success);
+  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.15);
+  animation: dashboard-status-pulse 2.4s ease-in-out infinite;
+}
+
+.dashboard__status-dot--closed {
+  background: #dc2626;
+  box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.15);
+  animation: dashboard-status-pulse-closed 2.4s ease-in-out infinite;
+}
+
+@keyframes dashboard-status-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.08);
+  }
+}
+
+@keyframes dashboard-status-pulse-closed {
+  0%,
+  100% {
+    box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0.08);
+  }
+}
+
+.dashboard__quarter-seg {
+  flex: 1;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--surface-bg);
+  transition: background var(--transition-base);
+}
+
+.dashboard__quarter-seg--done {
+  background: var(--primary-light);
+}
+
+.dashboard__quarter-seg--active {
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------- Enrollment-per-school-year line chart ---------- */
+.dashboard__line-area {
+  fill: url("#dashboard-line-gradient");
+}
+
+.dashboard__line-label {
+  fill: var(--text-muted);
+  font-size: 0.5625rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* ---------- Male / female enrollment bar ---------- */
+.dashboard__sex-seg {
+  height: 100%;
+  transition: width var(--transition-slow) ease;
+}
+
+.dashboard__sex-seg--male {
+  background: var(--gradient-brand);
+}
+
+.dashboard__sex-seg--female {
+  background: var(--warning);
+}
+
+/* ---------- At-a-glance snapshot ---------- */
+.dashboard__snapshot {
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base),
+    transform var(--transition-base);
+}
+
+.dashboard__snapshot:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.dashboard__snapshot-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.dashboard__snapshot-label {
+  color: var(--text-muted);
+}
+
+.dashboard__snapshot-value {
+  color: var(--text-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .dashboard__hero-glow {
+    animation: none;
+  }
+
+  .dashboard__quick {
+    transform: none;
+  }
+}

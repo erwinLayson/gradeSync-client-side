@@ -1,0 +1,667 @@
+/* ============================================================
+   TeacherGradebook — component stylesheet (hybrid approach)
+
+   Holds the "complex" layer only (colors, gradients, shadows,
+   animations, transitions, state styles). Basic layout lives
+   as Tailwind utilities directly in TeacherGradebook.tsx.
+   ============================================================ */
+
+/* ---------- Back button ---------- */
+.teacher-gradebook__back {
+  border-color: var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.teacher-gradebook__back:hover {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+}
+
+.teacher-gradebook__back:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Hero banner ---------- */
+.teacher-gradebook__hero {
+  background: var(--gradient-brand);
+  color: var(--text-on-dark);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  animation: teacher-gradebook-in var(--transition-slow) ease-out forwards;
+}
+
+@keyframes teacher-gradebook-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.teacher-gradebook__hero-avatar {
+  color: var(--text-on-dark);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border-on-dark);
+  box-shadow: 0 12px 24px -8px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.teacher-gradebook__hero-eyebrow {
+  color: var(--text-on-dark-muted);
+}
+
+.teacher-gradebook__hero-name {
+  letter-spacing: -0.01em;
+  color: var(--text-on-dark);
+}
+
+.teacher-gradebook__hero-role {
+  color: var(--text-on-dark-soft);
+}
+
+.teacher-gradebook__hero-badge {
+  border-color: var(--border-on-dark);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.teacher-gradebook__hero-badge-count {
+  color: var(--text-on-dark);
+}
+
+.teacher-gradebook__hero-badge-label {
+  color: var(--text-on-dark-muted);
+}
+
+/* ---------- Toolbar + quarter tabs ---------- */
+.teacher-gradebook__toolbar {
+  border-color: var(--neutral-border);
+  background: var(--surface-white);
+}
+
+.teacher-gradebook__tab {
+  border: 1px solid var(--neutral-border);
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+}
+
+.teacher-gradebook__tab:hover {
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+.teacher-gradebook__tab--active {
+  border-color: var(--primary);
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+}
+
+.teacher-gradebook__tab--active:hover {
+  color: var(--text-on-dark);
+}
+
+/* ---------- Action buttons ---------- */
+.teacher-gradebook__add {
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+}
+
+.teacher-gradebook__add:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.05);
+}
+
+.teacher-gradebook__add:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.teacher-gradebook__save {
+  border: 1px solid var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.teacher-gradebook__save:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+}
+
+.teacher-gradebook__save:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.teacher-gradebook__save--primary {
+  border-color: transparent;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+}
+
+.teacher-gradebook__save--primary:hover:not(:disabled) {
+  border-color: transparent;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.05);
+}
+
+.teacher-gradebook__save--primary:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Component summary chips ---------- */
+.teacher-gradebook__chip {
+  border-color: var(--neutral-border);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.teacher-gradebook__chip:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.teacher-gradebook__chip-icon {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.teacher-gradebook__chip-label {
+  color: var(--text-muted);
+}
+
+.teacher-gradebook__chip-value {
+  color: var(--text-dark);
+}
+
+/* ---------- Card shell ---------- */
+.teacher-gradebook__card {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+}
+
+.teacher-gradebook__card-head {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.teacher-gradebook__card-title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.teacher-gradebook__card-subtitle {
+  color: var(--text-muted);
+}
+
+/* ---------- Score sheet ---------- */
+.teacher-gradebook__sheet-wrap {
+  background: var(--surface-white);
+}
+
+.teacher-gradebook__sheet th {
+  text-align: left;
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border-bottom: 1px solid var(--neutral-border);
+  white-space: nowrap;
+}
+
+.teacher-gradebook__sheet td {
+  color: var(--text-body);
+  border-bottom: 1px solid var(--neutral-border);
+  vertical-align: middle;
+}
+
+.teacher-gradebook__sheet tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.teacher-gradebook__sheet tbody tr:nth-child(even) {
+  background: var(--surface-bg);
+}
+
+.teacher-gradebook__sheet tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.teacher-gradebook__sheet tbody tr:hover {
+  background: var(--accent-light);
+}
+
+/* Assessment header cell */
+.teacher-gradebook__assessment-type {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.teacher-gradebook__assessment-title {
+  color: var(--text-dark);
+}
+
+.teacher-gradebook__assessment-meta {
+  color: var(--text-muted);
+}
+
+.teacher-gradebook__assessment-actions {
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.teacher-gradebook__sheet th:hover .teacher-gradebook__assessment-actions,
+.teacher-gradebook__sheet th:focus-within .teacher-gradebook__assessment-actions {
+  opacity: 1;
+}
+
+.teacher-gradebook__assessment-action {
+  color: var(--text-muted);
+  background: var(--surface-white);
+  border: 1px solid var(--neutral-border);
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.teacher-gradebook__assessment-action:hover {
+  color: var(--primary-dark);
+  border-color: var(--primary);
+  background: var(--accent-light);
+}
+
+.teacher-gradebook__assessment-action--danger:hover {
+  color: var(--error);
+  border-color: var(--error);
+  background: #fef2f2;
+}
+
+/* Student cell */
+.teacher-gradebook__cell--student {
+  white-space: nowrap;
+}
+
+.teacher-gradebook__student-avatar {
+  color: var(--primary);
+  background: var(--neutral-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.teacher-gradebook__student-name {
+  color: var(--text-dark);
+}
+
+.teacher-gradebook__student-lrn {
+  color: var(--text-muted);
+}
+
+/* Score chips */
+.teacher-gradebook__score {
+  border: 1px solid var(--neutral-border);
+  color: var(--text-input);
+  background: var(--surface-white);
+  padding: 0.375rem 0.625rem;
+  min-width: 4.25rem;
+  font-family: var(--font-mono);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+.teacher-gradebook__cell--score:hover .teacher-gradebook__score {
+  border-color: var(--primary-light);
+}
+
+/* Total cell */
+.teacher-gradebook__cell--total {
+  color: var(--primary-dark);
+  white-space: nowrap;
+}
+
+/* Attendance cell */
+.teacher-gradebook__attendance {
+  white-space: nowrap;
+}
+
+.teacher-gradebook__attendance--good {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.teacher-gradebook__attendance--warn {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.teacher-gradebook__attendance--low {
+  color: var(--error);
+  background: #fee2e2;
+}
+
+.teacher-gradebook__attendance--off {
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  opacity: 0.75;
+}
+
+.teacher-gradebook__attendance-days {
+  color: inherit;
+  opacity: 0.75;
+}
+
+.teacher-gradebook__attendance-meta {
+  color: var(--text-muted);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.teacher-gradebook__attendance-empty {
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.teacher-gradebook__attendance-empty:hover {
+  color: var(--primary-dark);
+}
+
+/* Grade + remarks */
+.teacher-gradebook__grade {
+  white-space: nowrap;
+}
+
+.teacher-gradebook__grade--pass {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.teacher-gradebook__grade--fail {
+  color: var(--error);
+  background: #fee2e2;
+}
+
+.teacher-gradebook__remarks--passed {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.teacher-gradebook__remarks--failed {
+  color: var(--error);
+  background: #fee2e2;
+}
+
+/* ---------- Sheet footer ---------- */
+.teacher-gradebook__card-foot {
+  border-top: 1px solid var(--neutral-border);
+}
+
+.teacher-gradebook__foot-note {
+  color: var(--text-muted);
+}
+
+.teacher-gradebook__foot-note svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* ---------- Toolbar secondary action ---------- */
+.teacher-gradebook__weights {
+  border-color: var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.teacher-gradebook__weights:hover {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+}
+
+.teacher-gradebook__weights:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Weights form extras ---------- */
+.teacher-gradebook__form-suffix {
+  color: var(--text-muted);
+}
+
+.teacher-gradebook__form-hint {
+  color: var(--text-muted);
+}
+
+.teacher-gradebook__weights-total-wrap {
+  border-color: var(--neutral-border);
+  background: var(--surface-bg);
+}
+
+.teacher-gradebook__weights-total-label {
+  color: var(--text-dark);
+}
+
+.teacher-gradebook__weights-total {
+  color: var(--text-muted);
+}
+
+.teacher-gradebook__weights-total--ok {
+  color: var(--primary-dark);
+}
+
+.teacher-gradebook__weights-total--over {
+  color: var(--error);
+}
+
+/* ---------- Score sheet inputs ---------- */
+.teacher-gradebook__score-input {
+  border: 1px solid var(--neutral-border);
+  color: var(--text-input);
+  background: var(--surface-white);
+  padding: 0.375rem 0.625rem;
+  min-width: 4.25rem;
+  max-width: 5.5rem;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-mono);
+  text-align: center;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+.teacher-gradebook__score-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.teacher-gradebook__score-input:hover {
+  border-color: var(--primary-light);
+}
+
+.teacher-gradebook__score-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+  background: var(--surface-white);
+}
+
+/* ---------- Empty states ---------- */
+.teacher-gradebook__empty {
+  border-top: 1px solid var(--neutral-border);
+  background: var(--surface-bg);
+}
+
+.teacher-gradebook__empty-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.teacher-gradebook__empty-title {
+  color: var(--text-dark);
+}
+
+.teacher-gradebook__empty-text {
+  color: var(--text-muted);
+}
+
+.teacher-gradebook__empty-add {
+  align-self: center;
+}
+
+/* ---------- Assessment modal ---------- */
+.teacher-gradebook__modal {
+  background: rgb(15 23 42 / 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: teacher-gradebook-fade var(--transition-fast) ease-out;
+}
+
+@keyframes teacher-gradebook-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.teacher-gradebook__modal-panel {
+  border: 1px solid var(--neutral-border);
+  animation: teacher-gradebook-in var(--transition-slow) ease-out forwards;
+}
+
+.teacher-gradebook__modal-header {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.teacher-gradebook__modal-eyebrow {
+  color: var(--primary);
+}
+
+.teacher-gradebook__modal-title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.teacher-gradebook__modal-subtitle {
+  color: var(--text-muted);
+}
+
+.teacher-gradebook__modal-close {
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border: 1px solid transparent;
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.teacher-gradebook__modal-close:hover {
+  color: var(--primary-dark);
+  border-color: var(--primary);
+  background: var(--accent-light);
+}
+
+/* ---------- Assessment form ---------- */
+.teacher-gradebook__form-label {
+  color: var(--text-dark);
+}
+
+.teacher-gradebook__form-optional {
+  color: var(--text-muted);
+}
+
+.teacher-gradebook__form-input {
+  border-color: var(--neutral-border);
+  color: var(--text-input);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.teacher-gradebook__form-input::placeholder {
+  color: var(--text-muted);
+}
+
+.teacher-gradebook__form-input:hover {
+  border-color: var(--primary-light);
+}
+
+.teacher-gradebook__form-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.teacher-gradebook__form-footer {
+  border-color: var(--neutral-border);
+}
+
+.teacher-gradebook__form-cancel {
+  border-color: var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.teacher-gradebook__form-cancel:hover {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+}
+
+.teacher-gradebook__form-submit {
+  border: 1px solid transparent;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+}
+
+.teacher-gradebook__form-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.05);
+}
+
+.teacher-gradebook__form-submit:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.teacher-gradebook__form-submit:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .teacher-gradebook__hero,
+  .teacher-gradebook__modal-panel {
+    animation: none;
+  }
+
+  .teacher-gradebook__modal {
+    animation: none;
+  }
+
+  .teacher-gradebook__tab,
+  .teacher-gradebook__add,
+  .teacher-gradebook__save--primary,
+  .teacher-gradebook__chip {
+    transition: none;
+  }
+}

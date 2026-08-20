@@ -1,0 +1,374 @@
+/* ============================================================
+   AdminStudentRecords — Submission Tracker stylesheet
+
+   Holds the "complex" layer only (colors, gradients, shadows,
+   animations, transitions, state styles). Basic layout lives
+   as Tailwind utilities directly in AdminStudentRecords.tsx.
+   ============================================================ */
+
+/* ---------- Hero banner ---------- */
+.tracker__hero {
+  background: var(--gradient-brand);
+  color: var(--text-on-dark);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  animation: tracker-in var(--transition-slow) ease-out forwards;
+}
+
+@keyframes tracker-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tracker__hero-avatar {
+  color: var(--text-on-dark);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border-on-dark);
+  box-shadow: 0 12px 24px -8px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.tracker__hero-eyebrow {
+  color: var(--text-on-dark-muted);
+}
+
+.tracker__hero-name {
+  letter-spacing: -0.01em;
+  color: var(--text-on-dark);
+}
+
+.tracker__hero-role {
+  color: var(--text-on-dark-soft);
+}
+
+.tracker__hero-badge {
+  border-color: var(--border-on-dark);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.tracker__hero-badge-count {
+  color: var(--text-on-dark);
+}
+
+.tracker__hero-badge-label {
+  color: var(--text-on-dark-muted);
+}
+
+/* ---------- Toolbar ---------- */
+.tracker__toolbar {
+  border-color: var(--neutral-border);
+  background: var(--surface-white);
+}
+
+.tracker__toolbar-title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.tracker__toolbar-subtitle {
+  color: var(--text-muted);
+}
+
+.tracker__year {
+  border-color: var(--neutral-border);
+  background: var(--surface-bg);
+}
+
+.tracker__year-icon {
+  color: var(--primary);
+}
+
+.tracker__year-label {
+  color: var(--text-muted);
+}
+
+.tracker__year-select {
+  color: var(--text-dark);
+}
+
+/* ---------- Card shell ---------- */
+.tracker__card {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+}
+
+/* ---------- Matrix table ---------- */
+.tracker__table-wrap {
+  background: var(--surface-white);
+}
+
+.tracker__table th {
+  text-align: left;
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border-bottom: 1px solid var(--neutral-border);
+  white-space: nowrap;
+}
+
+.tracker__table td {
+  color: var(--text-body);
+  border-bottom: 1px solid var(--neutral-border);
+  vertical-align: middle;
+}
+
+.tracker__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tracker__table tbody tr:nth-child(even) {
+  background: var(--surface-bg);
+}
+
+.tracker__table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.tracker__table tbody tr:hover {
+  background: var(--accent-light);
+}
+
+.tracker__current-chip {
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+}
+
+/* Class cell */
+.tracker__cell--class {
+  white-space: nowrap;
+}
+
+.tracker__class-avatar {
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+}
+
+.tracker__class-name {
+  color: var(--text-dark);
+}
+
+.tracker__class-meta {
+  color: var(--text-muted);
+}
+
+/* Adviser cell */
+.tracker__adviser-avatar {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.tracker__adviser-name {
+  color: var(--text-body);
+}
+
+.tracker__no-adviser {
+  color: var(--error);
+}
+
+/* Quarter cells */
+.tracker__quarter {
+  min-width: 3.75rem;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+}
+
+.tracker__quarter:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  filter: brightness(1.04);
+}
+
+.tracker__quarter:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.tracker__quarter--complete {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.tracker__quarter--partial {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.tracker__quarter--none {
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border-color: var(--neutral-border);
+}
+
+/* Row status */
+.tracker__status--ok {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.tracker__status--blocked {
+  color: var(--error);
+  background: #fee2e2;
+}
+
+.tracker__status--warn {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.tracker__status--muted {
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border: 1px solid var(--neutral-border);
+}
+
+/* ---------- Card footer ---------- */
+.tracker__card-foot {
+  border-top: 1px solid var(--neutral-border);
+}
+
+.tracker__foot-note {
+  color: var(--text-muted);
+}
+
+.tracker__foot-warn {
+  color: var(--error);
+  flex-shrink: 0;
+}
+
+/* ---------- Empty states ---------- */
+.tracker__empty {
+  border-top: 1px solid var(--neutral-border);
+  background: var(--surface-bg);
+}
+
+.tracker__empty-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.tracker__empty-title {
+  color: var(--text-dark);
+}
+
+.tracker__empty-text {
+  color: var(--text-muted);
+}
+
+/* ---------- Drill-down modal ---------- */
+.tracker__modal {
+  background: rgb(15 23 42 / 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: tracker-fade var(--transition-fast) ease-out;
+}
+
+@keyframes tracker-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.tracker__modal-panel {
+  border: 1px solid var(--neutral-border);
+  animation: tracker-in var(--transition-slow) ease-out forwards;
+}
+
+.tracker__modal-header {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.tracker__modal-eyebrow {
+  color: var(--primary);
+}
+
+.tracker__modal-title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.tracker__modal-subtitle {
+  color: var(--text-muted);
+}
+
+.tracker__modal-close {
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border: 1px solid transparent;
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.tracker__modal-close:hover {
+  color: var(--primary-dark);
+  border-color: var(--primary);
+  background: var(--accent-light);
+}
+
+.tracker__modal-table th {
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.tracker__modal-table td {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.tracker__modal-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tracker__cell--student {
+  white-space: nowrap;
+}
+
+.tracker__modal-avatar {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.tracker__modal-status {
+  white-space: nowrap;
+}
+
+.tracker__modal-status--submitted {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.tracker__modal-status--pending {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.tracker__modal-empty {
+  color: var(--text-muted);
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .tracker__hero,
+  .tracker__modal-panel {
+    animation: none;
+  }
+
+  .tracker__modal {
+    animation: none;
+  }
+
+  .tracker__quarter {
+    transition: none;
+  }
+}

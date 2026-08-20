@@ -1,0 +1,390 @@
+/* ============================================================
+   studentClassroom (My Classrooms) — component stylesheet
+   (hybrid approach: tokens for colors/shadows/animations here,
+   basic layout as Tailwind utilities in the TSX files)
+   ============================================================ */
+
+/* ---------- Shared section shell ---------- */
+.student-classes__page {
+  animation: student-classes-in var(--transition-slow) ease-out forwards;
+}
+
+@keyframes student-classes-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Hero banner ---------- */
+.student-classes__hero {
+  background: var(--gradient-brand);
+  color: var(--text-on-dark);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.student-classes__hero-avatar {
+  color: var(--text-on-dark);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border-on-dark);
+  box-shadow: 0 12px 24px -8px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.student-classes__hero-eyebrow {
+  color: var(--text-on-dark-muted);
+}
+
+.student-classes__hero-name {
+  letter-spacing: -0.01em;
+  color: var(--text-on-dark);
+}
+
+.student-classes__hero-role {
+  color: var(--text-on-dark-soft);
+}
+
+.student-classes__hero-badge {
+  border-color: var(--border-on-dark);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.student-classes__hero-badge-count {
+  color: var(--text-on-dark);
+}
+
+.student-classes__hero-badge-label {
+  color: var(--text-on-dark-muted);
+}
+
+/* ---------- Quick stats ---------- */
+.student-classes__stat {
+  border-color: var(--neutral-border);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.student-classes__stat:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.student-classes__stat-icon {
+  box-shadow: var(--shadow-sm);
+}
+
+.student-classes__stat-icon--green {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.student-classes__stat-icon--blue {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.student-classes__stat-icon--amber {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.student-classes__stat-icon--rose {
+  color: #be185d;
+  background: #fce7f3;
+}
+
+.student-classes__stat-icon--violet {
+  color: #5b21b6;
+  background: #ede9fe;
+}
+
+.student-classes__stat-label {
+  color: var(--text-muted);
+}
+
+.student-classes__stat-value {
+  color: var(--text-dark);
+}
+
+/* ---------- Class card ---------- */
+.student-classes__card {
+  border: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-lg);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.student-classes__card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.student-classes__card-icon {
+  color: var(--primary);
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.15);
+}
+
+.student-classes__card-tag {
+  color: var(--primary);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.student-classes__card-row-icon {
+  color: var(--text-muted);
+}
+
+.student-classes__card-subject {
+  border: 1px solid var(--neutral-border);
+  background: #f8fafc;
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+.student-classes__card-subject:hover {
+  border-color: var(--primary);
+  background: #ffffff;
+}
+
+.student-classes__card-subject-badge {
+  color: var(--primary);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.student-classes__card-cta {
+  background: var(--gradient-brand);
+  color: var(--text-on-dark);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+.student-classes__card-cta:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* ---------- Detail view ---------- */
+.student-classes__back {
+  border: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+  color: var(--text-dark);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.student-classes__back:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+}
+
+.student-classes__details-hero {
+  background: var(--gradient-brand);
+  color: var(--text-on-dark);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.student-classes__details-avatar {
+  color: var(--text-on-dark);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border-on-dark);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.student-classes__details-eyebrow {
+  color: var(--text-on-dark-muted);
+}
+
+.student-classes__details-title {
+  letter-spacing: -0.01em;
+  color: var(--text-on-dark);
+}
+
+.student-classes__details-subtitle {
+  color: var(--text-on-dark-soft);
+}
+
+.student-classes__details-badge {
+  border-color: var(--border-on-dark);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.student-classes__details-badge-count {
+  color: var(--text-on-dark);
+}
+
+.student-classes__details-badge-label {
+  color: var(--text-on-dark-muted);
+}
+
+.student-classes__details-stat {
+  border-color: var(--neutral-border);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.student-classes__details-stat-label {
+  color: var(--text-muted);
+}
+
+.student-classes__details-stat-value {
+  color: var(--text-dark);
+}
+
+/* ---------- Subjects list ---------- */
+.student-classes__subjects {
+  border: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-lg);
+}
+
+.student-classes__subjects-row {
+  border-bottom: 1px solid var(--neutral-border);
+  transition: background var(--transition-base);
+}
+
+.student-classes__subjects-row:last-child {
+  border-bottom: none;
+}
+
+.student-classes__subjects-row:hover {
+  background: #f8fafc;
+}
+
+.student-classes__subjects-subject-icon {
+  color: var(--primary);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.student-classes__subjects-subject-code {
+  color: var(--text-muted);
+}
+
+.student-classes__subjects-teacher {
+  color: var(--text-muted);
+}
+
+.student-classes__subjects-units {
+  color: var(--text-dark);
+}
+
+/* ---------- Grades table ---------- */
+.student-classes__grades {
+  border: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-lg);
+}
+
+.student-classes__grades-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.student-classes__grades-table th {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+  border-bottom: 1px solid var(--neutral-border);
+  background: #f8fafc;
+}
+
+.student-classes__grades-table td {
+  border-bottom: 1px solid var(--neutral-border);
+  color: var(--text-dark);
+}
+
+.student-classes__grades-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.student-classes__grades-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.student-classes__grade-passed {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.student-classes__grade-failed {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.student-classes__grades-general {
+  background: #f8fafc;
+}
+
+.student-classes__grades-general td {
+  font-weight: 700;
+}
+
+.student-classes__promoted {
+  color: #065f46;
+  background: #d1fae5;
+  border: 1px solid #a7f3d0;
+}
+
+/* ---------- Tabs & quarter selector ---------- */
+.student-classes__tab--active {
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+}
+
+.student-classes__quarter--active {
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------- Activity type pill ---------- */
+.student-classes__activity-type {
+  color: var(--primary);
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.15);
+}
+
+/* ---------- Attendance ---------- */
+.student-classes__attendance-warn {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.student-classes__attendance-present {
+  color: #065f46;
+  background: #d1fae5;
+  border: 1px solid #a7f3d0;
+}
+
+.student-classes__attendance-absent {
+  color: #991b1b;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+}
+
+/* ---------- Mobile tweaks ---------- */
+@media (max-width: 640px) {
+  .student-classes__grades-table th,
+  .student-classes__grades-table td {
+    padding: 0.625rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}

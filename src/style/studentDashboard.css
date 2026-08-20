@@ -1,0 +1,186 @@
+/* ============================================================
+   StudentDashboard — component stylesheet
+   (hybrid approach: tokens here, layout as Tailwind utilities)
+   ============================================================ */
+
+.student-dashboard__page {
+  animation: student-dashboard-in var(--transition-slow) ease-out forwards;
+}
+
+@keyframes student-dashboard-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Hero banner ---------- */
+.student-dashboard__hero {
+  background: var(--gradient-brand);
+  color: var(--text-on-dark);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.student-dashboard__hero-avatar {
+  color: var(--text-on-dark);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border-on-dark);
+  box-shadow: 0 12px 24px -8px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.student-dashboard__hero-eyebrow {
+  color: var(--text-on-dark-muted);
+}
+
+.student-dashboard__hero-name {
+  letter-spacing: -0.01em;
+  color: var(--text-on-dark);
+}
+
+.student-dashboard__hero-role {
+  color: var(--text-on-dark-soft);
+}
+
+.student-dashboard__hero-badge {
+  border-color: var(--border-on-dark);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.student-dashboard__hero-badge-count {
+  color: var(--text-on-dark);
+}
+
+.student-dashboard__hero-badge-label {
+  color: var(--text-on-dark-muted);
+}
+
+/* ---------- Quick stats ---------- */
+.student-dashboard__stat {
+  border-color: var(--neutral-border);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.student-dashboard__stat:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.student-dashboard__stat-icon {
+  box-shadow: var(--shadow-sm);
+}
+
+.student-dashboard__stat-icon--green {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.student-dashboard__stat-icon--blue {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.student-dashboard__stat-icon--amber {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.student-dashboard__stat-icon--rose {
+  color: #be185d;
+  background: #fce7f3;
+}
+
+.student-dashboard__stat-icon--violet {
+  color: #5b21b6;
+  background: #ede9fe;
+}
+
+.student-dashboard__stat-label {
+  color: var(--text-muted);
+}
+
+.student-dashboard__stat-value {
+  color: var(--text-dark);
+}
+
+/* ---------- Panel cards ---------- */
+.student-dashboard__panel {
+  border: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-lg);
+}
+
+.student-dashboard__subject-row {
+  border-bottom: 1px solid var(--neutral-border);
+  transition: background var(--transition-base);
+}
+
+.student-dashboard__subject-row:last-child {
+  border-bottom: none;
+}
+
+.student-dashboard__subject-row:hover {
+  background: #f8fafc;
+}
+
+.student-dashboard__subject-icon {
+  color: var(--primary);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.student-dashboard__grade-good {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.student-dashboard__grade-warn {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.student-dashboard__grade-ng {
+  color: #6b7280;
+  background: #f3f4f6;
+}
+
+/* ---------- Quick links ---------- */
+.student-dashboard__link {
+  border: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.student-dashboard__link:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.student-dashboard__link-icon {
+  color: var(--primary);
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.15);
+}
+
+.student-dashboard__link-arrow {
+  color: var(--text-muted);
+  transition: transform var(--transition-base), color var(--transition-base);
+}
+
+.student-dashboard__link:hover .student-dashboard__link-arrow {
+  transform: translateX(3px);
+  color: var(--primary);
+}

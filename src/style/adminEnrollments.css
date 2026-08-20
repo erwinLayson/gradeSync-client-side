@@ -1,0 +1,935 @@
+/* ============================================================
+   AdminEnrollments - component stylesheet (hybrid approach)
+
+   This file holds the "complex" layer only:
+   - colors / gradients / shadows / radii from the design tokens
+   - animations, transitions and state styles (hover / active /
+     focus / checked), pseudo-elements, scrollbars, responsive
+     & reduced-motion handling
+
+   Basic layout (display, flex/grid, gap, padding, typography)
+   lives as Tailwind utilities directly in AdminEnrollments.tsx.
+   ============================================================ */
+
+/* ---------- Hero ---------- */
+.enrollments__hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--radius-2xl);
+  color: var(--text-on-dark);
+  background: var(--gradient-page);
+  box-shadow: var(--shadow-lg);
+}
+
+.enrollments__hero-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+.enrollments__hero-glow--one {
+  top: -6rem;
+  right: -4rem;
+  width: 22rem;
+  height: 22rem;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  opacity: 0.35;
+  animation: enrollments-glow-drift 14s ease-in-out infinite alternate;
+}
+
+.enrollments__hero-glow--two {
+  bottom: -8rem;
+  left: -5rem;
+  width: 24rem;
+  height: 24rem;
+  background: radial-gradient(circle, var(--primary-light) 0%, transparent 70%);
+  opacity: 0.3;
+  animation: enrollments-glow-drift 18s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes enrollments-glow-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(1.5rem, 1rem, 0) scale(1.15);
+  }
+}
+
+.enrollments__hero-icon {
+  border-radius: var(--radius-lg);
+  color: var(--text-on-dark);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border-on-dark);
+  box-shadow: 0 12px 24px -8px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.enrollments__hero-eyebrow {
+  color: var(--accent-light);
+}
+
+.enrollments__hero-title {
+  color: var(--text-on-dark);
+}
+
+.enrollments__hero-subtitle {
+  color: var(--text-on-dark-soft);
+}
+
+.enrollments__hero-status {
+  border: 1px solid var(--border-on-dark);
+  border-radius: 9999px;
+  color: var(--text-on-dark);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.enrollments__hero-status svg {
+  color: var(--primary-light);
+  animation: enrollments-pulse 2s ease-in-out infinite;
+}
+
+.enrollments__hero-status--closed {
+  border-color: rgba(252, 165, 165, 0.6);
+  background: rgba(239, 68, 68, 0.18);
+}
+
+.enrollments__hero-status--closed svg {
+  color: #fca5a5;
+  animation: none;
+}
+
+/* ---------- School year select ---------- */
+.enrollments__year-select {
+  border: 1px solid var(--border-on-dark);
+  border-radius: var(--radius-md);
+  color: var(--text-on-dark);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.enrollments__year-select:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.enrollments__year-select svg {
+  flex-shrink: 0;
+  color: var(--primary-light);
+}
+
+.enrollments__year-select select {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.enrollments__year-select select option {
+  color: var(--text-dark);
+  background: var(--surface-white);
+}
+
+/* ---------- Stepper ---------- */
+.enrollments__steps {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  scrollbar-width: none;
+}
+
+.enrollments__steps::-webkit-scrollbar {
+  display: none;
+}
+
+.enrollments__step-badge {
+  border-radius: 9999px;
+  border: 1px solid var(--neutral-border);
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  transition: color var(--transition-fast), background var(--transition-fast),
+    border-color var(--transition-fast), box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.enrollments__step--active .enrollments__step-badge {
+  color: var(--text-on-dark);
+  border-color: transparent;
+  background: var(--gradient-brand);
+  box-shadow: 0 0 0 4px var(--primary-light);
+  animation: enrollments-step-pulse 2s ease-in-out infinite;
+}
+
+.enrollments__step--done .enrollments__step-badge {
+  color: var(--text-on-dark);
+  border-color: transparent;
+  background: var(--gradient-brand);
+}
+
+@keyframes enrollments-step-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px var(--primary-light);
+  }
+  50% {
+    box-shadow: 0 0 0 8px var(--primary-light);
+  }
+}
+
+.enrollments__step-name {
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+
+.enrollments__step--active .enrollments__step-name,
+.enrollments__step--done .enrollments__step-name {
+  color: var(--text-dark);
+}
+
+.enrollments__step-hint {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.enrollments__step-line {
+  height: 2px;
+  border-radius: 9999px;
+  background: var(--neutral-border);
+  transition: background var(--transition-base);
+}
+
+.enrollments__step--done .enrollments__step-line {
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+}
+
+/* ---------- Panels ---------- */
+.enrollments__panel {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  animation: enrollments-panel-in 360ms ease-out backwards;
+}
+
+.enrollments__panel:nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.enrollments__panel:nth-child(3) {
+  animation-delay: 120ms;
+}
+
+@keyframes enrollments-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.enrollments__panel-head {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.enrollments__step-tag {
+  border-radius: 9999px;
+  letter-spacing: 0.08em;
+  color: var(--primary-dark);
+  background: var(--accent-light);
+  border: 1px solid var(--neutral-border);
+}
+
+.enrollments__panel-title {
+  color: var(--text-dark);
+}
+
+.enrollments__panel-subtitle {
+  color: var(--text-muted);
+}
+
+.enrollments__count {
+  border-radius: 9999px;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+/* ---------- Search ---------- */
+.enrollments__search {
+  position: relative;
+}
+
+.enrollments__search-icon {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.enrollments__search input {
+  width: 100%;
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-md);
+  color: var(--text-input);
+  background: var(--surface-bg);
+  outline: none;
+  font-family: var(--font-sans);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base),
+    background var(--transition-base);
+}
+
+.enrollments__search input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.enrollments__search input:focus {
+  border-color: var(--primary);
+  background: var(--surface-white);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+/* ---------- Student results ---------- */
+.enrollments__results {
+  max-height: 20rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-light) transparent;
+}
+
+.enrollments__result {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.enrollments__result:hover {
+  background: var(--surface-bg);
+  border-color: var(--neutral-border);
+  transform: translateY(-1px);
+}
+
+.enrollments__result:focus-within {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.enrollments__result input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.enrollments__result--active {
+  background: var(--accent-light);
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.enrollments__avatar {
+  border-radius: 9999px;
+  font-weight: 700;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+}
+
+.enrollments__avatar--lg {
+  border-radius: 1rem;
+}
+
+.enrollments__result-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-dark);
+}
+
+.enrollments__result-lrn {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.enrollments__result-sex {
+  border-radius: 9999px;
+  text-transform: capitalize;
+}
+
+.enrollments__result-sex--male {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.enrollments__result-sex--female {
+  color: #be185d;
+  background: #fce7f3;
+}
+
+.enrollments__results-state {
+  border: 1px dashed var(--neutral-border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+}
+
+.enrollments__results-state--hint {
+  border-style: solid;
+  background: var(--surface-bg);
+}
+
+/* ---------- Selected student profile ---------- */
+.enrollments__profile {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-bg);
+  animation: enrollments-panel-in var(--transition-base) ease-out backwards;
+}
+
+.enrollments__profile-name {
+  color: var(--text-dark);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.enrollments__profile-email {
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.enrollments__profile-email svg {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
+.enrollments__profile-stat {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-white);
+}
+
+.enrollments__profile-stat dt {
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+}
+
+.enrollments__profile-stat dd {
+  margin: 0;
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.enrollments__profile-stat:first-child dd {
+  font-family: var(--font-mono);
+}
+
+/* ---------- Placeholder (no student yet) ---------- */
+.enrollments__placeholder-icon {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 9999px;
+  color: var(--primary);
+  background: var(--neutral-border);
+  animation: enrollments-float 3s ease-in-out infinite;
+}
+
+@keyframes enrollments-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.enrollments__placeholder-title {
+  color: var(--text-dark);
+}
+
+.enrollments__placeholder-text {
+  max-width: 18rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ---------- Classroom picker ---------- */
+.enrollments__class {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-white);
+  transition: transform var(--transition-base), box-shadow var(--transition-base),
+    border-color var(--transition-base), background var(--transition-base);
+}
+
+/* Soft gradient sheen over the whole card */
+.enrollments__class::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 0% 0%, var(--accent-light) 0%, transparent 55%);
+  opacity: 0;
+  z-index: -1;
+  transition: opacity var(--transition-base);
+}
+
+.enrollments__class input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.enrollments__class:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-md);
+}
+
+.enrollments__class:hover::after {
+  opacity: 1;
+}
+
+.enrollments__class:focus-within {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.enrollments__class--active,
+.enrollments__class--active:hover {
+  border-color: var(--primary);
+  background: linear-gradient(180deg, var(--accent-light), var(--surface-white));
+  box-shadow: 0 0 0 3px var(--primary-light), var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.enrollments__class--active::after {
+  opacity: 0.55;
+}
+
+.enrollments__class-monogram {
+  border-radius: var(--radius-md);
+  font-weight: 800;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+}
+
+.enrollments__class-grade {
+  border-radius: 9999px;
+  letter-spacing: 0.06em;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.enrollments__class-section {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.015em;
+  color: var(--text-dark);
+}
+
+.enrollments__class-check {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  color: transparent;
+  background: var(--surface-bg);
+  border: 1px solid var(--neutral-border);
+  transition: background var(--transition-fast), color var(--transition-fast),
+    border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.enrollments__class--active .enrollments__class-check {
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  border-color: transparent;
+  animation: enrollments-class-pop 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes enrollments-class-pop {
+  0% {
+    transform: scale(0.5);
+  }
+  70% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.enrollments__class-capacity-meta {
+  color: var(--text-muted);
+}
+
+.enrollments__class-capacity-meta > span:first-child {
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.enrollments__class-capacity-meta svg {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
+.enrollments__class-slots-pct {
+  border-radius: 9999px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.enrollments__class-bar {
+  height: 0.5625rem;
+  border-radius: 9999px;
+  background: var(--neutral-border);
+  overflow: hidden;
+}
+
+.enrollments__class-bar-fill {
+  position: relative;
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--gradient-brand);
+  overflow: hidden;
+  transition: width var(--transition-slow) ease;
+}
+
+/* Animated shine sweeping across the fill */
+.enrollments__class-bar-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: enrollments-bar-shine 2.4s ease-in-out infinite;
+}
+
+@keyframes enrollments-bar-shine {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Low capacity: amber fill */
+.enrollments__class--low .enrollments__class-bar-fill {
+  background: linear-gradient(90deg, var(--warning), #f97316);
+}
+
+/* Full: red fill */
+.enrollments__class--full .enrollments__class-bar-fill {
+  background: linear-gradient(90deg, var(--error), #f97316);
+}
+
+.enrollments__class--low .enrollments__class-slots-pct {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.enrollments__class--full .enrollments__class-slots-pct {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.enrollments__class-foot {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.enrollments__class-foot::before {
+  content: "";
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 9999px;
+  background: var(--success);
+}
+
+.enrollments__class--low .enrollments__class-foot {
+  color: #92400e;
+}
+
+.enrollments__class--low .enrollments__class-foot::before {
+  background: var(--warning);
+}
+
+.enrollments__class--full .enrollments__class-foot {
+  color: #991b1b;
+}
+
+.enrollments__class--full .enrollments__class-foot::before {
+  background: var(--error);
+}
+
+/* ---------- Subject picker ---------- */
+.enrollments__section-title {
+  color: var(--text-dark);
+}
+
+.enrollments__section-subtitle {
+  color: var(--text-muted);
+}
+
+.enrollments__subject {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-white);
+  transition: border-color var(--transition-fast), background var(--transition-fast),
+    box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.enrollments__subject:hover {
+  border-color: var(--primary-light);
+  background: var(--surface-bg);
+  transform: translateY(-1px);
+}
+
+.enrollments__subject:focus-within {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.enrollments__subject input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.enrollments__subject--checked {
+  border-color: var(--primary);
+  background: var(--accent-light);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.enrollments__subject-check {
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: transparent;
+  background: var(--surface-bg);
+  border: 1px solid var(--neutral-border);
+  transition: background var(--transition-fast), color var(--transition-fast),
+    border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.enrollments__subject--checked .enrollments__subject-check {
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  border-color: transparent;
+  animation: enrollments-class-pop 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.enrollments__subject-icon {
+  width: 2.125rem;
+  height: 2.125rem;
+  border-radius: var(--radius-sm);
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.enrollments__subject-name {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-dark);
+}
+
+.enrollments__subject-teacher {
+  color: var(--text-muted);
+}
+
+.enrollments__subject-code {
+  border-radius: 9999px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.enrollments__subject-unit {
+  min-width: 3.5rem;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ---------- Summary ---------- */
+.enrollments__summary-label {
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+
+.enrollments__summary-row {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-bg);
+}
+
+.enrollments__summary-row--empty {
+  border-style: dashed;
+  color: var(--text-muted);
+}
+
+.enrollments__summary-icon {
+  border-radius: var(--radius-sm);
+  font-size: 0.9375rem;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+}
+
+.enrollments__summary-line strong {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-dark);
+}
+
+.enrollments__summary-line span {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.enrollments__summary-bar {
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--neutral-border);
+  overflow: hidden;
+}
+
+.enrollments__summary-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--gradient-brand);
+  transition: width var(--transition-slow) ease;
+}
+
+.enrollments__summary-subject {
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.enrollments__summary-subject svg {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
+.enrollments__summary-unit {
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.enrollments__summary-total {
+  border-top: 1px dashed var(--neutral-border);
+  color: var(--text-muted);
+}
+
+.enrollments__summary-total strong {
+  font-weight: 800;
+  color: var(--primary-dark);
+}
+
+.enrollments__summary-hint {
+  color: var(--text-muted);
+}
+
+.enrollments__summary-hint svg {
+  flex-shrink: 0;
+  color: var(--neutral-border);
+}
+
+.enrollments__summary-hint--ok {
+  color: var(--primary-dark);
+}
+
+.enrollments__summary-hint--ok svg {
+  color: var(--success);
+}
+
+.enrollments__summary-empty {
+  border: 1px dashed var(--neutral-border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+}
+
+.enrollments__submit {
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--transition-base), filter var(--transition-base),
+    transform var(--transition-base);
+}
+
+.enrollments__submit:hover:not(:disabled) {
+  box-shadow: var(--shadow-lg);
+  filter: brightness(1.1);
+}
+
+.enrollments__submit:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.enrollments__submit:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.enrollments__submit:disabled {
+  cursor: not-allowed;
+  filter: saturate(0.7);
+  opacity: 0.55;
+}
+
+.enrollments__summary-note {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .enrollments__hero-glow,
+  .enrollments__hero-status svg,
+  .enrollments__step--active .enrollments__step-badge,
+  .enrollments__panel,
+  .enrollments__profile,
+  .enrollments__placeholder-icon,
+  .enrollments__class-check,
+  .enrollments__class-bar-fill::after,
+  .enrollments__subject-check {
+    animation: none;
+  }
+}

@@ -1,0 +1,346 @@
+/* ============================================================
+   AdminSettings — component stylesheet (hybrid approach)
+   Complex layer only: colors, gradients, transitions, switches.
+   Layout lives as Tailwind utilities in AdminSettings.tsx.
+   ============================================================ */
+
+/* ---------- Hero header ---------- */
+.settings__hero {
+  background: var(--gradient-brand);
+  color: var(--text-on-dark);
+}
+
+.settings__hero-icon {
+  color: var(--text-on-dark);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.settings__hero-eyebrow {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-on-dark-soft);
+}
+
+.settings__hero-title {
+  letter-spacing: -0.01em;
+  color: var(--text-on-dark);
+}
+
+.settings__hero-sub {
+  color: var(--text-on-dark-soft);
+}
+
+.settings__hero-badge {
+  color: var(--primary-dark);
+  background: var(--text-on-dark);
+}
+
+/* ---------- Card & header ---------- */
+.settings__card {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+}
+
+.settings__head {
+  border-bottom: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+}
+
+.settings__title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.settings__subtitle {
+  color: var(--text-muted);
+}
+
+.settings__icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.settings__badge {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+/* ---------- Form fields ---------- */
+.settings__field-label {
+  color: var(--text-muted);
+}
+
+.settings__input {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-md);
+  color: var(--text-input);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+  font-family: var(--font-sans);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.settings__input:hover {
+  border-color: var(--primary-light);
+}
+
+.settings__input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+.settings__input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.settings__suffix {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.settings__select {
+  border-color: var(--neutral-border);
+  color: var(--text-input);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2315803D' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  padding-right: 2.25rem;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.settings__select:hover {
+  border-color: var(--primary-light);
+}
+
+.settings__select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+/* ---------- Enrollment status ---------- */
+.settings__status {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  height: 2.75rem;
+  padding: 0 2.25rem 0 0.75rem;
+  border: 1px solid;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: border-color var(--transition-base), background-color var(--transition-base);
+}
+
+.settings__status--open {
+  border-color: #D1FAE5;
+  background: #F6FBF7;
+  color: #065F46;
+}
+
+.settings__status--closed {
+  border-color: #FECACA;
+  background: #FEF2F2;
+  color: #B91C1C;
+}
+
+.settings__status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--success);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+}
+
+.settings__status-dot--closed {
+  background: #EF4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+}
+
+.settings__status-select {
+  flex: 1;
+  min-width: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  color: inherit;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settings__status-chevron {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* ---------- Grading weights bar & legend ---------- */
+.settings__weights-bar {
+  background: var(--surface-bg);
+}
+
+.settings__weights-seg--ww {
+  background: var(--primary);
+}
+
+.settings__weights-seg--pt {
+  background: var(--primary-mid);
+}
+
+.settings__weights-seg--qa {
+  background: var(--accent);
+}
+
+.settings__weights-seg--att {
+  background: var(--secondary);
+}
+
+.settings__legend-dot {
+  display: inline-block;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+}
+
+.settings__legend-dot--ww {
+  background: var(--primary);
+}
+
+.settings__legend-dot--pt {
+  background: var(--primary-mid);
+}
+
+.settings__legend-dot--qa {
+  background: var(--accent);
+}
+
+.settings__legend-dot--off {
+  background: var(--neutral-border);
+  border: 1px dashed var(--text-muted);
+}
+
+/* ---------- Preference rows ---------- */
+.settings__pref-row {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-white);
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.settings__pref-row:hover {
+  border-color: var(--primary);
+  background: var(--accent-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.settings__pref-name {
+  color: var(--text-dark);
+}
+
+.settings__pref-desc {
+  color: var(--text-muted);
+}
+
+/* ---------- Switch toggles ---------- */
+.settings__switch-input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 2.75rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  background: var(--neutral-border);
+  position: relative;
+  cursor: pointer;
+  transition: background var(--transition-base);
+  outline: none;
+}
+
+.settings__switch-input::after {
+  content: "";
+  position: absolute;
+  top: 0.1875rem;
+  left: 0.25rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 9999px;
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-base);
+}
+
+.settings__switch-input:hover {
+  border-color: var(--primary-light);
+}
+
+.settings__switch-input:focus-visible {
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+.settings__switch-input:checked {
+  background: var(--gradient-brand);
+}
+
+.settings__switch-input:checked::after {
+  transform: translateX(1.25rem);
+}
+
+/* ---------- Buttons ---------- */
+.settings__btn {
+  border: none;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base), filter var(--transition-base), transform var(--transition-base);
+}
+
+.settings__btn:hover {
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.1);
+}
+
+.settings__btn:active {
+  transform: translateY(1px);
+}
+
+.settings__btn:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Save feedback & notes ---------- */
+.settings__saved {
+  color: var(--success);
+}
+
+.settings__note {
+  color: var(--text-muted);
+}
+
+.settings__note-icon {
+  color: var(--primary);
+}
+
+.settings__error {
+  color: var(--error);
+}
+
+.settings__error svg {
+  color: var(--error);
+}

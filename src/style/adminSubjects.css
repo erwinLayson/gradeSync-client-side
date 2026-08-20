@@ -1,0 +1,676 @@
+/* ============================================================
+   AdminSubjects — component stylesheet (hybrid approach)
+
+   This file holds the "complex" layer only:
+   - colors / gradients / shadows / radii from the design tokens
+   - animations, transitions and state styles (hover / focus /
+     checked), scrollbars, reduced-motion handling
+
+   Basic layout (display, flex/grid, gap, padding, typography)
+   lives as Tailwind utilities directly in AdminSubjects.tsx.
+   ============================================================ */
+
+/* ---------- Card ---------- */
+.subjects__card {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+}
+
+/* ---------- Card header ---------- */
+.subjects__header {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.subjects__title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.subjects__subtitle {
+  color: var(--text-muted);
+}
+
+/* ---------- Header pills & buttons ---------- */
+.subjects__count {
+  border-radius: 9999px;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.subjects__refresh {
+  border-color: var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.subjects__refresh:hover {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+}
+
+.subjects__refresh:active {
+  transform: translateY(1px);
+}
+
+.subjects__refresh:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.subjects__refresh-icon {
+  transition: transform var(--transition-base);
+}
+
+.subjects__refresh:hover .subjects__refresh-icon {
+  transform: rotate(180deg);
+}
+
+.subjects__add {
+  border: none;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base), filter var(--transition-base), transform var(--transition-base);
+}
+
+.subjects__add:hover {
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.1);
+}
+
+.subjects__add:active {
+  transform: translateY(1px);
+}
+
+.subjects__add:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.subjects__back {
+  border-color: var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.subjects__back:hover {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+}
+
+.subjects__back:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Subject card ---------- */
+.subjects__item {
+  background: var(--surface-white);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.subjects__item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.subjects__item:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.subjects__item-head {
+  background: var(--gradient-brand);
+  color: var(--text-on-dark);
+}
+
+.subjects__item-eyebrow {
+  color: var(--text-on-dark-muted);
+}
+
+.subjects__item-name {
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--text-on-dark);
+}
+
+.subjects__item-icon {
+  border-radius: var(--radius-sm);
+  color: var(--text-on-dark);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-on-dark);
+}
+
+.subjects__item-label {
+  color: var(--text-muted);
+}
+
+.subjects__item-code,
+.subjects__item-unit {
+  color: var(--primary-dark);
+}
+
+.subjects__item-id {
+  color: var(--text-muted);
+}
+
+/* ---------- Loading skeleton ---------- */
+.subjects__skeleton-row {
+  height: 9.5rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(90deg, var(--neutral-border) 25%, var(--accent-light) 50%, var(--neutral-border) 75%);
+  background-size: 200% 100%;
+  animation: subjects-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes subjects-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------- Empty state ---------- */
+.subjects__empty-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.subjects__empty-title {
+  color: var(--text-dark);
+}
+
+.subjects__empty-text {
+  color: var(--text-muted);
+}
+
+/* ---------- Create Subject modal ---------- */
+.subjects-modal {
+  background: rgba(7, 44, 28, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: subjects-modal-fade var(--transition-base) ease-out forwards;
+}
+
+.subjects-modal__panel {
+  max-height: calc(100vh - 2.5rem);
+  animation: subjects-modal-pop var(--transition-base) cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+}
+
+.subjects-modal__header {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.subjects-modal__eyebrow {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.subjects-modal__title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.subjects-modal__subtitle {
+  color: var(--text-muted);
+}
+
+.subjects-modal__close {
+  border: none;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.subjects-modal__close:hover {
+  background: var(--surface-bg);
+  color: var(--text-dark);
+}
+
+.subjects-modal__close:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+@keyframes subjects-modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes subjects-modal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Modal form ---------- */
+.subjects-form__label {
+  color: var(--primary-dark);
+}
+
+.subjects-form__input {
+  border-color: var(--neutral-border);
+  color: var(--text-input);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+  font-family: var(--font-sans);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.subjects-form__input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.subjects-form__input:hover {
+  border-color: var(--primary-light);
+}
+
+.subjects-form__input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+.subjects-form__footer {
+  border-top: 1px solid var(--neutral-border);
+}
+
+.subjects-form__cancel {
+  border-color: var(--neutral-border);
+  color: var(--text-body);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.subjects-form__cancel:hover {
+  border-color: var(--primary-light);
+  background: var(--surface-bg);
+}
+
+.subjects-form__cancel:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.subjects-form__submit {
+  border: none;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--transition-base), filter var(--transition-base);
+}
+
+.subjects-form__submit:hover {
+  box-shadow: var(--shadow-lg);
+  filter: brightness(1.1);
+}
+
+.subjects-form__submit:active {
+  transform: scale(0.98);
+}
+
+.subjects-form__submit:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Selected subject details ---------- */
+.subjects__details {
+  animation: subjects-details-in var(--transition-slow) ease-out forwards;
+}
+
+@keyframes subjects-details-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.subjects__details-hero {
+  background: var(--gradient-brand);
+  color: var(--text-on-dark);
+}
+
+/* Hero avatar chip (glassy) */
+.subjects__details-avatar {
+  color: var(--text-on-dark);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border-on-dark);
+  box-shadow: 0 12px 24px -8px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.subjects__details-eyebrow {
+  color: var(--text-on-dark-muted);
+}
+
+.subjects__details-title {
+  letter-spacing: -0.01em;
+  color: var(--text-on-dark);
+}
+
+.subjects__details-subtitle {
+  color: var(--text-on-dark-soft);
+}
+
+.subjects__details-badge {
+  border-color: var(--border-on-dark);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.subjects__details-badge-count {
+  color: var(--text-on-dark);
+}
+
+.subjects__details-badge-label {
+  color: var(--text-on-dark-muted);
+}
+
+.subjects__details-stats {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.subjects__details-stat {
+  border-color: var(--neutral-border);
+  background: var(--surface-bg);
+}
+
+.subjects__details-stat-label {
+  color: var(--text-muted);
+}
+
+.subjects__details-stat-value {
+  color: var(--primary-dark);
+}
+
+/* ---------- Assigned teachers section ---------- */
+.subjects__teachers-title {
+  color: var(--text-dark);
+}
+
+.subjects__teachers-subtitle {
+  color: var(--text-muted);
+}
+
+.subjects__teachers-count {
+  border-radius: 9999px;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.subjects__teachers-table-wrap {
+  border-color: var(--neutral-border);
+}
+
+.subjects__teachers-table th {
+  text-align: left;
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border-bottom: 1px solid var(--neutral-border);
+  white-space: nowrap;
+}
+
+.subjects__teachers-table td {
+  color: var(--text-body);
+  border-bottom: 1px solid var(--neutral-border);
+  vertical-align: middle;
+}
+
+.subjects__teachers-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.subjects__teachers-table tbody tr:nth-child(even) {
+  background: var(--surface-bg);
+}
+
+.subjects__teachers-table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.subjects__teachers-table tbody tr:hover {
+  background: var(--accent-light);
+}
+
+/* Table cell variants */
+.subjects__cell--index {
+  color: var(--text-muted);
+}
+
+.subjects__cell--name {
+  color: var(--text-dark);
+  white-space: nowrap;
+}
+
+.subjects__teacher-avatar {
+  color: var(--primary);
+  background: var(--neutral-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.subjects__teacher-name {
+  color: var(--text-dark);
+}
+
+.subjects__teacher-meta {
+  color: var(--text-muted);
+}
+
+/* Empty state for teachers */
+.subjects__teachers-empty {
+  background: var(--surface-bg);
+}
+
+.subjects__teachers-empty-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.subjects__teachers-empty-title {
+  color: var(--text-dark);
+}
+
+.subjects__teachers-empty-text {
+  color: var(--text-muted);
+}
+
+.subjects__teachers-button {
+  border: none;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base), filter var(--transition-base);
+}
+
+/* Remove-teacher button on each assigned-teacher row */
+.subjects__teachers-remove {
+  border: none;
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.subjects__teachers-remove:hover {
+  color: var(--error);
+  background: #fef2f2;
+}
+
+.subjects__teachers-remove:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* Card action buttons (edit / delete) */
+.subjects__item-actions {
+  gap: 0.25rem;
+}
+
+.subjects__item-action {
+  border: none;
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.subjects__item-action:hover {
+  color: var(--primary-dark);
+  background: var(--accent-light);
+}
+
+.subjects__item-action--danger:hover {
+  color: var(--error);
+  background: #fef2f2;
+}
+
+.subjects__item-action:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.subjects__teachers-button:hover {
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.1);
+}
+
+.subjects__teachers-button:active {
+  transform: translateY(1px);
+}
+
+.subjects__teachers-button:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Assign / unassign teacher form ---------- */
+.unassign-teacher-form__hint {
+  color: var(--text-muted);
+}
+
+.unassign-teacher-form__count {
+  border-radius: 9999px;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.unassign-teacher-form__field {
+  background: var(--surface-white);
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.unassign-teacher-form__field:hover {
+  border-color: var(--primary-light);
+  background: var(--surface-bg);
+}
+
+.unassign-teacher-form__field:has(input:checked) {
+  border-color: var(--primary);
+  background: var(--accent-light);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.unassign-teacher-form__field:has(input:focus-visible) {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.unassign-teacher-form__label {
+  color: var(--text-body);
+  user-select: none;
+}
+
+.unassign-teacher-form__label input[type="checkbox"] {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.unassign-teacher-form__avatar {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+/* Loading state for the assign form */
+.unassign-teacher-form__loading {
+  background: var(--surface-bg);
+  color: var(--text-muted);
+}
+
+.unassign-teacher-form__loading-spinner {
+  border: 2px solid var(--neutral-border);
+  border-top-color: var(--primary);
+  animation: unassign-teacher-spin 0.7s linear infinite;
+}
+
+@keyframes unassign-teacher-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty state for the assign form */
+.unassign-teacher-form__empty {
+  background: var(--surface-bg);
+}
+
+.unassign-teacher-form__empty-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.unassign-teacher-form__empty-title {
+  color: var(--text-dark);
+}
+
+.unassign-teacher-form__empty-text {
+  color: var(--text-muted);
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .subjects-modal,
+  .subjects-modal__panel,
+  .subjects__details,
+  .subjects__skeleton-row,
+  .unassign-teacher-form__loading-spinner {
+    animation: none;
+  }
+}

@@ -1,0 +1,211 @@
+/* ============================================================
+   studentProspectus — academic history by school year
+   (hybrid approach: tokens here, layout as Tailwind utilities)
+   ============================================================ */
+
+.student-prospectus__page {
+  animation: student-prospectus-in var(--transition-slow) ease-out forwards;
+}
+
+@keyframes student-prospectus-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Hero banner ---------- */
+.student-prospectus__hero {
+  background: var(--gradient-brand);
+  color: var(--text-on-dark);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.student-prospectus__hero-avatar {
+  color: var(--text-on-dark);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border-on-dark);
+  box-shadow: 0 12px 24px -8px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.student-prospectus__hero-eyebrow {
+  color: var(--text-on-dark-muted);
+}
+
+.student-prospectus__hero-name {
+  letter-spacing: -0.01em;
+  color: var(--text-on-dark);
+}
+
+.student-prospectus__hero-role {
+  color: var(--text-on-dark-soft);
+}
+
+.student-prospectus__hero-badge {
+  border-color: var(--border-on-dark);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.student-prospectus__hero-badge-count {
+  color: var(--text-on-dark);
+}
+
+.student-prospectus__hero-badge-label {
+  color: var(--text-on-dark-muted);
+}
+
+/* ---------- Quick stats ---------- */
+.student-prospectus__stat {
+  border-color: var(--neutral-border);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.student-prospectus__stat:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.student-prospectus__stat-icon {
+  box-shadow: var(--shadow-sm);
+}
+
+.student-prospectus__stat-icon--green {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.student-prospectus__stat-icon--blue {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.student-prospectus__stat-icon--amber {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.student-prospectus__stat-icon--rose {
+  color: #be185d;
+  background: #fce7f3;
+}
+
+.student-prospectus__stat-icon--violet {
+  color: #5b21b6;
+  background: #ede9fe;
+}
+
+.student-prospectus__stat-label {
+  color: var(--text-muted);
+}
+
+.student-prospectus__stat-value {
+  color: var(--text-dark);
+}
+
+/* ---------- School year card ---------- */
+.student-prospectus__year-card {
+  border: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-lg);
+}
+
+.student-prospectus__year-head {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.student-prospectus__year-badge {
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+}
+
+.student-prospectus__promoted {
+  color: #065f46;
+  background: #d1fae5;
+  border: 1px solid #a7f3d0;
+}
+
+.student-prospectus__retained {
+  color: #991b1b;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+}
+
+/* ---------- Grades table ---------- */
+.student-prospectus__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.student-prospectus__table th {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+  border-bottom: 1px solid var(--neutral-border);
+  background: #f8fafc;
+}
+
+.student-prospectus__table td {
+  border-bottom: 1px solid var(--neutral-border);
+  color: var(--text-dark);
+}
+
+.student-prospectus__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.student-prospectus__table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.student-prospectus__grade-passed {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.student-prospectus__grade-failed {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.student-prospectus__grade-general {
+  background: #f8fafc;
+}
+
+.student-prospectus__grade-general td {
+  font-weight: 700;
+}
+
+/* ---------- Attendance summary row ---------- */
+.student-prospectus__attendance {
+  border-top: 1px solid var(--neutral-border);
+  background: #f8fafc;
+}
+
+.student-prospectus__attendance-chip {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+/* ---------- Mobile tweaks ---------- */
+@media (max-width: 640px) {
+  .student-prospectus__table th,
+  .student-prospectus__table td {
+    padding: 0.625rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}

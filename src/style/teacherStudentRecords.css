@@ -1,0 +1,534 @@
+/* ============================================================
+   TeacherStudentRecords — component stylesheet (hybrid approach)
+
+   Holds the "complex" layer only (colors, gradients, shadows,
+   animations, transitions, state styles). Basic layout lives
+   as Tailwind utilities directly in TeacherStudentRecords.tsx.
+   ============================================================ */
+
+/* ---------- Hero banner ---------- */
+.teacher-records__hero {
+  background: var(--gradient-brand);
+  color: var(--text-on-dark);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  animation: teacher-records-in var(--transition-slow) ease-out forwards;
+}
+
+@keyframes teacher-records-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.teacher-records__hero-avatar {
+  color: var(--text-on-dark);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border-on-dark);
+  box-shadow: 0 12px 24px -8px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.teacher-records__hero-eyebrow {
+  color: var(--text-on-dark-muted);
+}
+
+.teacher-records__hero-name {
+  letter-spacing: -0.01em;
+  color: var(--text-on-dark);
+}
+
+.teacher-records__hero-role {
+  color: var(--text-on-dark-soft);
+}
+
+.teacher-records__hero-badge {
+  border-color: var(--border-on-dark);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.teacher-records__hero-badge-count {
+  color: var(--text-on-dark);
+}
+
+.teacher-records__hero-badge-label {
+  color: var(--text-on-dark-muted);
+}
+
+/* ---------- Toolbar + quarter tabs ---------- */
+.teacher-records__toolbar {
+  border-color: var(--neutral-border);
+  background: var(--surface-white);
+}
+
+.teacher-records__tab {
+  border: 1px solid var(--neutral-border);
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+}
+
+.teacher-records__tab:hover {
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+.teacher-records__tab--active {
+  border-color: var(--primary);
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+}
+
+.teacher-records__tab--active:hover {
+  color: var(--text-on-dark);
+}
+
+/* ---------- Submit-all button ---------- */
+.teacher-records__submit-all {
+  border: 1px solid transparent;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+}
+
+.teacher-records__submit-all:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.05);
+}
+
+.teacher-records__submit-all:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.teacher-records__submit-all:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+/* ---------- Progress banner ---------- */
+.teacher-records__progress {
+  border-color: var(--neutral-border);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.teacher-records__progress-title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.teacher-records__progress-subtitle {
+  color: var(--text-muted);
+}
+
+.teacher-records__progress-pct {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.teacher-records__progress-track {
+  background: var(--surface-bg);
+  border: 1px solid var(--neutral-border);
+}
+
+.teacher-records__progress-bar {
+  background: var(--gradient-brand);
+}
+
+/* ---------- Card shell ---------- */
+.teacher-records__card {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+}
+
+.teacher-records__card-head {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.teacher-records__card-title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.teacher-records__card-subtitle {
+  color: var(--text-muted);
+}
+
+.teacher-records__card-subtitle strong {
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+/* ---------- Roster table ---------- */
+.teacher-records__table-wrap {
+  background: var(--surface-white);
+}
+
+.teacher-records__table th {
+  text-align: left;
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border-bottom: 1px solid var(--neutral-border);
+  white-space: nowrap;
+}
+
+.teacher-records__table td {
+  color: var(--text-body);
+  border-bottom: 1px solid var(--neutral-border);
+  vertical-align: middle;
+}
+
+.teacher-records__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.teacher-records__table tbody tr:nth-child(even) {
+  background: var(--surface-bg);
+}
+
+.teacher-records__table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.teacher-records__table tbody tr:hover {
+  background: var(--accent-light);
+}
+
+/* Subject header cell */
+.teacher-records__subject-name {
+  color: var(--text-dark);
+}
+
+.teacher-records__subject-code {
+  color: var(--text-muted);
+}
+
+/* Student cell */
+.teacher-records__cell--student {
+  white-space: nowrap;
+}
+
+.teacher-records__student-avatar {
+  color: var(--primary);
+  background: var(--neutral-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.teacher-records__student-name {
+  color: var(--text-dark);
+}
+
+.teacher-records__student-meta {
+  color: var(--text-muted);
+}
+
+/* Grade cells */
+.teacher-records__grade {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-width: 2.5rem;
+  border-radius: var(--radius-lg);
+  padding: 0.25rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.teacher-records__grade-lock {
+  font-size: 0.625rem;
+}
+
+.teacher-records__grade--live {
+  color: var(--text-input);
+  background: var(--surface-bg);
+  border: 1px solid var(--neutral-border);
+}
+
+.teacher-records__grade--frozen {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+  border: 1px solid transparent;
+}
+
+.teacher-records__grade--missing {
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid transparent;
+}
+
+.teacher-records__grade--off {
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  opacity: 0.6;
+}
+
+/* Status chips */
+.teacher-records__status {
+  border-radius: var(--radius-lg);
+  padding: 0.25rem 0.5rem;
+  white-space: nowrap;
+}
+
+.teacher-records__status--submitted {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.teacher-records__status--pending {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+/* Row actions */
+.teacher-records__review {
+  border: 1px solid transparent;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+}
+
+.teacher-records__review:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.05);
+}
+
+.teacher-records__review:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.teacher-records__reopen {
+  border-color: var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.teacher-records__reopen:hover {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+}
+
+/* ---------- Card footer ---------- */
+.teacher-records__card-foot {
+  border-top: 1px solid var(--neutral-border);
+}
+
+.teacher-records__foot-note {
+  color: var(--text-muted);
+}
+
+.teacher-records__foot-note svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* ---------- Empty states ---------- */
+.teacher-records__empty {
+  border-top: 1px solid var(--neutral-border);
+  background: var(--surface-bg);
+}
+
+.teacher-records__empty-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.teacher-records__empty-title {
+  color: var(--text-dark);
+}
+
+.teacher-records__empty-text {
+  color: var(--text-muted);
+}
+
+/* ---------- Review modal ---------- */
+.teacher-records__modal {
+  background: rgb(15 23 42 / 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: teacher-records-fade var(--transition-fast) ease-out;
+}
+
+@keyframes teacher-records-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.teacher-records__modal-panel {
+  border: 1px solid var(--neutral-border);
+  animation: teacher-records-in var(--transition-slow) ease-out forwards;
+}
+
+.teacher-records__modal-header {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.teacher-records__modal-eyebrow {
+  color: var(--primary);
+}
+
+.teacher-records__modal-title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.teacher-records__modal-subtitle {
+  color: var(--text-muted);
+}
+
+.teacher-records__modal-close {
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border: 1px solid transparent;
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.teacher-records__modal-close:hover {
+  color: var(--primary-dark);
+  border-color: var(--primary);
+  background: var(--accent-light);
+}
+
+/* Review table */
+.teacher-records__review-table th {
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.teacher-records__review-table td {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.teacher-records__review-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.teacher-records__review-grade {
+  min-width: 2.5rem;
+  color: var(--text-input);
+  background: var(--surface-bg);
+  border: 1px solid var(--neutral-border);
+}
+
+.teacher-records__review-grade--frozen {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+  border-color: transparent;
+}
+
+.teacher-records__review-grade--missing {
+  color: #b45309;
+  background: #fef3c7;
+  border-color: transparent;
+}
+
+/* Modal warning + note */
+.teacher-records__modal-warning {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.teacher-records__modal-warning-icon {
+  color: #b45309;
+}
+
+.teacher-records__modal-warning p:first-of-type {
+  color: #92400e;
+}
+
+.teacher-records__modal-warning p:last-of-type {
+  color: #a16207;
+}
+
+.teacher-records__modal-note {
+  color: var(--text-muted);
+}
+
+.teacher-records__modal-note svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* Modal footer */
+.teacher-records__modal-footer {
+  border-color: var(--neutral-border);
+}
+
+.teacher-records__form-cancel {
+  border-color: var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.teacher-records__form-cancel:hover {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+}
+
+.teacher-records__form-submit {
+  border: 1px solid transparent;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+}
+
+.teacher-records__form-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.05);
+}
+
+.teacher-records__form-submit:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.teacher-records__form-submit:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .teacher-records__hero,
+  .teacher-records__modal-panel {
+    animation: none;
+  }
+
+  .teacher-records__modal {
+    animation: none;
+  }
+
+  .teacher-records__tab,
+  .teacher-records__submit-all,
+  .teacher-records__review,
+  .teacher-records__progress-bar {
+    transition: none;
+  }
+}

@@ -1,0 +1,636 @@
+/* ============================================================
+   AdminStudent — component stylesheet (hybrid approach)
+
+   This file holds the "complex" layer only:
+   - colors / gradients / shadows / radii from the design tokens
+   - animations, transitions and state styles (hover / focus)
+   - scrollbars, reduced-motion handling
+
+   Basic layout (display, flex/grid, gap, padding, typography)
+   lives as Tailwind utilities directly in AdminStudent.tsx.
+   ============================================================ */
+
+/* ---------- Card ---------- */
+.students__card {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+}
+
+/* ---------- Card header ---------- */
+.students__header {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.students__title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.students__subtitle {
+  color: var(--text-muted);
+}
+
+/* ---------- Header pills & buttons ---------- */
+.students__count {
+  border-radius: 9999px;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.students__refresh {
+  border-color: var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.students__refresh:hover {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+}
+
+.students__refresh:active {
+  transform: translateY(1px);
+}
+
+.students__refresh:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.students__refresh-icon {
+  transition: transform var(--transition-base);
+}
+
+.students__refresh:hover .students__refresh-icon {
+  transform: rotate(180deg);
+}
+
+.students__add {
+  border: none;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base), filter var(--transition-base), transform var(--transition-base);
+}
+
+.students__add:hover {
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.1);
+}
+
+.students__add:active {
+  transform: translateY(1px);
+}
+
+.students__add:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Toolbar: search + letter filter ---------- */
+.students__toolbar {
+  border-bottom: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+}
+
+.students__search-icon {
+  color: var(--text-muted);
+}
+
+.students__search-input {
+  border-color: var(--neutral-border);
+  color: var(--text-input);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+  font-family: var(--font-sans);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.students__search-input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.students__search-input:hover {
+  border-color: var(--primary-light);
+}
+
+.students__search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+.students__search-input::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
+.students__letter {
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.375rem;
+  border: 1px solid var(--neutral-border);
+  border-radius: 9999px;
+  color: var(--text-muted);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.students__letter:hover {
+  border-color: var(--primary);
+  color: var(--primary-dark);
+  background: var(--accent-light);
+}
+
+.students__letter:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.students__letter--active {
+  border-color: transparent;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+}
+
+.students__letter--active:hover {
+  border-color: transparent;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  filter: brightness(1.1);
+}
+
+/* ---------- Name cell + status chip ---------- */
+.students__name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.students__name {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+/* Clickable student name (opens the student-details modal) */
+.students__name-link {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  padding: 0;
+  background: transparent;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  text-align: left;
+  transition: color var(--transition-fast);
+}
+
+.students__name-link:hover .students__name,
+.students__name-link:focus-visible .students__name {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.students__name-link:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+.students__status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid #fecaca;
+  border-radius: 9999px;
+  color: var(--error);
+  background: #fef2f2;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ---------- Row action buttons ---------- */
+.students__row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.students__action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-white);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.students__action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.students__action-btn--edit {
+  color: var(--primary-dark);
+}
+
+.students__action-btn--edit:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--accent-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.students__action-btn--delete {
+  color: var(--error);
+}
+
+.students__action-btn--delete:hover:not(:disabled) {
+  border-color: var(--error);
+  background: #fef2f2;
+  box-shadow: var(--shadow-sm);
+}
+
+.students__action-btn:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Table ---------- */
+.students__table th {
+  text-align: left;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border-bottom: 1px solid var(--neutral-border);
+  white-space: nowrap;
+}
+
+.students__table td {
+  color: var(--text-body);
+  border-bottom: 1px solid var(--neutral-border);
+  vertical-align: middle;
+}
+
+.students__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.students__table tbody tr:nth-child(even) {
+  background: var(--surface-bg);
+}
+
+.students__table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.students__table tbody tr:hover {
+  background: var(--accent-light);
+}
+
+/* Cell variants */
+.students__cell--id {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.students__cell--lrn {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.students__cell--name {
+  font-weight: 600;
+  color: var(--text-dark);
+  white-space: nowrap;
+}
+
+.students__cell--email {
+  color: var(--text-muted);
+}
+
+/* ---------- Loading skeleton ---------- */
+.students__skeleton-row {
+  height: 2.5rem;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--neutral-border) 25%, var(--accent-light) 50%, var(--neutral-border) 75%);
+  background-size: 200% 100%;
+  animation: students-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes students-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------- Empty state ---------- */
+.students__empty-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.students__empty-title {
+  color: var(--text-dark);
+}
+
+.students__empty-text {
+  color: var(--text-muted);
+}
+
+/* ---------- Create Student modal ---------- */
+.students-modal {
+  background: rgba(7, 44, 28, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: students-modal-fade var(--transition-base) ease-out forwards;
+}
+
+.students-modal__panel {
+  max-height: calc(100vh - 2.5rem);
+  animation: students-modal-pop var(--transition-base) cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+}
+
+.students-modal__header {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.students-modal__eyebrow {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.students-modal__title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.students-modal__subtitle {
+  color: var(--text-muted);
+}
+
+.students-modal__close {
+  border: none;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.students-modal__close:hover {
+  background: var(--surface-bg);
+  color: var(--text-dark);
+}
+
+.students-modal__close:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+@keyframes students-modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes students-modal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Modal form ---------- */
+.students-form__label {
+  color: var(--primary-dark);
+}
+
+.students-form__optional {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.students-form__input {
+  border-color: var(--neutral-border);
+  color: var(--text-input);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+  font-family: var(--font-sans);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.students-form__input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.students-form__input:hover {
+  border-color: var(--primary-light);
+}
+
+.students-form__input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+select.students-form__input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2315803D' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  cursor: pointer;
+}
+
+.students-form__footer {
+  border-top: 1px solid var(--neutral-border);
+}
+
+.students-form__cancel {
+  border-color: var(--neutral-border);
+  color: var(--text-body);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.students-form__cancel:hover {
+  border-color: var(--primary-light);
+  background: var(--surface-bg);
+}
+
+.students-form__cancel:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.students-form__submit {
+  border: none;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--transition-base), filter var(--transition-base);
+}
+
+.students-form__submit:hover {
+  box-shadow: var(--shadow-lg);
+  filter: brightness(1.1);
+}
+
+.students-form__submit:active {
+  transform: scale(0.98);
+}
+
+.students-form__submit:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Student details view ---------- */
+.students-detail__print {
+  border: none;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base), filter var(--transition-base), transform var(--transition-base);
+}
+
+.students-detail__print:hover:not(:disabled) {
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.1);
+}
+
+.students-detail__print:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.students-detail__print:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.students-detail__print:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.students-detail__back {
+  color: var(--text-dark);
+  border-color: var(--neutral-border);
+  background: #fff;
+  transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+}
+
+.students-detail__back:hover {
+  border-color: var(--primary-light);
+  color: var(--primary);
+  background: var(--surface-bg);
+}
+
+.students-detail__back:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.students-detail__grid {
+  border: 1px solid var(--neutral-border);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+}
+
+.students-detail__count {
+  border: 1px solid var(--neutral-border);
+  color: var(--text-muted);
+  background: var(--surface-bg);
+}
+
+.students-detail__class {
+  background: #fff;
+}
+
+.students-detail__class-icon {
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.students-detail__class-tag {
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.students-detail__average {
+  white-space: nowrap;
+}
+
+.students-detail__grade-pass {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.students-detail__grade-fail {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.students-detail__table thead th {
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.students-detail__table tbody tr:hover {
+  background: var(--surface-bg);
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .students-modal,
+  .students-modal__panel {
+    animation: none;
+  }
+
+  .students__skeleton-row {
+    animation: none;
+  }
+}

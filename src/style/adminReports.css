@@ -1,0 +1,314 @@
+/* ============================================================
+   Admin-Reports — component stylesheet (hybrid approach)
+   Complex layer only: colors, gradients, transitions, charts.
+   Layout lives as Tailwind utilities in Admin-Reports.tsx.
+   ============================================================ */
+
+/* ---------- Card & header ---------- */
+.reports__card {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+}
+
+.reports__eyebrow {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.reports__title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.reports__subtitle {
+  color: var(--text-muted);
+}
+
+/* ---------- Filter toolbar ---------- */
+.reports__toolbar {
+  border-bottom: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+}
+
+.reports__field-label {
+  color: var(--text-muted);
+}
+
+.reports__select {
+  border-color: var(--neutral-border);
+  color: var(--text-input);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2315803D' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  padding-right: 2.25rem;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.reports__select:hover {
+  border-color: var(--primary-light);
+}
+
+.reports__select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+/* ---------- Report type cards ---------- */
+.reports__type {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-white);
+  cursor: pointer;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base), background var(--transition-base);
+}
+
+.reports__type:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.reports__type:active {
+  transform: translateY(0);
+}
+
+.reports__type--active {
+  border-color: var(--primary);
+  background: var(--accent-light);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.reports__type-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+  transition: background var(--transition-base), color var(--transition-base);
+}
+
+.reports__type--active .reports__type-icon {
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+}
+
+.reports__type-name {
+  color: var(--text-dark);
+}
+
+.reports__type-desc {
+  color: var(--text-muted);
+}
+
+.reports__type-meta {
+  color: var(--text-muted);
+  background: var(--surface-bg);
+}
+
+.reports__type-check {
+  color: var(--primary);
+}
+
+.reports__generate {
+  border: 1px solid var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+}
+
+.reports__generate:hover {
+  border-color: var(--primary);
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+}
+
+.reports__generate:focus-visible,
+.reports__type:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Preview table ---------- */
+.reports__preview {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-lg);
+}
+
+.reports__preview-head {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.reports__preview-badge {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.reports__table th {
+  text-align: left;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border-bottom: 1px solid var(--neutral-border);
+  white-space: nowrap;
+}
+
+.reports__table td {
+  color: var(--text-body);
+  border-bottom: 1px solid var(--neutral-border);
+  vertical-align: middle;
+}
+
+.reports__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.reports__table tbody tr:nth-child(even) {
+  background: var(--surface-bg);
+}
+
+.reports__table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.reports__table tbody tr:hover {
+  background: var(--accent-light);
+}
+
+.reports__cell--lrn {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.reports__cell--name {
+  font-weight: 600;
+  color: var(--text-dark);
+  white-space: nowrap;
+}
+
+.reports__cell--muted {
+  color: var(--text-muted);
+}
+
+.reports__sex-chip {
+  border-radius: 9999px;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+  text-transform: capitalize;
+}
+
+/* ---------- Download/print buttons ---------- */
+.reports__btn {
+  border: none;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base), filter var(--transition-base), transform var(--transition-base);
+}
+
+.reports__btn:hover {
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.1);
+}
+
+.reports__btn:active {
+  transform: translateY(1px);
+}
+
+.reports__btn:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.reports__btn--ghost {
+  border: 1px solid var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  box-shadow: none;
+}
+
+.reports__btn--ghost:hover {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+  filter: none;
+}
+
+/* ---------- Recent reports ---------- */
+.reports__recent-row {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-white);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+.reports__recent-row:hover {
+  border-color: var(--primary);
+  background: var(--accent-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.reports__recent-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.reports__recent-name {
+  color: var(--text-dark);
+}
+
+.reports__recent-meta {
+  color: var(--text-muted);
+}
+
+.reports__format-chip {
+  border-radius: 9999px;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+}
+
+.reports__recent-download {
+  color: var(--primary-dark);
+  border: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.reports__recent-download:hover {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+}
+
+/* ---------- Empty placeholder panel ---------- */
+.reports__placeholder-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.reports__placeholder-title {
+  color: var(--text-dark);
+}
+
+.reports__placeholder-text {
+  color: var(--text-muted);
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .reports__type {
+    transform: none;
+  }
+}

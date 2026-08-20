@@ -1,0 +1,1100 @@
+/* ============================================================
+   AdminClassrooms — component stylesheet (hybrid approach)
+
+   This file holds the "complex" layer only:
+   - colors / gradients / shadows / radii from the design tokens
+   - animations, transitions and state styles (hover / focus /
+     checked / tab-active), pseudo-elements, scrollbars,
+     reduced-motion handling
+
+   Basic layout (display, flex/grid, gap, padding, typography)
+   lives as Tailwind utilities directly in AdminClassrooms.tsx.
+   ============================================================ */
+
+/* ---------- Card ---------- */
+.classrooms__card {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+}
+
+/* ---------- Card header ---------- */
+.classrooms__header {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.classrooms__title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.classrooms__subtitle {
+  color: var(--text-muted);
+}
+
+/* ---------- Header pills & buttons ---------- */
+.classrooms__count {
+  border-radius: 9999px;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.classrooms__refresh {
+  border-color: var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.classrooms__refresh:hover {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+}
+
+.classrooms__refresh:active {
+  transform: translateY(1px);
+}
+
+.classrooms__refresh:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.classrooms__refresh-icon {
+  transition: transform var(--transition-base);
+}
+
+.classrooms__refresh:hover .classrooms__refresh-icon {
+  transform: rotate(180deg);
+}
+
+.classrooms__add {
+  border: none;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base), filter var(--transition-base), transform var(--transition-base);
+}
+
+.classrooms__add:hover {
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.1);
+}
+
+.classrooms__add:active {
+  transform: translateY(1px);
+}
+
+.classrooms__add:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.classrooms__back {
+  border-color: var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.classrooms__back:hover {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+}
+
+.classrooms__back:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Classroom card ---------- */
+.classrooms__item {
+  background: var(--surface-white);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.classrooms__item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.classrooms__item:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.classrooms__item-head {
+  background: var(--gradient-brand);
+  color: var(--text-on-dark);
+}
+
+.classrooms__item-eyebrow {
+  color: var(--text-on-dark-muted);
+}
+
+.classrooms__item-name {
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--text-on-dark);
+}
+
+.classrooms__item-icon {
+  border-radius: var(--radius-sm);
+  color: var(--text-on-dark);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-on-dark);
+}
+
+.classrooms__item-label {
+  color: var(--text-muted);
+}
+
+.classrooms__item-grade {
+  color: var(--primary-dark);
+}
+
+.classrooms__item-id {
+  color: var(--text-muted);
+}
+
+.classrooms__item-adviser {
+  color: var(--primary-dark);
+}
+
+.classrooms__item-adviser--none {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-style: italic;
+}
+
+/* ---------- Loading skeleton ---------- */
+.classrooms__skeleton-row {
+  height: 9.5rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(90deg, var(--neutral-border) 25%, var(--accent-light) 50%, var(--neutral-border) 75%);
+  background-size: 200% 100%;
+  animation: classrooms-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes classrooms-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------- Empty state ---------- */
+.classrooms__empty-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.classrooms__empty-title {
+  color: var(--text-dark);
+}
+
+.classrooms__empty-text {
+  color: var(--text-muted);
+}
+
+/* ---------- Selected classroom details ---------- */
+.classrooms__details {
+  animation: classrooms-details-in var(--transition-slow) ease-out forwards;
+}
+
+@keyframes classrooms-details-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.classrooms__details-hero {
+  background: var(--gradient-brand);
+  color: var(--text-on-dark);
+}
+
+/* Hero avatar chip (glassy) */
+.classrooms__details-avatar {
+  color: var(--text-on-dark);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border-on-dark);
+  box-shadow: 0 12px 24px -8px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.classrooms__details-eyebrow {
+  color: var(--text-on-dark-muted);
+}
+
+.classrooms__details-title {
+  letter-spacing: -0.01em;
+  color: var(--text-on-dark);
+}
+
+.classrooms__details-subtitle {
+  color: var(--text-on-dark-soft);
+}
+
+.classrooms__details-badge {
+  border-color: var(--border-on-dark);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.classrooms__details-badge-count {
+  color: var(--text-on-dark);
+}
+
+.classrooms__details-badge-label {
+  color: var(--text-on-dark-muted);
+}
+
+.classrooms__details-stats {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.classrooms__details-stat {
+  border-color: var(--neutral-border);
+  background: var(--surface-bg);
+}
+
+.classrooms__details-stat-label {
+  color: var(--text-muted);
+}
+
+.classrooms__details-stat-value {
+  color: var(--primary-dark);
+}
+
+.classrooms__adviser-edit {
+  border-color: var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.classrooms__adviser-edit:hover {
+  border-color: var(--primary);
+  background: var(--accent-light);
+}
+
+.classrooms__adviser-edit:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Enrolled students section ---------- */
+.classrooms__students-title {
+  color: var(--text-dark);
+}
+
+.classrooms__students-subtitle {
+  color: var(--text-muted);
+}
+
+.classrooms__students-count {
+  border-radius: 9999px;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.classrooms__students-subjects-count {
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--neutral-border);
+  color: var(--primary-dark);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: filter var(--transition-fast), transform var(--transition-fast);
+}
+
+.classrooms__students-subjects-add {
+  border: none;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base), filter var(--transition-base), transform var(--transition-base);
+}
+
+.classrooms__students-subjects-add:hover {
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.1);
+}
+
+.classrooms__students-subjects-add:active {
+  transform: translateY(1px);
+}
+
+.classrooms__students-subjects-add:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Students / Subjects tab switcher ---------- */
+.classrooms__tab {
+  border: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.classrooms__tab::after {
+  content: "";
+  position: absolute;
+  left: 0.625rem;
+  right: 0.625rem;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 9999px;
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform var(--transition-base);
+}
+
+.classrooms__tab:hover {
+  color: var(--text-dark);
+}
+
+.classrooms__tab:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.classrooms__tab--active {
+  color: var(--primary-dark);
+}
+
+.classrooms__tab--active::after {
+  transform: scaleX(1);
+}
+
+/* ---------- Students table ---------- */
+.classrooms__students-table-wrap {
+  border-color: var(--neutral-border);
+}
+
+.classrooms__students-table th {
+  text-align: left;
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border-bottom: 1px solid var(--neutral-border);
+  white-space: nowrap;
+}
+
+.classrooms__students-table td {
+  color: var(--text-body);
+  border-bottom: 1px solid var(--neutral-border);
+  vertical-align: middle;
+}
+
+.classrooms__students-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.classrooms__students-table tbody tr:nth-child(even) {
+  background: var(--surface-bg);
+}
+
+.classrooms__students-table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.classrooms__students-table tbody tr:hover {
+  background: var(--accent-light);
+}
+
+/* Student cell: avatar + name + meta */
+.classrooms__student-avatar {
+  color: var(--primary);
+  background: var(--neutral-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.classrooms__student-name {
+  color: var(--text-dark);
+}
+
+.classrooms__student-meta {
+  color: var(--text-muted);
+}
+
+/* Table cell variants */
+.classrooms__cell--lrn {
+  font-weight: 600;
+  color: var(--primary-dark);
+  white-space: nowrap;
+}
+
+.classrooms__cell--name {
+  font-weight: 600;
+  color: var(--text-dark);
+  white-space: nowrap;
+}
+
+.classrooms__cell--age {
+  white-space: nowrap;
+}
+
+.classrooms__cell--date {
+  color: var(--text-body);
+  white-space: nowrap;
+}
+
+.classrooms__cell--email {
+  color: var(--text-muted);
+}
+
+.classrooms__cell--id {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Sex badge */
+.classrooms__sex {
+  color: var(--text-muted);
+}
+
+.classrooms__sex--male {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.classrooms__sex--female {
+  color: #be185d;
+  background: #fce7f3;
+}
+
+/* Empty state for students */
+.classrooms__students-empty {
+  background: var(--surface-bg);
+}
+
+.classrooms__students-empty-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.classrooms__students-empty-title {
+  color: var(--text-dark);
+}
+
+.classrooms__students-empty-text {
+  color: var(--text-muted);
+}
+
+/* ---------- Classroom subjects (view-subjects tab) ---------- */
+.classrooms__subjects {
+  animation: classrooms-subjects-in var(--transition-base) ease-out forwards;
+}
+
+@keyframes classrooms-subjects-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.classrooms__subjects-table-wrap {
+  border-color: var(--neutral-border);
+}
+
+.classrooms__subjects-table th {
+  text-align: left;
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border-bottom: 1px solid var(--neutral-border);
+  white-space: nowrap;
+}
+
+.classrooms__subjects-table td {
+  color: var(--text-body);
+  border-bottom: 1px solid var(--neutral-border);
+  vertical-align: middle;
+}
+
+.classrooms__subjects-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.classrooms__subjects-table tbody tr:nth-child(even) {
+  background: var(--surface-bg);
+}
+
+.classrooms__subjects-table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.classrooms__subjects-table tbody tr:hover {
+  background: var(--accent-light);
+}
+
+/* Teacher cell: avatar + name + meta */
+.classrooms__subjects-teacher-name {
+  color: var(--text-dark);
+}
+
+.classrooms__subjects-teacher-meta {
+  color: var(--text-muted);
+}
+
+.classrooms__subjects-avatar {
+  color: var(--primary);
+  background: var(--neutral-border);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Subject pill */
+.classrooms__subjects-subject {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.classrooms__subjects-subject-icon {
+  color: var(--primary);
+  line-height: 1;
+}
+
+.classrooms__subjects-actions-icon {
+  border: none;
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.classrooms__subjects-actions-icon:hover {
+  color: var(--primary-dark);
+  background: var(--accent-light);
+}
+
+.classrooms__subjects-actions-icon:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* Card action buttons (edit / archive) */
+.classrooms__item-actions {
+  gap: 0.25rem;
+}
+
+.classrooms__item-action {
+  border: none;
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.classrooms__item-action:hover {
+  color: var(--primary-dark);
+  background: var(--accent-light);
+}
+
+.classrooms__item-action--danger:hover {
+  color: var(--error);
+  background: #fef2f2;
+}
+
+.classrooms__item-action:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* Empty state for subjects */
+.classrooms__subjects-empty {
+  background: var(--surface-bg);
+}
+
+.classrooms__subjects-empty-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.classrooms__subjects-empty-title {
+  color: var(--text-dark);
+}
+
+.classrooms__subjects-empty-text {
+  color: var(--text-muted);
+}
+
+/* ---------- Create Classroom modal ---------- */
+.classrooms-modal {
+  background: rgba(7, 44, 28, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: classrooms-modal-fade var(--transition-base) ease-out forwards;
+}
+
+.classrooms-modal__panel {
+  max-height: calc(100vh - 2.5rem);
+  animation: classrooms-modal-pop var(--transition-base) cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+}
+
+.classrooms-modal__header {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.classrooms-modal__eyebrow {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.classrooms-modal__title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.classrooms-modal__subtitle {
+  color: var(--text-muted);
+}
+
+.classrooms-modal__close {
+  border: none;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.classrooms-modal__close:hover {
+  background: var(--surface-bg);
+  color: var(--text-dark);
+}
+
+.classrooms-modal__close:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+@keyframes classrooms-modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes classrooms-modal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Modal form ---------- */
+.classrooms-form__label {
+  color: var(--primary-dark);
+}
+
+.classrooms-form__input {
+  border-color: var(--neutral-border);
+  color: var(--text-input);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+  font-family: var(--font-sans);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.classrooms-form__input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.classrooms-form__input:hover {
+  border-color: var(--primary-light);
+}
+
+.classrooms-form__input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+.classrooms-form__footer {
+  border-top: 1px solid var(--neutral-border);
+}
+
+.classrooms-form__hint {
+  color: var(--text-muted);
+}
+
+.classrooms-form__cancel {
+  border-color: var(--neutral-border);
+  color: var(--text-body);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.classrooms-form__cancel:hover {
+  border-color: var(--primary-light);
+  background: var(--surface-bg);
+}
+
+.classrooms-form__cancel:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.classrooms-form__submit {
+  border: none;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--transition-base), filter var(--transition-base);
+}
+
+.classrooms-form__submit:hover {
+  box-shadow: var(--shadow-lg);
+  filter: brightness(1.1);
+}
+
+.classrooms-form__submit:active {
+  transform: scale(0.98);
+}
+
+.classrooms-form__submit:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Subject picker (add subject / edit teacher modals) ---------- */
+.classrooms-subject-picker__hint {
+  color: var(--text-muted);
+}
+
+.classrooms-subject-picker__hint strong {
+  color: var(--text-dark);
+  font-weight: 700;
+}
+
+.classrooms-subject-picker__count {
+  border-radius: 9999px;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.classrooms-subject-picker__field {
+  background: var(--surface-white);
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.classrooms-subject-picker__field:hover {
+  border-color: var(--primary-light);
+  background: var(--surface-bg);
+}
+
+.classrooms-subject-picker__field--selected {
+  border-color: var(--primary);
+  background: var(--accent-light);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.classrooms-subject-picker__field:has(input:checked) {
+  border-color: var(--primary);
+  background: var(--accent-light);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.classrooms-subject-picker__field:has(input:focus-visible) {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.classrooms-subject-picker__label {
+  color: var(--text-body);
+  user-select: none;
+}
+
+.classrooms-subject-picker__label input[type="checkbox"],
+.classrooms-subject-picker__label input[type="radio"] {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.classrooms-subject-picker__avatar {
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+}
+
+.classrooms-subject-picker__name {
+  color: var(--text-dark);
+}
+
+.classrooms-subject-picker__meta {
+  color: var(--text-muted);
+}
+
+.classrooms-subject-picker__code {
+  border-radius: 9999px;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+  letter-spacing: 0.04em;
+}
+
+.classrooms-subject-picker__teacher {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.classrooms-subject-picker__check {
+  margin-left: auto;
+  color: transparent;
+  background: var(--surface-bg);
+  border: 1px solid var(--neutral-border);
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.classrooms-subject-picker__field:hover .classrooms-subject-picker__check {
+  border-color: var(--primary-light);
+}
+
+.classrooms-subject-picker__field:has(input:checked) > .classrooms-subject-picker__label .classrooms-subject-picker__check {
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  border-color: transparent;
+  transform: scale(1.05);
+}
+
+/* Empty state for the subject picker */
+.classrooms-subject-picker__empty {
+  background: var(--surface-bg);
+}
+
+.classrooms-subject-picker__empty-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.classrooms-subject-picker__empty-title {
+  color: var(--text-dark);
+}
+
+.classrooms-subject-picker__empty-text {
+  color: var(--text-muted);
+}
+
+/* ---------- Conditional teacher picker (shown when a subject is checked) ---------- */
+.classrooms-subject-picker__teachers {
+  border-top: 1px dashed var(--neutral-border);
+  animation: classrooms-teachers-in var(--transition-base) ease-out forwards;
+}
+
+@keyframes classrooms-teachers-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.classrooms-subject-picker__teachers-title {
+  color: var(--primary-dark);
+  letter-spacing: 0.08em;
+}
+
+.classrooms-subject-picker__teachers-count {
+  border-color: var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+}
+
+.classrooms-subject-picker__teacher-option {
+  background: var(--surface-white);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.classrooms-subject-picker__teacher-option:hover {
+  border-color: var(--primary-light);
+  background: var(--surface-bg);
+}
+
+.classrooms-subject-picker__teacher-option:has(input:checked) {
+  border-color: var(--primary);
+  background: var(--accent-light);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.classrooms-subject-picker__teacher-option:has(input:focus-visible) {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.classrooms-subject-picker__teacher-option input[type="radio"] {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.classrooms-subject-picker__avatar--sm {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+  box-shadow: none;
+}
+
+.classrooms-subject-picker__teacher-option .classrooms-subject-picker__check {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.classrooms-subject-picker__teacher-option:has(input:checked) .classrooms-subject-picker__check {
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  border-color: transparent;
+  transform: scale(1.05);
+}
+
+.classrooms-subject-picker__teachers-empty {
+  color: var(--text-muted);
+  background: var(--surface-bg);
+}
+
+/* Class adviser badge (assign-adviser modal) */
+.classrooms-adviser-badge {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+  letter-spacing: 0.04em;
+}
+
+.classrooms-adviser-badge--taken {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+/* Teachers who already advise another class are disabled in the picker */
+.classrooms-subject-picker__field--taken {
+  opacity: 0.6;
+  background: var(--surface-bg);
+}
+
+.classrooms-subject-picker__field--taken:hover {
+  border-color: var(--neutral-border);
+  background: var(--surface-bg);
+}
+
+.classrooms-subject-picker__label--taken {
+  cursor: not-allowed;
+}
+
+.classrooms-subject-picker__label--taken input[type="radio"] {
+  cursor: not-allowed;
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .classrooms-modal,
+  .classrooms-modal__panel,
+  .classrooms__details,
+  .classrooms__subjects,
+  .classrooms__skeleton-row,
+  .classrooms-subject-picker__teachers {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   Student Removal — checkbox, remove button, bulk toolbar
+   ============================================================ */
+
+/* Checkbox styling */
+.classrooms__checkbox {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.classrooms__th-checkbox,
+.classrooms__td-checkbox {
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Selected row highlight */
+.classrooms__row--selected {
+  background: var(--primary-light, rgba(99, 102, 241, 0.05));
+}
+
+/* Remove selected students button (toolbar) */
+.classrooms__remove-selected {
+  background: #dc2626;
+  color: white;
+  font-family: var(--font-sans);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.classrooms__remove-selected:hover {
+  background: #b91c1c;
+}
+
+.classrooms__remove-selected:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Action column */
+.classrooms__cell--action {
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Remove button in table row */
+.classrooms__item-action--danger {
+  color: #dc2626;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.classrooms__item-action--danger:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}

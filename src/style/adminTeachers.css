@@ -1,0 +1,623 @@
+/* ============================================================
+   AdminTeachers — component stylesheet (hybrid approach)
+
+   This file holds the "complex" layer only:
+   - colors / gradients / shadows / radii from the design tokens
+   - animations, transitions and state styles (hover / focus)
+   - scrollbars, reduced-motion handling
+
+   Basic layout (display, flex/grid, gap, padding, typography)
+   lives as Tailwind utilities directly in AdminTeachers.tsx.
+   ============================================================ */
+
+/* ---------- Card ---------- */
+.teachers__card {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+}
+
+/* ---------- Card header ---------- */
+.teachers__header {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.teachers__title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.teachers__subtitle {
+  color: var(--text-muted);
+}
+
+/* ---------- Header pill & buttons ---------- */
+.teachers__count {
+  border-radius: 9999px;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+.teachers__add {
+  border: none;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base), filter var(--transition-base), transform var(--transition-base);
+}
+
+.teachers__add:hover {
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.1);
+}
+
+.teachers__add:active {
+  transform: translateY(1px);
+}
+
+.teachers__add:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.teachers__refresh {
+  border-color: var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.teachers__refresh:hover {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+}
+
+.teachers__refresh:active {
+  transform: translateY(1px);
+}
+
+.teachers__refresh:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.teachers__refresh-icon {
+  display: inline-block;
+  transition: transform var(--transition-base);
+}
+
+.teachers__refresh:hover .teachers__refresh-icon {
+  transform: rotate(180deg);
+}
+
+/* ---------- Table ---------- */
+.teachers__table th {
+  text-align: left;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border-bottom: 1px solid var(--neutral-border);
+  white-space: nowrap;
+}
+
+.teachers__table td {
+  color: var(--text-body);
+  border-bottom: 1px solid var(--neutral-border);
+  vertical-align: middle;
+}
+
+.teachers__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.teachers__table tbody tr:nth-child(even) {
+  background: var(--surface-bg);
+}
+
+.teachers__table tbody tr {
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.teachers__table tbody tr:hover {
+  background: var(--accent-light);
+}
+
+/* Cell variants */
+.teachers__cell--id {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.teachers__cell--name {
+  font-weight: 600;
+  color: var(--text-dark);
+  white-space: nowrap;
+}
+
+.teachers__cell--email {
+  color: var(--text-muted);
+}
+
+/* Initials avatar */
+.teachers__avatar {
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Row action (edit) button */
+.teachers__edit {
+  border: none;
+  color: var(--primary-dark);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+
+.teachers__edit:hover:not(:disabled) {
+  background: var(--neutral-border);
+  color: var(--primary);
+}
+
+.teachers__edit:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.teachers__edit:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.teachers__edit:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+/* Row action (delete) button */
+.teachers__delete {
+  border: none;
+  color: var(--error);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+
+.teachers__delete:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--error);
+}
+
+.teachers__delete:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.teachers__delete:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.teachers__delete:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+/* ---------- Loading skeleton ---------- */
+.teachers__skeleton-row {
+  height: 2.5rem;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--neutral-border) 25%, var(--accent-light) 50%, var(--neutral-border) 75%);
+  background-size: 200% 100%;
+  animation: teachers-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes teachers-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------- Empty state ---------- */
+.teachers__empty-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.teachers__empty-title {
+  color: var(--text-dark);
+}
+
+.teachers__empty-text {
+  color: var(--text-muted);
+}
+
+/* ---------- Back to list button ---------- */
+.teachers__back {
+  border-color: var(--neutral-border);
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.teachers__back:hover {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+}
+
+.teachers__back:active {
+  transform: translateY(1px);
+}
+
+.teachers__back:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Teacher subject details ---------- */
+.teachers__details {
+  animation: teachers-details-in var(--transition-slow) ease-out forwards;
+}
+
+@keyframes teachers-details-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hero profile banner */
+.teachers__profile {
+  background: var(--gradient-brand);
+  color: var(--text-on-dark);
+}
+
+.teachers__profile-avatar {
+  color: var(--text-on-dark);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border-on-dark);
+  box-shadow: 0 12px 24px -8px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.teachers__profile-eyebrow {
+  color: var(--text-on-dark-muted);
+}
+
+.teachers__profile-name {
+  letter-spacing: -0.01em;
+  color: var(--text-on-dark);
+}
+
+.teachers__profile-email {
+  color: var(--text-on-dark-soft);
+}
+
+.teachers__profile-badge {
+  border-color: var(--border-on-dark);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.teachers__profile-badge-count {
+  color: var(--text-on-dark);
+}
+
+.teachers__profile-badge-label {
+  color: var(--text-on-dark-muted);
+}
+
+/* Quick stats */
+.teachers__stats {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.teachers__stat {
+  border-color: var(--neutral-border);
+  background: var(--surface-bg);
+}
+
+.teachers__stat-label {
+  color: var(--text-muted);
+}
+
+.teachers__stat-value {
+  color: var(--primary-dark);
+}
+
+/* Subjects section heading */
+.teachers__subjects-title {
+  color: var(--text-dark);
+}
+
+.teachers__subjects-subtitle {
+  color: var(--text-muted);
+}
+
+.teachers__subjects-count {
+  border-radius: 9999px;
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+/* Subjects table */
+.teachers__subjects-table-wrap {
+  border-color: var(--neutral-border);
+}
+
+.teachers__subjects-table th {
+  text-align: left;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border-bottom: 1px solid var(--neutral-border);
+  white-space: nowrap;
+}
+
+.teachers__subjects-table td {
+  color: var(--text-body);
+  border-bottom: 1px solid var(--neutral-border);
+  vertical-align: middle;
+}
+
+.teachers__subjects-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.teachers__subjects-table tbody tr:nth-child(even) {
+  background: var(--surface-bg);
+}
+
+.teachers__subjects-table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.teachers__subjects-table tbody tr:hover {
+  background: var(--accent-light);
+}
+
+.teachers__subject-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.teachers__subject-name {
+  color: var(--text-dark);
+}
+
+.teachers__subject-meta {
+  color: var(--text-muted);
+}
+
+.teachers__subject-class {
+  color: var(--text-dark);
+  white-space: nowrap;
+}
+
+.teachers__subject-unit {
+  color: var(--primary-dark);
+  background: var(--neutral-border);
+}
+
+/* No subjects empty state */
+.teachers__no-subjects {
+  background: var(--surface-bg);
+}
+
+.teachers__no-subjects-icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.teachers__no-subjects-title {
+  color: var(--text-dark);
+}
+
+.teachers__no-subjects-text {
+  color: var(--text-muted);
+}
+
+/* Details loading skeleton */
+.teachers__subjects-skeleton-row {
+  height: 3.5rem;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--neutral-border) 25%, var(--accent-light) 50%, var(--neutral-border) 75%);
+  background-size: 200% 100%;
+  animation: teachers-shimmer 1.4s ease-in-out infinite;
+}
+
+/* ---------- Create Teacher modal ---------- */
+.teachers-modal {
+  background: rgba(7, 44, 28, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: teachers-modal-fade var(--transition-base) ease-out forwards;
+}
+
+.teachers-modal__panel {
+  max-height: calc(100vh - 2.5rem);
+  animation: teachers-modal-pop var(--transition-base) cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+}
+
+.teachers-modal__header {
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.teachers-modal__eyebrow {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.teachers-modal__title {
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.teachers-modal__subtitle {
+  color: var(--text-muted);
+}
+
+.teachers-modal__close {
+  border: none;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.teachers-modal__close:hover {
+  background: var(--surface-bg);
+  color: var(--text-dark);
+}
+
+.teachers-modal__close:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+@keyframes teachers-modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes teachers-modal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Modal form ---------- */
+.teachers-form__label {
+  color: var(--primary-dark);
+}
+
+.teachers-form__optional {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.teachers-form__input {
+  border-color: var(--neutral-border);
+  color: var(--text-input);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+  font-family: var(--font-sans);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.teachers-form__input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.teachers-form__input:hover {
+  border-color: var(--primary-light);
+}
+
+.teachers-form__input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+select.teachers-form__input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2315803D' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  cursor: pointer;
+}
+
+.teachers-form__footer {
+  border-top: 1px solid var(--neutral-border);
+}
+
+.teachers-form__cancel {
+  border-color: var(--neutral-border);
+  color: var(--text-body);
+  background: var(--surface-white);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.teachers-form__cancel:hover {
+  border-color: var(--primary-light);
+  background: var(--surface-bg);
+}
+
+.teachers-form__cancel:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.teachers-form__submit {
+  border: none;
+  color: var(--text-on-dark);
+  background: var(--gradient-brand);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--transition-base), filter var(--transition-base);
+}
+
+.teachers-form__submit:hover:not(:disabled) {
+  box-shadow: var(--shadow-lg);
+  filter: brightness(1.1);
+}
+
+.teachers-form__submit:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.teachers-form__submit:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.teachers-form__submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .teachers-modal,
+  .teachers-modal__panel,
+  .teachers__details {
+    animation: none;
+  }
+
+  .teachers__skeleton-row,
+  .teachers__subjects-skeleton-row {
+    animation: none;
+  }
+}
