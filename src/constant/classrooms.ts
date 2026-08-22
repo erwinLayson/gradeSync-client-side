@@ -23,6 +23,7 @@ students: {
 }
 
 export interface ClassroomTeachersWithSubjectProps  {
+    classSubjectId: number;
     teacherId: number;
     teacherFullname: string;
     unit: number,

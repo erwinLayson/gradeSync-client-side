@@ -11,6 +11,7 @@ import { getInitials } from "../../helper/initials";
 import { getAPICall, postAPICall, patchAPICall, deleteAPICall } from "../../api/api";
 
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import Skeleton from "../../components/Skeleton";
 
 import "../../style/adminTeachers.css";
 
@@ -222,11 +223,8 @@ export default function AdminTeachers() {
                             <p className="teachers__subtitle mt-1 text-[0.8125rem]">Loading teaching staff…</p>
                         </div>
                     </div>
-                    <div className="teachers__skeleton flex flex-col gap-3 p-6" aria-hidden="true">
-                        <div className="teachers__skeleton-row" />
-                        <div className="teachers__skeleton-row" />
-                        <div className="teachers__skeleton-row" />
-                        <div className="teachers__skeleton-row" />
+                    <div className="p-6">
+                        <Skeleton count={4} lines={1} height="2.5rem" gap="0.75rem" />
                     </div>
                 </div>
             </section>
@@ -418,10 +416,8 @@ export default function AdminTeachers() {
                             </div>
 
                             {loadingTeacherDetails ? (
-                                <div className="teachers__subjects-skeleton mt-4 flex flex-col gap-3" aria-hidden="true">
-                                    <div className="teachers__subjects-skeleton-row" />
-                                    <div className="teachers__subjects-skeleton-row" />
-                                    <div className="teachers__subjects-skeleton-row" />
+                                <div className="mt-4">
+                                    <Skeleton count={3} lines={1} height="3.5rem" gap="0.75rem" />
                                 </div>
                             ) : teacherSubjectsDetails && teacherSubjectsDetails.length > 0 ? (
                                 <div className="teachers__subjects-table-wrap mt-4 overflow-x-auto rounded-xl border">

@@ -5,6 +5,7 @@ export type AssessmentType = "written_work" | "performance_task" | "quarterly_as
 export interface Assessment {
     id: number,
     classSubjectId: number;
+    componentId: number | null;
     quarter: number
     type: AssessmentType,
     title: string;

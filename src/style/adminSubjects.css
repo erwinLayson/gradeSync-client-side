@@ -163,23 +163,6 @@
   color: var(--text-muted);
 }
 
-/* ---------- Loading skeleton ---------- */
-.subjects__skeleton-row {
-  height: 9.5rem;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(90deg, var(--neutral-border) 25%, var(--accent-light) 50%, var(--neutral-border) 75%);
-  background-size: 200% 100%;
-  animation: subjects-shimmer 1.4s ease-in-out infinite;
-}
-
-@keyframes subjects-shimmer {
-  from {
-    background-position: 200% 0;
-  }
-  to {
-    background-position: -200% 0;
-  }
-}
 
 /* ---------- Empty state ---------- */
 .subjects__empty-icon {
@@ -669,7 +652,6 @@
   .subjects-modal,
   .subjects-modal__panel,
   .subjects__details,
-  .subjects__skeleton-row,
   .unassign-teacher-form__loading-spinner {
     animation: none;
   }

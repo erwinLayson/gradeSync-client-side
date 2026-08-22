@@ -18,9 +18,11 @@ import AdminSettings from './pages/admin/AdminSettings'
 import TeacherDashboard from './pages/teacher/TeacherDashboard'
 import TeacherAttendance from './pages/teacher/TeacherAttendance'
 import TeacherClasses from './pages/teacher/TeacherClasses'
+import TeacherMyClass from './pages/teacher/TeacherMyClass'
 import TeacherGradeBook from './pages/teacher/TeacherGradebook'
 import TeacherStudentRecords from './pages/teacher/TeacherStudentRecords'
 import TeacherReport from './pages/teacher/TeacherReport'
+import TeacherSetting from "./pages/teacher/TeacherSettings"
 
 // Student Pages
 import StudentDashboard from './pages/student/StudentDashboard'
@@ -65,9 +67,11 @@ function App() {
                 <Route path="teacher/dashboard" element={<TeacherDashboard />} />
                 <Route path="teacher/attendance" element={<TeacherAttendance />} />
                 <Route path="teacher/classes" element={<TeacherClasses />} />
+                <Route path="teacher/my-class" element={<TeacherMyClass />} />
                 <Route path="teacher/classes/:classId/gradebook" element={<TeacherGradeBook />} />
                 <Route path="teacher/student-records" element={<TeacherStudentRecords />} />
                 <Route path="teacher/reports" element={<TeacherReport />} />
+                <Route path="teacher/settings" element={<TeacherSetting />} />
               </Route>
 
               {/* Student Routes */}

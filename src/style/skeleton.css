@@ -1,0 +1,41 @@
+/* skeleton.css — Reusable shimmer skeleton for loading states */
+
+.skeleton {
+    min-height: 80px;
+}
+
+.skeleton__item {
+    min-width: 0;
+}
+
+.skeleton__bar {
+    border-radius: 0.25rem;
+    background: linear-gradient(
+        90deg,
+        var(--neutral-border, #e5e7eb) 25%,
+        var(--accent-light, #f3f4f6) 50%,
+        var(--neutral-border, #e5e7eb) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton__bar--circle {
+    border-radius: 9999px;
+    flex-shrink: 0;
+}
+
+@keyframes skeleton-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skeleton__bar {
+        animation: none;
+    }
+}

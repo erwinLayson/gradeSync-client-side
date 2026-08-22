@@ -382,7 +382,7 @@ export default function AdminSettings() {
     const [selectedSchoolYearId, setSelectedSchoolYearId] = useState("");
     // The school year that was active when the page loaded — used to sync
     // the dropdown after activation succeeds.
-    const [initialActiveSchoolYearId, setInitialActiveSchoolYearId] = useState("");
+    const [, setInitialActiveSchoolYearId] = useState("");
 
     useEffect(() => {
         let cancelled = false;

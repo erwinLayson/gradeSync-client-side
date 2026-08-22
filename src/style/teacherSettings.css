@@ -1,0 +1,89 @@
+/* teacherSettings.css — Styles for the teacher settings page */
+
+/* ==================== Loading State ==================== */
+.teacher-settings__loading {
+    min-height: 400px;
+}
+
+/* ==================== Header ==================== */
+.teacher-settings__header {
+    margin-bottom: 0.5rem;
+}
+
+.teacher-settings__title {
+    color: #171717;
+}
+
+.teacher-settings__subtitle {
+    color: #737373;
+}
+
+/* ==================== Cards ==================== */
+.teacher-settings__card {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.teacher-settings__card-header {
+    background: #fafafa;
+}
+
+/* ==================== Form Elements ==================== */
+.teacher-settings__card input[type="text"],
+.teacher-settings__card input[type="email"],
+.teacher-settings__card input[type="password"] {
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.teacher-settings__card input[type="text"]:focus,
+.teacher-settings__card input[type="email"]:focus,
+.teacher-settings__card input[type="password"]:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.teacher-settings__card input[type="text"]:read-only {
+    background-color: #f9fafb;
+    cursor: not-allowed;
+}
+
+
+
+/* ==================== Buttons ==================== */
+.teacher-settings__card button[type="submit"],
+.teacher-settings__card button[type="button"] {
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out, opacity 0.15s ease-in-out;
+}
+
+.teacher-settings__card button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* ==================== Labels ==================== */
+.teacher-settings__card label {
+    color: #374151;
+}
+
+/* ==================== Helper Text ==================== */
+.teacher-settings__card p.text-xs {
+    color: #9ca3af;
+    margin-top: 0.25rem;
+}
+
+/* ==================== Responsive ==================== */
+@media (max-width: 640px) {
+    .teacher-settings__card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+}

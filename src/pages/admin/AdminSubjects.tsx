@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { FiPlus, FiX, FiArrowLeft, FiBookOpen, FiUsers, FiTrash2, FiAlertTriangle, FiEdit } from "react-icons/fi";
 
 import { getAPICall, postAPICall, putAPICall, deleteAPICall } from "../../api/api";
+import Skeleton from "../../components/Skeleton";
 
 import "../../style/adminSubjects.css";
 
@@ -10,7 +11,7 @@ import { Validate } from "../../helper/validate";
 import { getInitials } from "../../helper/initials";
 
 // Types
-import type { Subject, NewSubject, SubjectWithTeachers } from "../../constant/subjects";
+import type { Subject, NewSubject, SubjectWithTeachers, ComponentCreateProps } from "../../constant/subjects";
 import type { Teacher } from "../../constant/teachers";
 
 // Components
@@ -36,6 +37,8 @@ const [newSubject, setNewSubject] = useState<NewSubject>({
     name: "",
     code: "",
     unit: "",
+    hasComponents: false,
+    components: [],
 });
 const [loading, setLoading] = useState<boolean>(false);
 const [isModalOpen, setIsModalOpen] = useState(false);
@@ -94,6 +97,48 @@ function handleSubjectCreateModalInputChange(e: React.ChangeEvent<HTMLInputEleme
     setNewSubject((prev) => ({ ...prev, [name]: value }));
 }
 
+// Handle toggle for hasComponents checkbox
+function handleHasComponentsToggle() {
+    setNewSubject((prev) => ({
+        ...prev,
+        hasComponents: !prev.hasComponents,
+        components: !prev.hasComponents ? (prev.components ?? []) : [],
+    }));
+}
+
+// Handle adding a new component
+function handleAddComponent() {
+    setNewSubject((prev) => ({
+        ...prev,
+        components: [
+            ...(prev.components ?? []),
+            { name: "", code: "", weight: 25 },
+        ],
+    }));
+}
+
+// Handle updating a component
+function handleComponentChange(index: number, field: keyof ComponentCreateProps, value: string | number) {
+    setNewSubject((prev) => {
+        const components = [...(prev.components ?? [])];
+        components[index] = { ...components[index]!, [field]: value };
+        return { ...prev, components };
+    });
+}
+
+// Handle removing a component
+function handleRemoveComponent(index: number) {
+    setNewSubject((prev) => ({
+        ...prev,
+        components: (prev.components ?? []).filter((_, i) => i !== index),
+    }));
+}
+
+// Calculate total component weight
+function getTotalComponentWeight(): number {
+    return (newSubject.components ?? []).reduce((sum, c) => sum + (Number(c.weight) || 0), 0);
+}
+
 // Handle form submission for creating a new subject
 async function handleCreateModalForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -106,7 +151,7 @@ async function handleCreateModalForm(e: React.FormEvent<HTMLFormElement>) {
         // Call API to create subject
         await postAPICall<NewSubject, null>('/subjects', newSubject);
 
-        setNewSubject({ name: "", code: "", unit: "" });
+        setNewSubject({ name: "", code: "", unit: "", hasComponents: false, components: [] });
         fetchSubjects();
         closeModal();
     }catch {
@@ -116,7 +161,13 @@ async function handleCreateModalForm(e: React.FormEvent<HTMLFormElement>) {
 
 // Open the edit-subject modal pre-filled with the card's values
 function handleEditSubjectClick(subject: Subject) {
-    setNewSubject({ name: subject.name, code: subject.code, unit: String(subject.unit) });
+    setNewSubject({
+        name: subject.name,
+        code: subject.code,
+        unit: String(subject.unit),
+        hasComponents: subject.hasComponents ?? false,
+        components: [], // Components will be loaded from the selected subject details
+    });
     setEditingSubject(subject);
     setModalStatus("edit");
     setIsModalOpen(true);
@@ -141,7 +192,7 @@ async function handleEditModalForm(e: React.FormEvent<HTMLFormElement>) {
         if (selectedSubject?.id === editingSubject.id) {
             await fetchSelectedSubjectDetails(editingSubject.id);
         }
-        setNewSubject({ name: "", code: "", unit: "" });
+        setNewSubject({ name: "", code: "", unit: "", hasComponents: false, components: [] });
         setEditingSubject(null);
         closeModal();
     } catch {
@@ -304,11 +355,8 @@ if (loading) {
                         <p className="subjects__subtitle mt-1 text-[0.8125rem]">Loading subjects…</p>
                     </div>
                 </div>
-                <div className="subjects__skeleton grid grid-cols-1 gap-4 p-6 sm:grid-cols-2" aria-hidden="true">
-                    <div className="subjects__skeleton-row" />
-                    <div className="subjects__skeleton-row" />
-                    <div className="subjects__skeleton-row" />
-                    <div className="subjects__skeleton-row" />
+                <div className="p-6">
+                    <Skeleton count={4} lines={1} height="9.5rem" radius="0.75rem" grid="repeat(2, 1fr)" />
                 </div>
             </div>
         </section>
@@ -416,6 +464,15 @@ return (
                                             <span className="subjects__item-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">Subject ID</span>
                                             <span className="subjects__item-id font-mono text-[0.8125rem]">#{subject.id}</span>
                                         </div>
+                                        {subject.hasComponents && (
+                                            <div className="subjects__item-stat flex min-w-0 flex-col">
+                                                <span className="subjects__item-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">Type</span>
+                                                <span className="inline-flex items-center gap-1 rounded bg-green-100 px-2 py-0.5 text-[0.6875rem] font-bold text-green-700">
+                                                    <FiBookOpen size={10} />
+                                                    Composite
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                 </article>
                             ))}
@@ -470,6 +527,44 @@ return (
                             <span className="subjects__details-stat-value text-[0.9375rem] font-bold">#{selectedSubject.id}</span>
                         </div>
                     </div>
+
+                    {/* Components section */}
+                    {selectedSubject.hasComponents && selectedSubject.components && selectedSubject.components.length > 0 && (
+                        <section className="subjects__components border-b p-5" aria-label="Sub-components">
+                            <div className="mb-3 flex items-center justify-between">
+                                <div>
+                                    <h4 className="text-[0.9375rem] font-bold">Sub-Components</h4>
+                                    <p className="mt-0.5 text-[0.8125rem]">This subject has {selectedSubject.components.length} sub-components</p>
+                                </div>
+                                <span className="inline-flex items-center gap-1.5 rounded-lg bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
+                                    <FiBookOpen size={12} />
+                                    Composite Subject
+                                </span>
+                            </div>
+                            <div className="mt-3 overflow-x-auto rounded-xl border">
+                                <table className="w-full border-collapse text-sm">
+                                    <thead>
+                                        <tr>
+                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">#</th>
+                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Name</th>
+                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Code</th>
+                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Weight</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {selectedSubject.components.map((comp, index) => (
+                                            <tr key={comp.id} className="border-t border-neutral-100">
+                                                <td className="w-12 px-4 py-3.5 text-center font-mono text-[0.8125rem]">{index + 1}</td>
+                                                <td className="px-4 py-3.5 font-semibold">{comp.name}</td>
+                                                <td className="px-4 py-3.5 font-mono text-[0.8125rem]">{comp.code}</td>
+                                                <td className="px-4 py-3.5 font-bold">{comp.weight}%</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    )}
 
                     {/* Assigned teachers table */}
                     <section className="subjects__teachers p-5" aria-label="Assigned teachers">
@@ -598,46 +693,130 @@ return (
 
                         {/* Create / Edit Subject Form */}
                         {(modalStatus === "create" || modalStatus === "edit") && (
-                            <div className="subjects-form__grid grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div className="subjects-form__field flex flex-col gap-1.5">
-                                    <label htmlFor="subject-name" className="subjects-form__label text-[0.8125rem] font-semibold">Subject Name</label>
-                                    <input
-                                        id="subject-name"
-                                        type="text"
-                                        className="subjects-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
-                                        placeholder="Mathematics"
-                                        autoFocus
-                                        name="name"
-                                        onChange={handleSubjectCreateModalInputChange}
-                                        value={newSubject.name}
-                                    />
+                            <div className="flex flex-col gap-4">
+                                <div className="subjects-form__grid grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div className="subjects-form__field flex flex-col gap-1.5">
+                                        <label htmlFor="subject-name" className="subjects-form__label text-[0.8125rem] font-semibold">Subject Name</label>
+                                        <input
+                                            id="subject-name"
+                                            type="text"
+                                            className="subjects-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                            placeholder="Mathematics"
+                                            autoFocus
+                                            name="name"
+                                            onChange={handleSubjectCreateModalInputChange}
+                                            value={newSubject.name}
+                                        />
+                                    </div>
+                                    <div className="subjects-form__field flex flex-col gap-1.5">
+                                        <label htmlFor="subject-code" className="subjects-form__label text-[0.8125rem] font-semibold">Subject Code</label>
+                                        <input
+                                            id="subject-code"
+                                            type="text"
+                                            className="subjects-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                            placeholder="MATH101"
+                                            name="code"
+                                            onChange={handleSubjectCreateModalInputChange}
+                                            value={newSubject.code}
+                                        />
+                                    </div>
+                                    <div className="subjects-form__field flex flex-col gap-1.5">
+                                        <label htmlFor="subject-unit" className="subjects-form__label text-[0.8125rem] font-semibold">Units</label>
+                                        <input
+                                            id="subject-unit"
+                                            type="number"
+                                            min={1}
+                                            max={10}
+                                            className="subjects-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                            placeholder="3"
+                                            name="unit"
+                                            onChange={handleSubjectCreateModalInputChange}
+                                            value={newSubject.unit}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="subjects-form__field flex flex-col gap-1.5">
-                                    <label htmlFor="subject-code" className="subjects-form__label text-[0.8125rem] font-semibold">Subject Code</label>
+
+                                {/* Has Components Toggle */}
+                                <div className="subjects-form__field flex items-center gap-3 rounded-lg border p-3">
                                     <input
-                                        id="subject-code"
-                                        type="text"
-                                        className="subjects-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
-                                        placeholder="MATH101"
-                                        name="code"
-                                        onChange={handleSubjectCreateModalInputChange}
-                                        value={newSubject.code}
+                                        type="checkbox"
+                                        id="hasComponents"
+                                        checked={newSubject.hasComponents ?? false}
+                                        onChange={handleHasComponentsToggle}
+                                        className="h-4 w-4 rounded"
                                     />
+                                    <label htmlFor="hasComponents" className="text-[0.8125rem] font-semibold">
+                                        Has Sub-Components
+                                    </label>
+                                    <span className="text-[0.75rem] text-neutral-500">
+                                        (e.g., MAPEH → Music, Arts, PE, Health)
+                                    </span>
                                 </div>
-                                <div className="subjects-form__field flex flex-col gap-1.5">
-                                    <label htmlFor="subject-unit" className="subjects-form__label text-[0.8125rem] font-semibold">Units</label>
-                                    <input
-                                        id="subject-unit"
-                                        type="number"
-                                        min={1}
-                                        max={10}
-                                        className="subjects-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
-                                        placeholder="3"
-                                        name="unit"
-                                        onChange={handleSubjectCreateModalInputChange}
-                                        value={newSubject.unit}
-                                    />
-                                </div>
+
+                                {/* Components Form */}
+                                {newSubject.hasComponents && (
+                                    <div className="subjects-form__components rounded-lg border p-4">
+                                        <div className="mb-3 flex items-center justify-between">
+                                            <h4 className="text-[0.8125rem] font-bold">Sub-Components</h4>
+                                            <span className={`text-[0.75rem] font-semibold ${getTotalComponentWeight() === 100 ? 'text-green-600' : 'text-orange-500'}`}>
+                                                Total: {getTotalComponentWeight()}%{getTotalComponentWeight() !== 100 ? ' (must equal 100%)' : ' ✓'}
+                                            </span>
+                                        </div>
+
+                                        {(newSubject.components ?? []).length === 0 ? (
+                                            <p className="text-[0.75rem] text-neutral-500">
+                                                No components added yet. Click "Add Component" to start.
+                                            </p>
+                                        ) : (
+                                            <div className="flex flex-col gap-2">
+                                                {(newSubject.components ?? []).map((comp, index) => (
+                                                    <div key={index} className="flex items-center gap-2">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Name (e.g., Music)"
+                                                            value={comp.name}
+                                                            onChange={(e) => handleComponentChange(index, 'name', e.target.value)}
+                                                            className="flex-1 rounded-lg border px-3 py-2 text-sm"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Code (e.g., MAPEH-M)"
+                                                            value={comp.code}
+                                                            onChange={(e) => handleComponentChange(index, 'code', e.target.value)}
+                                                            className="w-28 rounded-lg border px-3 py-2 text-sm"
+                                                        />
+                                                        <input
+                                                            type="number"
+                                                            placeholder="%"
+                                                            min={1}
+                                                            max={100}
+                                                            value={comp.weight}
+                                                            onChange={(e) => handleComponentChange(index, 'weight', Number(e.target.value))}
+                                                            className="w-16 rounded-lg border px-3 py-2 text-sm"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleRemoveComponent(index)}
+                                                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-500 hover:bg-red-50"
+                                                            aria-label="Remove component"
+                                                        >
+                                                            <FiTrash2 size={14} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <button
+                                            type="button"
+                                            onClick={handleAddComponent}
+                                            className="mt-3 inline-flex items-center gap-1.5 text-[0.75rem] font-semibold text-blue-600 hover:text-blue-700"
+                                        >
+                                            <FiPlus size={12} />
+                                            Add Component
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
 

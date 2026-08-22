@@ -7,6 +7,7 @@ import {
 } from "react-icons/fi";
 
 import { getAPICall, patchAPICall } from "../../api/api.js";
+import Skeleton from "../../components/Skeleton";
 
 import type { StudentDetailsProps, StudentDetailsUpdateProps } from "../../constant/studentDetails.js";
 import { GUARDIAN_RELATIONS } from "../../constant/studentDetails.js";
@@ -135,8 +136,8 @@ export default function StudentProfile() {
             </header>
 
             {loading ? (
-                <div className="rounded-2xl bg-white p-8 text-center text-sm text-neutral-400 shadow-sm">
-                    Loading your profile…
+                <div className="rounded-2xl bg-white p-6 shadow-sm">
+                    <Skeleton lines={6} gap="1rem" />
                 </div>
             ) : (
                 <>

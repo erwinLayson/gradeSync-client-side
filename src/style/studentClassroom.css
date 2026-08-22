@@ -330,10 +330,12 @@
 
 .student-classes__grades-general {
   background: #f8fafc;
+  border-top: 2px solid var(--neutral-border);
 }
 
 .student-classes__grades-general td {
   font-weight: 700;
+  color: var(--text-dark);
 }
 
 .student-classes__promoted {

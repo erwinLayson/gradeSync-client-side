@@ -30,6 +30,7 @@ import { Validate } from "../../helper/validate.js";
 
 // API Calls
 import { API, deleteAPICall, getAPICall, patchAPICall, postAPICall } from "../../api/api.js";
+import Skeleton from "../../components/Skeleton";
 
 /*
     Table columns
@@ -380,11 +381,8 @@ export default function AdminStudents() {
                             <p className="students__subtitle mt-1 text-[0.8125rem]">Loading enrolled students…</p>
                         </div>
                     </div>
-                    <div className="students__skeleton flex flex-col gap-3 p-6" aria-hidden="true">
-                        <div className="students__skeleton-row" />
-                        <div className="students__skeleton-row" />
-                        <div className="students__skeleton-row" />
-                        <div className="students__skeleton-row" />
+                    <div className="p-6">
+                        <Skeleton count={4} lines={1} height="2.5rem" gap="0.75rem" />
                     </div>
                 </div>
             </section>
@@ -571,6 +569,7 @@ export default function AdminStudents() {
                                                             </thead>
                                                             <tbody>
                                                                 {cls.subjects.map((subject) => (
+                                                                    <>
                                                                     <tr key={subject.classSubjectId ?? subject.name} className="border-t border-neutral-100">
                                                                         <td className="px-5 py-3">
                                                                             <span className="block font-semibold text-neutral-900">{subject.name}</span>
@@ -598,6 +597,31 @@ export default function AdminStudents() {
                                                                             </span>
                                                                         </td>
                                                                     </tr>
+                                                                    {/* Component breakdown for composite subjects */}
+                                                                    {(subject as any).componentBreakdown && (subject as any).componentBreakdown.length > 0 && (
+                                                                        (subject as any).componentBreakdown.map((comp: any) => (
+                                                                            <tr key={`${subject.classSubjectId ?? subject.name}-${comp.componentId}`} className="bg-gray-50">
+                                                                                <td className="px-5 py-2 pl-10">
+                                                                                    <span className="block text-xs font-medium text-neutral-600">└ {comp.name}</span>
+                                                                                </td>
+                                                                                <td className="px-3 py-2 text-xs text-neutral-500">{comp.code}</td>
+                                                                                <td className="px-3 py-2 text-center text-xs text-neutral-500">{comp.weight}%</td>
+                                                                                {comp.grades.map((grade: number | null, index: number) => (
+                                                                                    <td key={index} className="px-3 py-2 text-center text-xs text-neutral-600">
+                                                                                        {grade ?? "—"}
+                                                                                    </td>
+                                                                                ))}
+                                                                                <td className="px-3 py-2 text-center text-xs font-medium text-neutral-600">
+                                                                                    {comp.grades.filter((g: number | null) => g !== null).length > 0
+                                                                                        ? Math.round(comp.grades.filter((g: number | null) => g !== null).reduce((a: number, b: number) => a + b, 0) / comp.grades.filter((g: number | null) => g !== null).length)
+                                                                                        : "—"
+                                                                                    }
+                                                                                </td>
+                                                                                <td className="px-5 py-2"></td>
+                                                                            </tr>
+                                                                        ))
+                                                                    )}
+                                                                    </>
                                                                 ))}
                                                             </tbody>
                                                         </table>

@@ -14,6 +14,7 @@ import {
 
 import { getAPICall, postAPICall } from "../../api/api";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import Skeleton from "../../components/Skeleton";
 import { getInitials } from "../../helper/initials";
 import { toast } from "../../helper/toast";
 
@@ -203,8 +204,8 @@ export default function TeacherStudentRecords() {
     if (loading) {
         return (
             <section className="teacher-records flex flex-col gap-5" aria-busy="true" aria-label="Loading student records">
-                <div className="teacher-records__loading flex min-h-[60vh] w-full items-center justify-center">
-                    <FiUsers className="animate-spin text-4xl text-gray-500" aria-hidden="true" />
+                <div className="teacher-records__loading rounded-2xl bg-white p-6 shadow-sm">
+                    <Skeleton lines={6} gap="1rem" />
                 </div>
             </section>
         );

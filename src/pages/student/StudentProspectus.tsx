@@ -9,6 +9,7 @@ import {
 } from "react-icons/fi";
 
 import { getAPICall } from "../../api/api";
+import Skeleton from "../../components/Skeleton";
 import { getInitials } from "../../helper/initials";
 
 import type { StudentClass, StudentClassesData, SubjectGrade } from "../../constant/studentClasses";
@@ -43,7 +44,7 @@ export default function StudentProspectus() {
         let cancelled = false;
         async function loadHistory() {
             try {
-                const response = await getAPICall<StudentClassesData>("/students/classes", { toast: false });
+                const response = await getAPICall<StudentClassesData>("/students/prospectus", { toast: false });
                 if (cancelled) return;
                 setStudent(response.data?.student ?? null);
                 // Server returns newest first; show the permanent record chronologically.
@@ -70,15 +71,10 @@ export default function StudentProspectus() {
         return (
             <section className="student-prospectus__page flex flex-col gap-5">
                 <div className="student-prospectus__hero flex items-center gap-4 p-6">
-                    <div className="h-14 w-14 animate-pulse rounded-2xl bg-white/20" />
-                    <div className="flex flex-col gap-2">
-                        <div className="h-3 w-24 animate-pulse rounded bg-white/30" />
-                        <div className="h-5 w-48 animate-pulse rounded bg-white/30" />
-                        <div className="h-3 w-64 animate-pulse rounded bg-white/20" />
-                    </div>
+                    <Skeleton avatar avatarSize={56} lines={0} className="flex-1" />
                 </div>
-                <div className="rounded-2xl bg-white p-8 text-center text-sm text-neutral-400 shadow-sm">
-                    Loading your academic history…
+                <div className="rounded-2xl bg-white p-6 shadow-sm">
+                    <Skeleton lines={4} gap="1rem" />
                 </div>
             </section>
         );

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FiArrowRight, FiEye, FiEyeOff, FiLock, FiMail } from 'react-icons/fi'
-import { PiGraduationCapFill } from 'react-icons/pi'
+import logo1 from "../assets/logo1.webp"
 
 // Helpers Fucntion
 import { Validate } from '../helper/validate'
@@ -79,16 +79,16 @@ function LoginPage() {
   return (
     <main className="login-page">
       {/* Decorative glows */}
-      <div aria-hidden="true" className="login-page__glow login-page__glow--accent" />
       <div aria-hidden="true" className="login-page__glow login-page__glow--leaf" />
+      <div aria-hidden="true" className="login-page__glow login-page__glow--deep" />
 
-      <div className="login-page__wrap">
+      <div className="login-page__wrap shadow-lg rounded-lg">
         {/* Card */}
         <div className="login-card">
           {/* Header */}
           <div className="login-card__header">
             <div className="login-card__logo">
-              <PiGraduationCapFill aria-hidden="true" />
+              <img src={`${logo1}`} alt="School logo" className='w-full h-full object-cover'/>
             </div>
             <h1 className="login-card__title">
               Welcome back
@@ -202,12 +202,9 @@ function LoginPage() {
             <p className="login-note">
               Trouble signing in? Contact your school administrator.
             </p>
+             
           </form>
         </div>
-
-        <p className="login-footer">
-          © 2026 School Portal · Secured by your institution
-        </p>
       </div>
     </main>
   )

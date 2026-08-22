@@ -499,14 +499,6 @@
   background: #fce7f3;
 }
 
-/* Roster loading skeleton */
-.teacher-classes__roster-skeleton-row {
-  height: 2.75rem;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, var(--neutral-border) 25%, var(--accent-light) 50%, var(--neutral-border) 75%);
-  background-size: 200% 100%;
-  animation: teacher-classes-shimmer 1.4s ease-in-out infinite;
-}
 
 /* Roster empty state */
 .teacher-classes__roster-empty {
@@ -526,23 +518,6 @@
   color: var(--text-muted);
 }
 
-/* ---------- Loading skeleton ---------- */
-.teacher-classes__skeleton-row {
-  height: 10rem;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(90deg, var(--neutral-border) 25%, var(--accent-light) 50%, var(--neutral-border) 75%);
-  background-size: 200% 100%;
-  animation: teacher-classes-shimmer 1.4s ease-in-out infinite;
-}
-
-@keyframes teacher-classes-shimmer {
-  from {
-    background-position: 200% 0;
-  }
-  to {
-    background-position: -200% 0;
-  }
-}
 
 /* ---------- Empty state ---------- */
 .teacher-classes__empty-icon {
@@ -561,9 +536,7 @@
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   .teacher-classes__hero,
-  .teacher-classes__details,
-  .teacher-classes__skeleton-row,
-  .teacher-classes__roster-skeleton-row {
+  .teacher-classes__details {
     animation: none;
   }
 

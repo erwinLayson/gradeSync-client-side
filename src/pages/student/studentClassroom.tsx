@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
     FiAlertTriangle,
     FiArrowLeft,
+    FiAward,
     FiBookOpen,
     FiCalendar,
     FiCheck,
@@ -15,6 +16,7 @@ import {
 } from "react-icons/fi";
 
 import { getAPICall } from "../../api/api";
+import Skeleton from "../../components/Skeleton";
 import { getInitials } from "../../helper/initials";
 
 import type {
@@ -25,7 +27,7 @@ import { QUARTERS, TYPE_LABELS } from "../../constant/studentClasses";
 
 import "../../style/studentClassroom.css";
 
-type DetailTab = "activities" | "attendance";
+type DetailTab = "grades" | "activities" | "attendance";
 
 export default function StudentClassroom() {
     const [loading, setLoading] = useState(true);
@@ -177,6 +179,18 @@ export default function StudentClassroom() {
                         <button
                             type="button"
                             className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-4 py-2 text-[0.8125rem] font-semibold transition ${
+                                activeTab === "grades"
+                                    ? "student-classes__tab--active"
+                                    : "text-neutral-500 hover:text-neutral-800"
+                            }`}
+                            onClick={() => setActiveTab("grades")}
+                        >
+                            <FiAward aria-hidden="true" />
+                            Grades
+                        </button>
+                        <button
+                            type="button"
+                            className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-4 py-2 text-[0.8125rem] font-semibold transition ${
                                 activeTab === "activities"
                                     ? "student-classes__tab--active"
                                     : "text-neutral-500 hover:text-neutral-800"
@@ -200,23 +214,124 @@ export default function StudentClassroom() {
                         </button>
                     </div>
 
-                    <div className="flex items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1 shadow-sm" role="group" aria-label="Select quarter">
-                        {QUARTERS.map((quarter) => (
-                            <button
-                                key={quarter}
-                                type="button"
-                                className={`inline-flex cursor-pointer items-center rounded-lg px-3 py-1.5 text-[0.8125rem] font-bold transition ${
-                                    activeQuarter === quarter
-                                        ? "student-classes__quarter--active"
-                                        : "text-neutral-500 hover:text-neutral-800"
-                                }`}
-                                onClick={() => setActiveQuarter(quarter)}
-                            >
-                                Q{quarter}
-                            </button>
-                        ))}
-                    </div>
+                    {activeTab !== "grades" && (
+                        <div className="flex items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1 shadow-sm" role="group" aria-label="Select quarter">
+                            {QUARTERS.map((quarter) => (
+                                <button
+                                    key={quarter}
+                                    type="button"
+                                    className={`inline-flex cursor-pointer items-center rounded-lg px-3 py-1.5 text-[0.8125rem] font-bold transition ${
+                                        activeQuarter === quarter
+                                            ? "student-classes__quarter--active"
+                                            : "text-neutral-500 hover:text-neutral-800"
+                                    }`}
+                                    onClick={() => setActiveQuarter(quarter)}
+                                >
+                                    Q{quarter}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
+
+                {/* ==================== Grades ==================== */}
+                {activeTab === "grades" && (
+                    <div className="flex flex-col gap-5" aria-label="Subject grades">
+                        <section className="student-classes__grades overflow-hidden rounded-2xl">
+                            <div className="border-b px-5 py-4">
+                                <h4 className="text-[0.9375rem] font-bold text-neutral-900">Subject Grades</h4>
+                                <p className="mt-1 text-[0.8125rem] text-neutral-500">
+                                    Your live quarterly grades, final grade, and remarks for each subject.
+                                </p>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="student-classes__grades-table text-sm">
+                                    <thead>
+                                        <tr>
+                                            <th className="px-5 py-3 text-left font-bold">Subject</th>
+                                            <th className="px-3 py-3 text-center font-bold">Q1</th>
+                                            <th className="px-3 py-3 text-center font-bold">Q2</th>
+                                            <th className="px-3 py-3 text-center font-bold">Q3</th>
+                                            <th className="px-3 py-3 text-center font-bold">Q4</th>
+                                            <th className="px-3 py-3 text-center font-bold">Final</th>
+                                            <th className="px-5 py-3 text-center font-bold">Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {selectedClass.subjects.map((subject) => (
+                                            <tr key={subject.classSubjectId ?? subject.name}>
+                                                <td className="px-5 py-3">
+                                                    <div className="flex min-w-0 items-center gap-3">
+                                                        <span className="student-classes__subjects-subject-icon inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm" aria-hidden="true">
+                                                            <FiBookOpen />
+                                                        </span>
+                                                        <div className="min-w-0">
+                                                            <p className="truncate text-sm font-bold text-neutral-900">{subject.name}</p>
+                                                            <p className="student-classes__subjects-subject-code mt-0.5 truncate text-xs">{subject.code}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                {[0, 1, 2, 3].map((index) => (
+                                                    <td key={index} className="px-3 py-3 text-center font-semibold">
+                                                        {subject.quarters[index] ?? (
+                                                            <span className="text-neutral-400">—</span>
+                                                        )}
+                                                    </td>
+                                                ))}
+                                                <td className="px-3 py-3 text-center font-bold">
+                                                    {subject.final ?? (
+                                                        <span className="text-neutral-400">—</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-5 py-3 text-center">
+                                                    {subject.remarks ? (
+                                                        <span
+                                                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
+                                                                subject.remarks === "Passed"
+                                                                    ? "student-classes__grade-passed"
+                                                                    : "student-classes__grade-failed"
+                                                            }`}
+                                                        >
+                                                            {subject.remarks}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-xs text-neutral-400">No grade</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {/* General Average row */}
+                                        <tr className="student-classes__grades-general">
+                                            <td className="px-5 py-3" colSpan={5}>
+                                                General Average
+                                            </td>
+                                            <td className="px-3 py-3 text-center font-bold">
+                                                {selectedClass.generalAverage ?? (
+                                                    <span className="text-neutral-400">—</span>
+                                                )}
+                                            </td>
+                                            <td className="px-5 py-3 text-center">
+                                                {selectedClass.generalAverage !== null ? (
+                                                    <span
+                                                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
+                                                            selectedClass.generalAverage >= 75
+                                                                ? "student-classes__grade-passed"
+                                                                : "student-classes__grade-failed"
+                                                        }`}
+                                                    >
+                                                        {selectedClass.generalAverage >= 75 ? "Passed" : "Failed"}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs text-neutral-400">In progress</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+                )}
 
                 {/* ==================== Activities & Scores (one table per subject) ==================== */}
                 {activeTab === "activities" && (
@@ -467,15 +582,10 @@ export default function StudentClassroom() {
         return (
             <section className="student-classes__page flex flex-col gap-5">
                 <div className="student-classes__hero flex items-center gap-4 p-6">
-                    <div className="h-14 w-14 animate-pulse rounded-2xl bg-white/20" />
-                    <div className="flex flex-col gap-2">
-                        <div className="h-3 w-24 animate-pulse rounded bg-white/30" />
-                        <div className="h-5 w-48 animate-pulse rounded bg-white/30" />
-                        <div className="h-3 w-64 animate-pulse rounded bg-white/20" />
-                    </div>
+                    <Skeleton avatar avatarSize={56} lines={0} className="flex-1" />
                 </div>
-                <div className="rounded-2xl bg-white p-8 text-center text-sm text-neutral-400 shadow-sm">
-                    Loading your classes…
+                <div className="rounded-2xl bg-white p-6 shadow-sm">
+                    <Skeleton lines={4} gap="1rem" />
                 </div>
             </section>
         );
@@ -675,7 +785,7 @@ export default function StudentClassroom() {
                                 type="button"
                                 className="student-classes__card-cta inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-4 py-2.5 text-[0.8125rem] font-semibold"
                                 onClick={() => {
-                                    setActiveTab("activities");
+                                    setActiveTab("grades");
                                     setActiveQuarter(1);
                                     setExpandedSubject(null);
                                     setSelectedClass(cls);

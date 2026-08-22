@@ -13,6 +13,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { getAPICall, postAPICall } from "../../api/api";
+import Skeleton from "../../components/Skeleton";
 import { useUser } from "../../hooks/useUser";
 import { getInitials } from "../../helper/initials";
 import { toast } from "../../helper/toast";
@@ -387,16 +388,8 @@ export default function TeacherAttendance() {
     if (userLoading || loading) {
         return (
             <section className="teacher-attendance flex flex-col gap-5" aria-busy="true" aria-label="Loading attendance">
-                <div className="teacher-attendance__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                    <div className="teacher-attendance__card-head flex flex-wrap items-center justify-between gap-4 p-5">
-                        <div className="teacher-attendance__card-heading min-w-0">
-                            <h3 className="teacher-attendance__card-title text-base font-bold">Daily Attendance</h3>
-                            <p className="teacher-attendance__card-subtitle mt-1 text-[0.8125rem]">Loading your classes…</p>
-                        </div>
-                    </div>
-                    <div className="teacher-attendance__sheet-wrap p-6">
-                        <div className="h-40 animate-pulse rounded-xl bg-gray-100" aria-hidden="true" />
-                    </div>
+                <div className="teacher-attendance__card overflow-hidden rounded-2xl bg-white p-5 shadow-sm">
+                    <Skeleton lines={6} gap="1rem" />
                 </div>
             </section>
         );

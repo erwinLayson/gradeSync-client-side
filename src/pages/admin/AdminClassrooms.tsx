@@ -8,6 +8,7 @@ import {
     putAPICall,
     deleteAPICall
 } from "../../api/api";
+import Skeleton from "../../components/Skeleton";
 import { toast } from "../../helper/toast";
 
 import "../../style/adminClassrooms.css";
@@ -554,11 +555,8 @@ return (
                 <p className="classrooms__subtitle mt-1 text-[0.8125rem]">Loading classrooms…</p>
             </div>
         </div>
-        <div className="classrooms__skeleton grid grid-cols-1 gap-4 p-6 sm:grid-cols-2" aria-hidden="true">
-            <div className="classrooms__skeleton-row" />
-            <div className="classrooms__skeleton-row" />
-            <div className="classrooms__skeleton-row" />
-            <div className="classrooms__skeleton-row" />
+        <div className="p-6">
+            <Skeleton count={4} lines={1} height="9.5rem" radius="0.75rem" grid="repeat(2, 1fr)" />
         </div>
     </div>
 </section>

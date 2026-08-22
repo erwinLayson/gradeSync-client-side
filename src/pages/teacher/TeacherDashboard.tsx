@@ -7,7 +7,6 @@ import {
     FiClipboard,
     FiClock,
     FiHome,
-    FiTrendingUp,
     FiUsers,
 } from "react-icons/fi";
 
@@ -171,9 +170,9 @@ export default function TeacherDashboard() {
                 </div>
             </div>
 
-            {/* ==================== Quick actions ==================== */}
-            <div className="grid grid-cols-2">
-                <div className="teacher-dashboard__grid grid grid-cols-1 gap-5">
+            {/* ==================== Quick actions + Adviser Classes ==================== */}
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-5">
                     {/* ---------------- Quick actions ---------------- */}
                     <div className="teacher-dashboard__card overflow-hidden rounded-2xl bg-white shadow-sm">
                         <div className="teacher-dashboard__card-head flex flex-wrap items-center justify-between gap-4 p-5">
@@ -189,15 +188,15 @@ export default function TeacherDashboard() {
                             <button
                                 type="button"
                                 className="teacher-dashboard__action flex cursor-pointer flex-col gap-3 rounded-xl border p-4 text-left"
-                                onClick={() => navigate("/teacher/attendance")}
+                                onClick={() => navigate("/teacher/my-class")}
                             >
                                 <span className="teacher-dashboard__action-icon inline-flex h-10 w-10 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                                    <FiClipboard />
+                                    <FiHome />
                                 </span>
                                 <span className="min-w-0">
-                                    <span className="teacher-dashboard__action-title block text-[0.8125rem] font-bold">Take Attendance</span>
+                                    <span className="teacher-dashboard__action-title block text-[0.8125rem] font-bold">My Class</span>
                                     <span className="teacher-dashboard__action-meta mt-0.5 block text-[0.6875rem]">
-                                        {firstClass ? `${firstClass.classSection} · P1` : "No classes yet"}
+                                        View your advised class &amp; grades
                                     </span>
                                 </span>
                             </button>
@@ -216,7 +215,7 @@ export default function TeacherDashboard() {
                                     <FiBookOpen />
                                 </span>
                                 <span className="min-w-0">
-                                    <span className="teacher-dashboard__action-title block text-[0.8125rem] font-bold">Open Gradebook</span>
+                                    <span className="teacher-dashboard__action-title block text-[0.8125rem] font-bold">Gradebook</span>
                                     <span className="teacher-dashboard__action-meta mt-0.5 block text-[0.6875rem]">
                                         {firstClass?.subjects[0] ? `${firstClass.subjects[0].subjectName} · Q1` : "No subjects yet"}
                                     </span>
@@ -226,15 +225,15 @@ export default function TeacherDashboard() {
                             <button
                                 type="button"
                                 className="teacher-dashboard__action flex cursor-pointer flex-col gap-3 rounded-xl border p-4 text-left"
-                                onClick={() => navigate("/teacher/classes")}
+                                onClick={() => navigate("/teacher/attendance")}
                             >
                                 <span className="teacher-dashboard__action-icon inline-flex h-10 w-10 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                                    <FiHome />
+                                    <FiClipboard />
                                 </span>
                                 <span className="min-w-0">
-                                    <span className="teacher-dashboard__action-title block text-[0.8125rem] font-bold">My Classes</span>
+                                    <span className="teacher-dashboard__action-title block text-[0.8125rem] font-bold">Attendance</span>
                                     <span className="teacher-dashboard__action-meta mt-0.5 block text-[0.6875rem]">
-                                        {classes?.length} {classes?.length === 1 ? "class" : "classes"} &middot; {totalStudents} advised students
+                                        {firstClass ? `${firstClass.classSection} · P1` : "No classes yet"}
                                     </span>
                                 </span>
                             </button>
@@ -242,15 +241,15 @@ export default function TeacherDashboard() {
                             <button
                                 type="button"
                                 className="teacher-dashboard__action flex cursor-pointer flex-col gap-3 rounded-xl border p-4 text-left"
-                                onClick={() => navigate("/teacher/reports")}
+                                onClick={() => navigate("/teacher/student-records")}
                             >
                                 <span className="teacher-dashboard__action-icon inline-flex h-10 w-10 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                                    <FiTrendingUp />
+                                    <FiClipboard />
                                 </span>
                                 <span className="min-w-0">
-                                    <span className="teacher-dashboard__action-title block text-[0.8125rem] font-bold">Class Reports</span>
+                                    <span className="teacher-dashboard__action-title block text-[0.8125rem] font-bold">Student Records</span>
                                     <span className="teacher-dashboard__action-meta mt-0.5 block text-[0.6875rem]">
-                                        View grades &amp; analytics
+                                        Submit &amp; manage records
                                     </span>
                                 </span>
                             </button>
@@ -271,7 +270,7 @@ export default function TeacherDashboard() {
                     </div>
                 </div>
                 
-                <div className="w-full">
+                <div>
                     <div className="teacher-dashboard__card-head flex flex-wrap items-center justify-between gap-4 p-5">
                         <div className="teacher-dashboard__card-heading min-w-0">
                             <h3 className="teacher-dashboard__card-title text-base font-bold">My Advised Classes</h3>
@@ -282,9 +281,8 @@ export default function TeacherDashboard() {
                         <span className="teacher-dashboard__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
                             <FiUsers aria-hidden="true" />
                         </span>
-                    </div>
-
-                    <div className="teacher-dashboard__adviser-grid grid grid-cols-1 gap-4 p-5 sm:grid-cols-2">
+                    </div>                    
+                    <div>
                         {adviserClassStats?.length === 0 ? (
                             <div className="teacher-dashboard__empty flex flex-col items-center justify-center px-6 py-10 text-center sm:col-span-2">
                                 <span className="teacher-dashboard__empty-icon inline-flex h-10 w-10 items-center justify-center rounded-full" aria-hidden="true">
@@ -297,21 +295,25 @@ export default function TeacherDashboard() {
                             </div>
                         ) : (
                             adviserClassStats?.map((stat) => (
-                                <div className="teacher-dashboard__adviser-card" key={stat.classId}>
+                                <article
+                                    className="teacher-dashboard__adviser-card"
+                                    key={stat.classId}
+                                    onClick={() => navigate("/teacher/my-class")}
+                                >
                                     <GenderPieChart male={stat.maleCount} female={stat.femaleCount} fullWidth />
                                     <div className="teacher-dashboard__adviser-card-overlay">
                                         <span className="teacher-dashboard__adviser-card-eyebrow">Grade {stat.classGradeLevel}</span>
                                         <h4 className="teacher-dashboard__adviser-card-name">{stat.classSection}</h4>
                                         <div className="teacher-dashboard__adviser-gender">
-                                            <span className="teacher-dashboard__gender-badge teacher-dashboard__gender-badge--male text-[0.6875rem] font-semibold">
+                                            <span className="teacher-dashboard__gender-badge teacher-dashboard__gender-badge--male">
                                                 <span className="teacher-dashboard__gender-dot teacher-dashboard__gender-dot--male" aria-hidden="true" /> {stat.maleCount} male
                                             </span>
-                                            <span className="teacher-dashboard__gender-badge teacher-dashboard__gender-badge--female text-[0.6875rem] font-semibold">
+                                            <span className="teacher-dashboard__gender-badge teacher-dashboard__gender-badge--female">
                                                 <span className="teacher-dashboard__gender-dot teacher-dashboard__gender-dot--female" aria-hidden="true" /> {stat.femaleCount} female
                                             </span>
                                         </div>
                                     </div>
-                                </div>
+                                </article>
                             ))
                         )}
                     </div>
@@ -319,15 +321,8 @@ export default function TeacherDashboard() {
             
             </div>
 
-            {/* ==================== Adviser Classes ==================== */}
-            
-
-            <div className="teacher-dashboard__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                    
-                </div>
-
-            {/* ==================== My classes ==================== */}
-            {classes &&  classes.length > 0 && (
+            {/* ==================== Teaching Load ==================== */}
+            {classes && classes.length > 0 && (
                 <div className="teacher-dashboard__card overflow-hidden rounded-2xl bg-white shadow-sm">
                     <div className="teacher-dashboard__card-head flex flex-wrap items-center justify-between gap-4 p-5">
                         <div className="teacher-dashboard__card-heading min-w-0">

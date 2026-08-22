@@ -22,11 +22,13 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { deleteAPICall, getAPICall, patchAPICall, postAPICall, putAPICall } from "../../api/api";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import Skeleton from "../../components/Skeleton";
 import { getInitials } from "../../helper/initials";
 import { toast } from "../../helper/toast";
 
 import type { Assessment, AssessmentType } from "../../constant/assessment";
 import type { GradeWeights } from "../../constant/gradingWeights";
+import type { SubjectComponent } from "../../constant/subjects";
 
 import "../../style/teacherGradebook.css";
 
@@ -59,6 +61,8 @@ interface GradebookDetails {
     subjectId: number;
     subjectName: string;
     subjectCode: string;
+    hasComponents: boolean;
+    components: SubjectComponent[];
     quarter: number;
     assessment: Assessment[];
     gradingWeights: GradeWeights;
@@ -203,6 +207,9 @@ export default function TeacherGradebook() {
     const [draftScores, setDraftScores] = useState<DraftScores>({});
     const [savingScores, setSavingScores] = useState<boolean>(false);
 
+    // ================ Component tabs (for composite subjects like MAPEH) ================
+    const [selectedComponentId, setSelectedComponentId] = useState<number | null>(null);
+
     // ================ Assessment modal / delete state ================
     const [modal, setModal] = useState<AssessmentModalState>(null);
     const [modalForm, setModalForm] = useState<AssessmentFormState>(EMPTY_ASSESSMENT_FORM);
@@ -251,7 +258,18 @@ export default function TeacherGradebook() {
     }
 
     // ================= Derived state ================
-    const assessments = useMemo(() => gradeBookDetails?.assessment ?? [], [gradeBookDetails]);
+    const isCompositeSubject = gradeBookDetails?.hasComponents ?? false;
+    const components = gradeBookDetails?.components ?? [];
+
+    // Filter assessments by selected component for composite subjects
+    const assessments = useMemo(() => {
+        const allAssessments = gradeBookDetails?.assessment ?? [];
+        if (isCompositeSubject && selectedComponentId !== null) {
+            return allAssessments.filter(a => a.componentId === selectedComponentId);
+        }
+        return allAssessments;
+    }, [gradeBookDetails, isCompositeSubject, selectedComponentId]);
+
     const students = useMemo(() => gradeBookDetails?.student ?? [], [gradeBookDetails]);
 
     const assessmentCounts = useMemo(() => {
@@ -413,13 +431,18 @@ export default function TeacherGradebook() {
         setSavingAssessment(true);
         try {
             if (modal.mode === "create") {
+                const createPayload: any = {
+                    classSubjectId: gradeBookDetails.classSubjectId,
+                    quarter,
+                    ...payload,
+                };
+                // Include componentId for composite subjects when a component is selected
+                if (isCompositeSubject && selectedComponentId !== null) {
+                    createPayload.componentId = selectedComponentId;
+                }
                 await postAPICall(
                     "/assessments",
-                    {
-                        classSubjectId: gradeBookDetails.classSubjectId,
-                        quarter,
-                        ...payload,
-                    },
+                    createPayload,
                     { toast: false },
                 );
                 toast.success("Assessment created successfully");
@@ -553,9 +576,11 @@ export default function TeacherGradebook() {
 
     if (loading) {
         return (
-            <div className="teacher-gradebook__loading flex h-full w-full items-center justify-center">
-                <FiUsers className="animate-spin text-4xl text-gray-500" />
-            </div>
+            <section className="teacher-gradebook flex flex-col gap-5">
+                <div className="teacher-gradebook__card overflow-hidden rounded-2xl bg-white p-5 shadow-sm">
+                    <Skeleton lines={5} gap="1rem" />
+                </div>
+            </section>
         );
     }
 
@@ -644,6 +669,41 @@ export default function TeacherGradebook() {
                     </button>
                 </div>
             </div>
+
+            {/* ==================== Component tabs (for composite subjects) ==================== */}
+            {isCompositeSubject && components.length > 0 && (
+                <div className="teacher-gradebook__components flex flex-wrap items-center gap-2 rounded-xl border bg-white p-4 shadow-sm">
+                    <span className="text-[0.75rem] font-bold text-neutral-500">Component:</span>
+                    <div className="flex items-center gap-1.5" role="tablist" aria-label="Select component">
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected={selectedComponentId === null}
+                            className={`teacher-gradebook__tab inline-flex cursor-pointer items-center justify-center rounded-lg px-3 py-1.5 text-[0.75rem] font-bold transition-colors${
+                                selectedComponentId === null ? " teacher-gradebook__tab--active" : ""
+                            }`}
+                            onClick={() => setSelectedComponentId(null)}
+                        >
+                            All
+                        </button>
+                        {components.map((comp) => (
+                            <button
+                                key={comp.id}
+                                type="button"
+                                role="tab"
+                                aria-selected={selectedComponentId === comp.id}
+                                className={`teacher-gradebook__tab inline-flex cursor-pointer items-center justify-center rounded-lg px-3 py-1.5 text-[0.75rem] font-bold transition-colors${
+                                    selectedComponentId === comp.id ? " teacher-gradebook__tab--active" : ""
+                                }`}
+                                onClick={() => setSelectedComponentId(comp.id)}
+                            >
+                                {comp.name}
+                                <span className="ml-1 text-[0.625rem] opacity-60">{comp.weight}%</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* ==================== Component summary ==================== */}
             <div className="teacher-gradebook__chips grid grid-cols-1 gap-3 sm:grid-cols-3">

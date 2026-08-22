@@ -207,23 +207,7 @@
   cursor: wait;
 }
 
-/* ---------- Loading skeleton ---------- */
-.teachers__skeleton-row {
-  height: 2.5rem;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, var(--neutral-border) 25%, var(--accent-light) 50%, var(--neutral-border) 75%);
-  background-size: 200% 100%;
-  animation: teachers-shimmer 1.4s ease-in-out infinite;
-}
 
-@keyframes teachers-shimmer {
-  from {
-    background-position: 200% 0;
-  }
-  to {
-    background-position: -200% 0;
-  }
-}
 
 /* ---------- Empty state ---------- */
 .teachers__empty-icon {
@@ -435,14 +419,7 @@
   color: var(--text-muted);
 }
 
-/* Details loading skeleton */
-.teachers__subjects-skeleton-row {
-  height: 3.5rem;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, var(--neutral-border) 25%, var(--accent-light) 50%, var(--neutral-border) 75%);
-  background-size: 200% 100%;
-  animation: teachers-shimmer 1.4s ease-in-out infinite;
-}
+
 
 /* ---------- Create Teacher modal ---------- */
 .teachers-modal {
@@ -613,11 +590,6 @@ select.teachers-form__input {
   .teachers-modal,
   .teachers-modal__panel,
   .teachers__details {
-    animation: none;
-  }
-
-  .teachers__skeleton-row,
-  .teachers__subjects-skeleton-row {
     animation: none;
   }
 }

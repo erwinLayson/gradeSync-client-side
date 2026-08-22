@@ -56,10 +56,17 @@ export const DASHBOARD_LINKS = {
       sections: [
         { label: "Dashboard", path: "/teacher/dashboard",icon: FaHome,},
         { label: "Attendance",path: "/teacher/attendance",icon: FaClipboardCheck},
-        { label: "Classes",  path: "/teacher/classes", icon: FaClipboardCheck},
+        { label: "My Class",  path: "/teacher/my-class", icon: FaSchool},
+        { label: "Gradebook",  path: "/teacher/classes", icon: FaClipboardCheck},
         { label: "Student Records", path: "/teacher/student-records", icon: FaClipboardList},
         { label: "Reports", path: "/teacher/reports", icon: FaChartLine}
       ] 
+    },
+    {
+      title: "Configuration",
+      sections: [
+        { label: "Settings", path: "/teacher/settings", icon: FaCog }
+      ]
     }
   ],
 

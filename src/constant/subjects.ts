@@ -3,10 +3,13 @@ export interface Subject {
     name: string;
     code: string;
     unit: number;
+    hasComponents?: boolean;
 }
 
-export interface NewSubject extends Omit<Subject, "id" | "unit"> {
+export interface NewSubject extends Omit<Subject, "id" | "unit" | "hasComponents"> {
     unit: string;
+    hasComponents?: boolean;
+    components?: ComponentCreateProps[];
 }
 
 export interface SubjectWithTeachers extends Subject {
@@ -14,4 +17,20 @@ export interface SubjectWithTeachers extends Subject {
         id: number;
         name: string;
     }[];
+    components?: SubjectComponent[];
+}
+
+export interface SubjectComponent {
+    id: number;
+    parentSubjectId: number;
+    name: string;
+    code: string;
+    weight: number;
+    createdAt?: string;
+}
+
+export interface ComponentCreateProps {
+    name: string;
+    code: string;
+    weight: number;
 }
