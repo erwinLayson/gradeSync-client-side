@@ -1,0 +1,60 @@
+/* ============================================================
+   ProtectedRoutes — full-screen loading splash
+   Tokens come from src/index.css (:root).
+   ============================================================ */
+
+/* ---------- Full-screen wrapper ---------- */
+.protected-route__splash {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  background: var(--surface-white);
+}
+
+/* ---------- Logo badge (mirrors login-card__logo / sidebar__logo) ---------- */
+.protected-route__logo {
+  display: flex;
+  height: 3.5rem;
+  width: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.protected-route__logo img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+/* ---------- Spinner ---------- */
+.protected-route__spin {
+  animation: protected-route-spin 0.9s linear infinite;
+}
+
+@keyframes protected-route-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Status text ---------- */
+.protected-route__status {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* ---------- Reduce motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .protected-route__spin {
+    animation: none;
+  }
+}

@@ -83,7 +83,7 @@ export default function TeacherReport() {
 
     const handleDownload = useCallback((enrollmentId: number) => {
         setDownloadingId(enrollmentId);
-        const baseURL = import.meta.env.VITE_LOCAL_SERVER as string;
+        const baseURL = import.meta.env.VITE_DEPLOY_SERVER as string;
         window.open(`${baseURL}/student/${enrollmentId}/report-card`, "_blank");
         setTimeout(() => setDownloadingId(null), 1500);
     }, []);
