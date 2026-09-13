@@ -27,6 +27,30 @@ export interface SkeletonProps {
     itemTag?: "div" | "article" | "li";
 }
 
+/**
+ * Single shimmering placeholder bar styled like the skeleton lines.
+ * Useful for one-off loading placeholders that don't need a full Skeleton block.
+ */
+export function SkeletonLine({
+    width = "100%",
+    height = "0.75rem",
+    radius = "0.5rem",
+    className = "",
+}: {
+    width?: string | number;
+    height?: string | number;
+    radius?: string;
+    className?: string;
+}) {
+    return (
+        <div
+            className={`skeleton__bar ${className}`.trim()}
+            style={{ width, height, borderRadius: radius }}
+            aria-hidden="true"
+        />
+    );
+}
+
 function SkeletonBar({ width, height, radius, last }: {
     width: string;
     height: string;

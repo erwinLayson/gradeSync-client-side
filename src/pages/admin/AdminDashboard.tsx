@@ -16,6 +16,8 @@ import {
 } from "react-icons/fi";
 
 import { getAPICall } from "../../api/api";
+import { SkeletonLine } from "../../components/Skeleton";
+import "../../style/skeleton.css";
 
 import "../../style/analyticsReports.css";
 import "../../style/adminDashboard.css";
@@ -73,8 +75,12 @@ export default function AdminDashboard() {
 
     // Live per-school-year totals from /analytics, falling back to sample data.
     const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+    // True while /analytics is in flight — drives the card skeletons below.
+    const [analyticsLoading, setAnalyticsLoading] = useState(true);
     // Live academic settings (current quarter + enrollment status), falling back to the mock.
     const [academicSettings, setAcademicSettings] = useState<AcademicSettingsData | null>(null);
+    // True while /academic-settings is in flight.
+    const [settingsLoading, setSettingsLoading] = useState(true);
 
     useEffect(() => {
         let cancelled = false;
@@ -84,6 +90,9 @@ export default function AdminDashboard() {
             })
             .catch(() => {
                 // Error toast is handled by the axios interceptor; keep the no-data state.
+            })
+            .finally(() => {
+                if (!cancelled) setAnalyticsLoading(false);
             });
         return () => {
             cancelled = true;
@@ -98,6 +107,9 @@ export default function AdminDashboard() {
             })
             .catch(() => {
                 // Error toast is handled by the axios interceptor; keep the mock state.
+            })
+            .finally(() => {
+                if (!cancelled) setSettingsLoading(false);
             });
         return () => {
             cancelled = true;
@@ -105,6 +117,21 @@ export default function AdminDashboard() {
     }, []);
 
     const hasAnalyticsData = analytics !== null && Object.keys(analytics).length > 0;
+
+    // Card-level loading: only while fetching; once settled, show live data or the no-data state.
+    const kpisLoading = analyticsLoading;
+    const chartsLoading = analyticsLoading;
+    const snapshotLoading = analyticsLoading;
+
+    // Small shivering placeholder pill that matches the trend chip size.
+    const loadingPill = (
+        <span
+            className="mt-1.5 inline-flex items-center px-2 py-0.5"
+            aria-hidden="true"
+        >
+            <SkeletonLine width="4.5rem" height="0.875rem" radius="9999px" />
+        </span>
+    );
 
     // Enrollment status: null while loading, true/false once known.
     const enrollmentOpen =
@@ -238,7 +265,7 @@ export default function AdminDashboard() {
     ];
 
     return (
-        <section className="dashboard flex flex-col gap-5">
+        <section className="dashboard flex flex-col gap-5" aria-busy={analyticsLoading || settingsLoading}>
             {/* ==================== Hero ==================== */}
             <div className="dashboard__hero relative overflow-hidden rounded-2xl p-6 sm:p-8">
                 <div className="dashboard__hero-glow dashboard__hero-glow--accent" aria-hidden="true" />
@@ -263,10 +290,19 @@ export default function AdminDashboard() {
                             <FiCalendar aria-hidden="true" />
                             SY {SY}
                         </span>
-                        <span className={`dashboard__hero-badge ${enrollmentOpen === false ? "dashboard__hero-badge--closed" : "dashboard__hero-badge--open"} inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-bold`}>
-                            {enrollmentOpen === false ? <FiXCircle aria-hidden="true" /> : <FiCheckCircle aria-hidden="true" />}
-                            {enrollmentOpen === false ? "Enrollment Closed" : "Enrollment Open"}
-                        </span>
+                        {settingsLoading ? (
+                            <span
+                                className="dashboard__hero-badge inline-flex items-center gap-2 rounded-full px-3.5 py-2"
+                                aria-hidden="true"
+                            >
+                                <SkeletonLine width="5.5rem" height="0.875rem" radius="9999px" />
+                            </span>
+                        ) : (
+                            <span className={`dashboard__hero-badge ${enrollmentOpen === false ? "dashboard__hero-badge--closed" : "dashboard__hero-badge--open"} inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-bold`}>
+                                {enrollmentOpen === false ? <FiXCircle aria-hidden="true" /> : <FiCheckCircle aria-hidden="true" />}
+                                {enrollmentOpen === false ? "Enrollment Closed" : "Enrollment Open"}
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
@@ -277,15 +313,27 @@ export default function AdminDashboard() {
                     const Icon = kpi.icon;
                     return (
                         <div key={kpi.label} className="analytics__kpi flex items-center gap-4 p-4">
-                            <span className="analytics__kpi-icon inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
-                                <Icon />
-                            </span>
+                            {kpisLoading ? (
+                                <SkeletonLine width="2.75rem" height="2.75rem" radius="0.75rem" />
+                            ) : (
+                                <span className="analytics__kpi-icon inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
+                                    <Icon />
+                                </span>
+                            )}
                             <div className="min-w-0 flex-1">
                                 <span className="analytics__kpi-label block text-[0.6875rem] font-bold uppercase tracking-[0.08em]">{kpi.label}</span>
-                                <span className="analytics__kpi-value mt-0.5 block text-[1.5rem] font-bold leading-none">{kpi.value}</span>
-                                <span className={`analytics__trend analytics__trend--${kpi.trend} mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 text-[0.6875rem]`}>
-                                    {kpi.delta}
-                                </span>
+                                {kpisLoading ? (
+                                    <SkeletonLine width="4.5rem" height="1.75rem" radius="0.5rem" className="mt-1.5" />
+                                ) : (
+                                    <span className="analytics__kpi-value mt-0.5 block text-[1.5rem] font-bold leading-none">{kpi.value}</span>
+                                )}
+                                {kpisLoading ? (
+                                    loadingPill
+                                ) : (
+                                    <span className={`analytics__trend analytics__trend--${kpi.trend} mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 text-[0.6875rem]`}>
+                                        {kpi.delta}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     );
@@ -377,17 +425,30 @@ export default function AdminDashboard() {
 
                         <div>
                             <div className="flex items-center justify-between text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-neutral-400">
-                                <span>Quarter {activeQuarter} of 4</span>
-                                <span>Current quarter</span>
+                                {settingsLoading ? (
+                                    <>
+                                        <SkeletonLine width="6rem" height="0.75rem" />
+                                        <SkeletonLine width="6.5rem" height="0.75rem" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Quarter {activeQuarter} of 4</span>
+                                        <span>Current quarter</span>
+                                    </>
+                                )}
                             </div>
                             <div className="dashboard__quarter mt-2 flex gap-2" role="group" aria-label="Quarter progress">
-                                {quarterSegments.map((quarter) => (
-                                    <span
-                                        key={quarter.label}
-                                        className={`dashboard__quarter-seg ${quarter.state === "done" ? "dashboard__quarter-seg--done" : ""} ${quarter.state === "active" ? "dashboard__quarter-seg--active" : ""}`}
-                                        aria-hidden="true"
-                                    />
-                                ))}
+                                {settingsLoading
+                                    ? Array.from({ length: 4 }).map((_, index) => (
+                                          <SkeletonLine key={index} width="100%" height="0.5rem" radius="9999px" className="flex-1" />
+                                      ))
+                                    : quarterSegments.map((quarter) => (
+                                          <span
+                                              key={quarter.label}
+                                              className={`dashboard__quarter-seg ${quarter.state === "done" ? "dashboard__quarter-seg--done" : ""} ${quarter.state === "active" ? "dashboard__quarter-seg--active" : ""}`}
+                                              aria-hidden="true"
+                                          />
+                                      ))}
                             </div>
                             <div className="mt-2 flex gap-2">
                                 {quarterSegments.map((quarter) => (
@@ -413,7 +474,16 @@ export default function AdminDashboard() {
                         </span>
                     </div>
 
-                    {hasChartData ? (
+                    {chartsLoading ? (
+                        <div className="px-5 pb-5">
+                            <div className="flex h-[8.125rem] flex-col justify-end gap-1">
+                                <SkeletonLine width="55%" height="0.875rem" radius="0.375rem" />
+                                <div className="mt-2">
+                                    <SkeletonLine width="100%" height="6.5rem" radius="0.75rem" />
+                                </div>
+                            </div>
+                        </div>
+                    ) : hasChartData ? (
                         <div className="px-5 pb-2 overflow-y-auto">
                             <svg className="analytics__line-chart" viewBox="0 0 320 130" role="img" aria-label="Students per school year line chart">
                                 <defs>
@@ -488,7 +558,15 @@ export default function AdminDashboard() {
                         </span>
                     </div>
 
-                    {hasSexEnrollmentData && sexEnrollment ? (
+                    {chartsLoading ? (
+                        <div className="flex flex-col gap-4 p-5">
+                            <SkeletonLine width="100%" height="1rem" radius="9999px" />
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <SkeletonLine width="100%" height="6.5rem" radius="0.75rem" />
+                                <SkeletonLine width="100%" height="6.5rem" radius="0.75rem" />
+                            </div>
+                        </div>
+                    ) : hasSexEnrollmentData && sexEnrollment ? (
                         <div className="flex flex-col gap-5 p-5">
                             <div className="flex h-4 w-full overflow-hidden rounded-full" role="img" aria-label={`${malePercent}% male, ${femalePercent}% female`}>
                                 <span className="dashboard__sex-seg dashboard__sex-seg--male" style={{ width: `${malePercent}%` }} />
@@ -541,12 +619,20 @@ export default function AdminDashboard() {
                             const Icon = item.icon;
                             return (
                                 <div key={item.label} className="dashboard__snapshot flex items-center gap-3 rounded-xl border p-4">
-                                    <span className="dashboard__snapshot-icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                                        <Icon />
-                                    </span>
+                                    {snapshotLoading ? (
+                                        <SkeletonLine width="2.5rem" height="2.5rem" radius="0.5rem" />
+                                    ) : (
+                                        <span className="dashboard__snapshot-icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
+                                            <Icon />
+                                        </span>
+                                    )}
                                     <div className="min-w-0">
                                         <span className="dashboard__snapshot-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">{item.label}</span>
-                                        <span className="dashboard__snapshot-value mt-0.5 block text-[1.25rem] font-bold leading-none">{item.value}</span>
+                                        {snapshotLoading ? (
+                                            <SkeletonLine width="3.5rem" height="1.375rem" radius="0.5rem" className="mt-1.5" />
+                                        ) : (
+                                            <span className="dashboard__snapshot-value mt-0.5 block text-[1.25rem] font-bold leading-none">{item.value}</span>
+                                        )}
                                     </div>
                                 </div>
                             );

@@ -13,6 +13,8 @@ import {
 } from "react-icons/fi";
 
 import { getAPICall } from "../../api/api";
+import { SkeletonLine } from "../../components/Skeleton";
+import "../../style/skeleton.css";
 import "../../style/analyticsReports.css";
 
 // ==================== Types (mirror the server /api/analytics response) ====================
@@ -226,7 +228,11 @@ export default function AnalyticsReports() {
                             <div className="min-w-0 flex-1">
                                 <span className="analytics__kpi-label block text-[0.6875rem] font-bold uppercase tracking-[0.08em]">{kpi.label}</span>
                                 <span className="analytics__kpi-value mt-0.5 block text-[1.5rem] font-bold leading-none">
-                                    {loading ? "…" : kpi.value}
+                                    {loading ? (
+                                        <SkeletonLine width="4.5rem" height="1.75rem" radius="0.5rem" className="mt-0.5" />
+                                    ) : (
+                                        kpi.value
+                                    )}
                                 </span>
                                 <span className="analytics__trend analytics__trend--live mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 text-[0.6875rem]">
                                     <FiLoader className={loading ? "analytics__spin" : ""} aria-hidden="true" />
@@ -256,7 +262,28 @@ export default function AnalyticsReports() {
                         </span>
                     </div>
 
-                    {totalEnrolled === 0 && !loading ? (
+                    {loading ? (
+                        <div className="px-5 pb-5">
+                            <div className="flex h-48 items-end gap-3">
+                                {Array.from({ length: 6 }).map((_, index) => (
+                                    <SkeletonLine
+                                        key={index}
+                                        width="100%"
+                                        height={`${30 + ((index * 37) % 55)}%`}
+                                        radius="0.5rem 0.5rem 0.25rem 0.25rem"
+                                        className="flex-1 self-end"
+                                    />
+                                ))}
+                            </div>
+                            <div className="mt-3 flex gap-3 border-t pt-3">
+                                {GRADES.map((grade) => (
+                                    <span key={grade} className="flex-1 text-center text-[0.75rem] font-bold" style={{ color: "var(--text-muted)" }}>
+                                        G{grade}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    ) : totalEnrolled === 0 ? (
                         <AnalyticsEmpty message="No enrollments recorded for this school year." />
                     ) : (
                         <div className="px-5 pb-2">
@@ -293,7 +320,16 @@ export default function AnalyticsReports() {
                         </div>
                     </div>
 
-                    {!hasGradeData && !loading ? (
+                    {loading ? (
+                        <div className="flex flex-col items-center gap-6 p-5 sm:flex-row sm:justify-center sm:gap-10">
+                            <SkeletonLine width="11rem" height="11rem" radius="9999px" />
+                            <div className="flex w-64 flex-col gap-3">
+                                <SkeletonLine width="100%" height="0.875rem" radius="0.5rem" />
+                                <SkeletonLine width="100%" height="0.875rem" radius="0.5rem" />
+                                <SkeletonLine width="100%" height="4rem" radius="0.75rem" />
+                            </div>
+                        </div>
+                    ) : !hasGradeData ? (
                         <AnalyticsEmpty message="No graded assessments yet — passing rate will appear once teachers record scores." />
                     ) : (
                         <div className="flex flex-col items-center gap-6 p-5 sm:flex-row sm:justify-center sm:gap-10">
@@ -303,7 +339,7 @@ export default function AnalyticsReports() {
                             >
                                 <div className="analytics__donut-center">
                                     <span className="analytics__donut-value text-[1.75rem] font-bold leading-none">
-                                        {loading ? "…" : `${passingRate}%`}
+                                        {`${passingRate}%`}
                                     </span>
                                     <span className="analytics__donut-label text-[0.6875rem] font-semibold uppercase tracking-[0.08em]">Passing</span>
                                 </div>
@@ -347,7 +383,17 @@ export default function AnalyticsReports() {
                         </div>
                     </div>
 
-                    {!loading && (analytics?.subjectPerformance ?? []).length === 0 ? (
+                    {loading ? (
+                        <div className="flex flex-col gap-3.5 p-5">
+                            {Array.from({ length: 5 }).map((_, index) => (
+                                <div key={index} className="analytics__hbar-row">
+                                    <SkeletonLine width={`${45 + ((index * 23) % 40)}%`} height="0.875rem" />
+                                    <SkeletonLine width="100%" height="0.625rem" radius="9999px" />
+                                    <SkeletonLine width="100%" height="0.875rem" />
+                                </div>
+                            ))}
+                        </div>
+                    ) : !loading && (analytics?.subjectPerformance ?? []).length === 0 ? (
                         <AnalyticsEmpty message="No subject scores recorded yet." />
                     ) : (
                         <div className="flex flex-col gap-3.5 p-5">
@@ -360,7 +406,6 @@ export default function AnalyticsReports() {
                                     <span className="analytics__hbar-value text-[0.8125rem] font-bold">{row.score}</span>
                                 </div>
                             ))}
-                            {loading && <AnalyticsLoading />}
                         </div>
                     )}
                 </div>
@@ -378,7 +423,16 @@ export default function AnalyticsReports() {
                         </span>
                     </div>
 
-                    {!loading && attendanceTrend.length === 0 ? (
+                    {loading ? (
+                        <div className="px-5 pb-5">
+                            <SkeletonLine width="100%" height="8.125rem" radius="0.75rem" />
+                            <div className="mt-2 flex gap-3 border-t pt-2.5">
+                                {Array.from({ length: 6 }).map((_, index) => (
+                                    <SkeletonLine key={index} width="100%" height="0.625rem" className="flex-1" />
+                                ))}
+                            </div>
+                        </div>
+                    ) : !loading && attendanceTrend.length === 0 ? (
                         <AnalyticsEmpty message="No attendance records yet for this school year." />
                     ) : (
                         <div className="px-5 pb-2">
@@ -415,7 +469,6 @@ export default function AnalyticsReports() {
                                         })}
                                     </>
                                 )}
-                                {loading && <AnalyticsLoading />}
                             </svg>
                             <div className="mt-2 flex gap-3 border-t pt-2.5">
                                 {attendanceTrend.length > 0 ? (
@@ -447,7 +500,18 @@ export default function AnalyticsReports() {
                         </div>
                     </div>
 
-                    {!loading && (analytics?.topPerformers ?? []).length === 0 ? (
+                    {loading ? (
+                        <div className="flex flex-col gap-2 p-5">
+                            {Array.from({ length: 5 }).map((_, index) => (
+                                <div key={index} className="flex items-center gap-4 px-1 py-1.5">
+                                    <SkeletonLine width="1.75rem" height="1.75rem" radius="0.5rem" />
+                                    <SkeletonLine width={`${30 + ((index * 17) % 30)}%`} height="0.875rem" />
+                                    <SkeletonLine width="20%" height="0.875rem" className="ml-auto" />
+                                    <SkeletonLine width="3.5rem" height="0.875rem" />
+                                </div>
+                            ))}
+                        </div>
+                    ) : !loading && (analytics?.topPerformers ?? []).length === 0 ? (
                         <AnalyticsEmpty message="No graded students yet." />
                     ) : (
                         <div className="overflow-x-auto">
@@ -473,10 +537,10 @@ export default function AnalyticsReports() {
                                             <td className="analytics__cell--mono px-6 py-3.5 text-right font-bold">{Number(row.grade).toFixed(1)}</td>
                                         </tr>
                                     ))}
-                                    {loading && (
+                                    {!loading && (analytics?.topPerformers ?? []).length === 0 && (
                                         <tr>
                                             <td colSpan={4} className="px-6 py-8 text-center">
-                                                <AnalyticsLoading />
+                                                <AnalyticsEmpty message="No graded students yet." compact />
                                             </td>
                                         </tr>
                                     )}
@@ -524,7 +588,11 @@ export default function AnalyticsReports() {
                                 {loading && (
                                     <tr>
                                         <td colSpan={3} className="px-6 py-8 text-center">
-                                            <AnalyticsLoading />
+                                            <div className="flex flex-col gap-2" aria-hidden="true">
+                                                {Array.from({ length: 4 }).map((_, index) => (
+                                                    <SkeletonLine key={index} width="100%" height="0.875rem" />
+                                                ))}
+                                            </div>
                                         </td>
                                     </tr>
                                 )}
@@ -553,11 +621,3 @@ function AnalyticsEmpty({ message, compact = false }: { message: string; compact
     );
 }
 
-function AnalyticsLoading() {
-    return (
-        <div className="flex items-center justify-center gap-2 py-4 text-[var(--neutral-muted)]">
-            <FiLoader className="analytics__spin" aria-hidden="true" />
-            <span className="text-[0.75rem] font-semibold">Loading…</span>
-        </div>
-    );
-}
