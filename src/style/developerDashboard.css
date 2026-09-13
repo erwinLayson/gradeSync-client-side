@@ -1,0 +1,281 @@
+/* ============================================================
+   Developer pages — component stylesheet (hybrid approach)
+   Layout lives as Tailwind utilities in the developer pages.
+   Complex layers reuse the shared analytics classes from
+   analyticsReports.css and the hero from adminDashboard.css.
+   ============================================================ */
+
+/* ---------- Feature card ---------- */
+.developer-feature {
+  background: var(--surface-white);
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.developer-feature:hover {
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-md);
+}
+
+.developer-feature--disabled {
+  background: var(--surface-bg);
+}
+
+.developer-feature__icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.developer-feature--disabled .developer-feature__icon {
+  color: var(--text-muted);
+  background: var(--surface-bg);
+}
+
+.developer-feature__key {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border-radius: 0.375rem;
+  padding: 0.125rem 0.5rem;
+}
+
+.developer-feature__status-pill {
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.developer-feature__status-pill--on {
+  color: var(--primary-dark);
+  background: #ecfdf5;
+}
+
+.developer-feature__status-pill--off {
+  color: var(--error);
+  background: #fef2f2;
+}
+
+/* ---------- Switch toggle (mirrors adminSettings.css) ---------- */
+.developer-switch {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 2.75rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  background: var(--neutral-border);
+  position: relative;
+  cursor: pointer;
+  transition: background var(--transition-base);
+  outline: none;
+  flex-shrink: 0;
+}
+
+.developer-switch::after {
+  content: "";
+  position: absolute;
+  top: 0.1875rem;
+  left: 0.25rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 9999px;
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-base);
+}
+
+.developer-switch:hover {
+  border-color: var(--primary-light);
+}
+
+.developer-switch:focus-visible {
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+.developer-switch:checked {
+  background: var(--gradient-brand);
+}
+
+.developer-switch:checked::after {
+  transform: translateX(1.25rem);
+}
+
+.developer-switch:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+/* ---------- At-a-glance stat tiles ---------- */
+.developer-stat {
+  background: var(--surface-white);
+}
+
+.developer-stat__value {
+  color: var(--text-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Search input ---------- */
+.developer-search {
+  border-color: var(--neutral-border);
+  color: var(--text-input);
+  background: var(--surface-white);
+  outline: none;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.developer-search:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .developer-feature,
+  .developer-switch::after {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   Landing content editor (DeveloperLandingContent.tsx)
+   ============================================================ */
+
+.developer-input {
+  border-color: var(--neutral-border);
+  color: var(--text-input);
+  background: var(--surface-white);
+  outline: none;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.developer-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+.developer-editor__add {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  border: 1px dashed var(--neutral-border);
+  border-radius: 0.625rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: transparent;
+  transition: border-color var(--transition-base), color var(--transition-base);
+}
+
+.developer-editor__add:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.developer-editor__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 1px solid var(--neutral-border);
+  border-radius: 0.75rem;
+  padding: 0.875rem;
+}
+
+.developer-editor__icon-btn {
+  display: inline-flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--neutral-border);
+  border-radius: 0.625rem;
+  color: var(--text-muted);
+  background: var(--surface-white);
+  transition: border-color var(--transition-base), color var(--transition-base), background var(--transition-base);
+}
+
+.developer-editor__icon-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.developer-editor__icon-btn--danger:hover:not(:disabled) {
+  border-color: #dc2626;
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.developer-editor__icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.developer-editor__thumb {
+  display: inline-flex;
+  height: 3.5rem;
+  width: 5.5rem;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--neutral-border);
+  border-radius: 0.625rem;
+  background: var(--surface-white);
+  color: var(--text-muted);
+  font-size: 1.25rem;
+}
+
+.developer-editor__thumb img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.developer-editor__upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--primary);
+  border-radius: 0.625rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--surface-white);
+  transition: background var(--transition-base), color var(--transition-base);
+}
+
+.developer-editor__upload:hover:not(:disabled) {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.developer-editor__upload:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.developer-editor__icon-preview {
+  display: inline-flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--neutral-border);
+  border-radius: 0.625rem;
+  color: var(--primary);
+  background: var(--surface-white);
+  font-size: 1.125rem;
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .developer-input,
+  .developer-editor__add,
+  .developer-editor__icon-btn,
+  .developer-editor__upload {
+    transition: none;
+  }
+}

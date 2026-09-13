@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Placeholder learning illustration">
+  <defs>
+    <linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#072c1c"/>
+      <stop offset="1" stop-color="#1B6535"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky2)"/>
+  <circle cx="330" cy="200" r="130" fill="#86EFAC" opacity="0.16"/>
+  <circle cx="1400" cy="700" r="280" fill="#0d3f2a" opacity="0.5"/>
+  <g transform="translate(800 470)">
+    <path d="M0 -160 C -90 -210 -220 -210 -320 -170 L -320 120 C -220 80 -90 80 0 130 Z" fill="#064e33"/>
+    <path d="M0 -160 C 90 -210 220 -210 320 -170 L 320 120 C 220 80 90 80 0 130 Z" fill="#116b3a"/>
+    <path d="M0 -150 L 0 120" stroke="#86EFAC" stroke-width="10" opacity="0.5"/>
+    <g fill="#86EFAC" opacity="0.35">
+      <rect x="-280" y="-120" width="150" height="14" rx="7"/>
+      <rect x="-280" y="-70" width="120" height="14" rx="7"/>
+      <rect x="-280" y="-20" width="160" height="14" rx="7"/>
+      <rect x="130" y="-120" width="150" height="14" rx="7"/>
+      <rect x="130" y="-70" width="120" height="14" rx="7"/>
+      <rect x="130" y="-20" width="160" height="14" rx="7"/>
+    </g>
+  </g>
+  <rect x="0" y="780" width="1600" height="120" fill="#064e33"/>
+</svg>

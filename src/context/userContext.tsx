@@ -15,7 +15,8 @@ export function UserContextProvider({
     async function fetchUser() {
         setLoading(true);
         try {
-            const response = await getAPICall<User>("/users/verify", { toast: false });
+            // Expected 401 for anonymous visitors — skip the global error toast.
+            const response = await getAPICall<User>("/users/verify", { toast: false, skipErrorToast: true });
             const verifiedUser = response.data ?? null;
             setUser(verifiedUser);
 

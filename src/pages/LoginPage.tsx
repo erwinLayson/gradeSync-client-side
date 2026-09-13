@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiArrowRight, FiEye, FiEyeOff, FiLock, FiMail } from 'react-icons/fi'
+import { FiArrowRight, FiArrowLeft, FiEye, FiEyeOff, FiLock, FiMail } from 'react-icons/fi'
 import logo1 from "../assets/logo1.webp"
 
 // Helpers Fucntion
@@ -87,6 +87,10 @@ function LoginPage() {
         <div className="login-card">
           {/* Header */}
           <div className="login-card__header">
+            <a href="/" className='login-card_return-icon'>
+              <FiArrowLeft />
+            </a>
+
             <div className="login-card__logo">
               <img src={`${logo1}`} alt="School logo" className='w-full h-full object-cover'/>
             </div>
@@ -196,6 +200,7 @@ function LoginPage() {
                     className="login-submit__icon"
                   />
                 </button>
+                
               )}
             </div>
 

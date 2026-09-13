@@ -20,7 +20,8 @@ export interface UserResponseProps {
 export const ROLES = {
     ADMIN: "admin",
     TEACHER: "teacher",
-    STUDENT: "student"
+    STUDENT: "student",
+    DEVELOPER: "developer"
 } as const;
 
 export type UserRoles = (typeof ROLES)[keyof typeof ROLES];

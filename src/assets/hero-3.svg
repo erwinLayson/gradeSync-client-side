@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Placeholder graduation illustration">
+  <defs>
+    <linearGradient id="sky3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d3f2a"/>
+      <stop offset="1" stop-color="#15803D"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky3)"/>
+  <circle cx="1300" cy="230" r="170" fill="#86EFAC" opacity="0.18"/>
+  <circle cx="240" cy="640" r="230" fill="#064e33" opacity="0.55"/>
+  <g transform="translate(800 430)">
+    <path d="M0 -140 L 360 -30 L 0 80 L -360 -30 Z" fill="#064e33"/>
+    <path d="M-190 -2 L -190 120 C -190 170 190 170 190 120 L 190 -2 L 0 62 Z" fill="#116b3a"/>
+    <line x1="360" y1="-30" x2="360" y2="120" stroke="#F59E0B" stroke-width="10"/>
+    <circle cx="360" cy="140" r="22" fill="#F59E0B"/>
+  </g>
+  <g fill="#86EFAC" opacity="0.3">
+    <circle cx="480" cy="220" r="8"/>
+    <circle cx="560" cy="160" r="5"/>
+    <circle cx="1120" cy="640" r="8"/>
+    <circle cx="1050" cy="590" r="5"/>
+  </g>
+  <rect x="0" y="780" width="1600" height="120" fill="#0d3f2a"/>
+</svg>

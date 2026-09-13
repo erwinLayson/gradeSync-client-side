@@ -4,12 +4,14 @@ import {
   FaChartLine,
   FaClipboardCheck,
   FaClipboardList,
+  FaCog,
   FaHome,
   FaIdCard,
+  FaImage,
   FaSchool,
   FaScroll,
+  FaToggleOn,
   FaUserGraduate,
-  FaCog,
 } from "react-icons/fa";
 
 
@@ -17,6 +19,7 @@ export const DASHBOARD_PATH = {
   admin: '/admin/dashboard',
   teacher: '/teacher/dashboard',
   student: '/student/dashboard',
+  developer: '/developer/dashboard',
 };
 
 
@@ -84,6 +87,23 @@ export const DASHBOARD_LINKS = {
         { label: "My Classrooms", path: "/student/classrooms", icon: FaChalkboardTeacher },
         { label: "Prospectus", path: "/student/prospectus", icon: FaScroll },
       ],
+    }
+  ],
+
+  developer: [
+    {
+      title: "Main",
+      sections: [
+        { label: "Dashboard", path: "/developer/dashboard", icon: FaHome },
+        { label: "Feature Management", path: "/developer/features", icon: FaToggleOn },
+      ]
+    },
+    {
+      title: "Configuration",
+      sections: [
+        { label: "Landing Content", path: "/developer/landing-content", icon: FaImage },
+        { label: "Settings", path: "/developer/settings", icon: FaCog }
+      ]
     }
   ]
 }
