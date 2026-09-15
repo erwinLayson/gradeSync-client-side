@@ -52,6 +52,8 @@ function LandingPage() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [activeSection, setActiveSection] = useState("#home");
   const prefersReducedMotionRef = useRef(false);
+  const mobileMenuRef = useRef<HTMLElement>(null);
+  const navToggleRef = useRef<HTMLButtonElement>(null);
 
   // ?preview escape hatch (plan §7.6, Decision #6): the editor publishes its
   // UNSAVED draft to localStorage; this page renders it for the developer.
@@ -96,22 +98,43 @@ function LandingPage() {
     return () => window.clearInterval(timer);
   }, [activeSlide, slideCount]);
 
-  // Mobile drawer: close on Escape and lock page scroll while open.
+  // Mobile dropdown (disclosure pattern): Escape closes and returns focus to
+  // the toggle; pointer-down outside the panel or toggle closes silently.
+  // No scroll lock — the panel is small and the page stays usable.
   useEffect(() => {
     if (!mobileNavOpen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMobileNavOpen(false);
+      if (event.key === "Escape") {
+        setMobileNavOpen(false);
+        navToggleRef.current?.focus();
+      }
+    };
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (
+        !mobileMenuRef.current?.contains(target) &&
+        !navToggleRef.current?.contains(target)
+      ) {
+        setMobileNavOpen(false);
+      }
     };
 
     document.addEventListener("keydown", handleKeyDown);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
+    document.addEventListener("pointerdown", handlePointerDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("pointerdown", handlePointerDown);
     };
+  }, [mobileNavOpen]);
+
+  // Move focus into the open dropdown (same behavior as the app sidebar) so
+  // keyboard users land on the first link instead of staying behind the panel.
+  useEffect(() => {
+    if (mobileNavOpen) {
+      mobileMenuRef.current?.querySelector<HTMLElement>("a")?.focus();
+    }
   }, [mobileNavOpen]);
 
   // Scroll-spy: highlight the nav link of the section currently in view.
@@ -164,7 +187,11 @@ function LandingPage() {
     return () => observer.disconnect();
   }, [loading]);
 
-  const closeNav = () => setMobileNavOpen(false);
+  // Restores focus to the toggle so keyboard users aren't dropped into the void.
+  const closeNav = () => {
+    setMobileNavOpen(false);
+    navToggleRef.current?.focus();
+  };
   const currentYear = new Date().getFullYear();
   // Preview-bar actions (rendered only when ?preview is present).
   const exitPreview = () => {
@@ -246,70 +273,48 @@ function LandingPage() {
 
           <button
             type="button"
+            ref={navToggleRef}
             className="landing-nav__toggle"
-            onClick={() => setMobileNavOpen(true)}
-            aria-label="Open navigation menu"
+            onClick={() => setMobileNavOpen((open) => !open)}
+            aria-label={mobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={mobileNavOpen}
-            aria-controls="landing-drawer"
+            aria-controls="landing-mobile-menu"
           >
-            <FiMenu aria-hidden="true" />
+            {mobileNavOpen ? <FiX aria-hidden="true" /> : <FiMenu aria-hidden="true" />}
           </button>
         </div>
+
+        {/* Anchored to the sticky header (positioned parent) — floats over the
+            page without an overlay; the page stays usable, no scroll lock. */}
+        {mobileNavOpen && (
+          <nav
+            ref={mobileMenuRef}
+            id="landing-mobile-menu"
+            className="landing-mobile-menu"
+            aria-label="Mobile navigation"
+          >
+            <ul className="landing-mobile-menu__list">
+              {NAV_LINKS.map(({ label, href }) => (
+                <li key={href}>
+                  <a
+                    href={href}
+                    className={`landing-mobile-menu__link${href === activeSection ? " landing-mobile-menu__link--active" : ""}`}
+                    aria-current={href === activeSection ? "true" : undefined}
+                    onClick={closeNav}
+                  >
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <Link to="/login" className="landing-mobile-menu__cta" onClick={closeNav}>
+              <FiLogIn aria-hidden="true" />
+              Sign in to GradeSync
+            </Link>
+            <p className="landing-mobile-menu__hint">Students, teachers and admins use the same sign-in.</p>
+          </nav>
+        )}
       </header>
-
-      {/* ---------- Mobile drawer ---------- */}
-      {mobileNavOpen && (
-        <div
-          className="landing-drawer__overlay"
-          onClick={closeNav}
-          aria-hidden="true"
-        />
-      )}
-      <aside
-        id="landing-drawer"
-        className={`landing-drawer${mobileNavOpen ? " landing-drawer--open" : ""}`}
-        aria-label="Mobile navigation"
-        aria-hidden={!mobileNavOpen}
-      >
-        <div className="landing-drawer__head">
-          <span className="landing-drawer__brand">
-            <span className="landing-drawer__logo">
-              <img src={logo1} alt="" />
-            </span>
-            <span className="landing-drawer__name">{SCHOOL_NAME}</span>
-          </span>
-          <button
-            type="button"
-            className="landing-drawer__close"
-            onClick={closeNav}
-            aria-label="Close navigation menu"
-          >
-            <FiX aria-hidden="true" />
-          </button>
-        </div>
-
-        <nav className="landing-drawer__nav" aria-label="Mobile">
-          {NAV_LINKS.map(({ label, href }) => (
-            <a
-              key={href}
-              href={href}
-              className={`landing-drawer__link${href === activeSection ? " landing-drawer__link--active" : ""}`}
-              aria-current={href === activeSection ? "true" : undefined}
-              onClick={closeNav}
-            >
-              {label}
-            </a>
-          ))}
-        </nav>
-
-        <div className="landing-drawer__footer">
-          <Link to="/login" className="landing-drawer__cta" onClick={closeNav}>
-            <FiLogIn aria-hidden="true" />
-            Sign in to GradeSync
-          </Link>
-          <p className="landing-drawer__hint">Students, teachers and admins use the same sign-in.</p>
-        </div>
-      </aside>
 
       {/* ---------- Hero (sliding background) ---------- */}
       <section id="home" className="landing-hero">

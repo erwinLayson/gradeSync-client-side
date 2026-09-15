@@ -247,115 +247,55 @@ html {
   }
 }
 
-/* ---------- Mobile drawer ---------- */
-.landing-drawer__overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  background: rgba(7, 44, 28, 0.55);
-  backdrop-filter: blur(2px);
-  animation: landing-fade-in var(--transition-base) both;
-}
-
-.landing-drawer {
-  position: fixed;
-  top: 0;
+/* ---------- Mobile dropdown (disclosure pattern, <768px) ---------- */
+/* Anchored inside the sticky topbar (its positioned parent) at full viewport
+   width, flush under the bar — an extension of the header rather than a
+   floating card. No overlay: the page stays visible and usable, no scroll
+   lock. Focus moves in on open; Escape / outside pointer closes it
+   (see LandingPage.tsx). */
+.landing-mobile-menu {
+  position: absolute;
+  top: 100%;
   right: 0;
-  z-index: 70;
-  display: flex;
-  width: min(20rem, 85vw);
-  height: 100dvh;
-  flex-direction: column;
-  background: var(--surface-white);
-  box-shadow: var(--shadow-xl);
-  transform: translateX(105%);
-  transition: transform var(--transition-base) ease;
-  visibility: hidden;
-}
-
-.landing-drawer--open {
-  transform: translateX(0);
-  visibility: visible;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .landing-drawer {
-    transition: none;
-  }
-}
-
-.landing-drawer__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--neutral-border);
-  background: var(--gradient-brand);
-  color: var(--text-on-dark);
-}
-
-.landing-drawer__brand {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  min-width: 0;
-}
-
-.landing-drawer__logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 9999px;
-  overflow: hidden;
-  background: var(--surface-white);
-  box-shadow: var(--shadow-sm);
-}
-
-.landing-drawer__logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.landing-drawer__name {
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.25;
-}
-
-.landing-drawer__close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.375rem;
-  border: 1px solid var(--border-on-dark);
-  border-radius: var(--radius-sm);
-  font-size: 1.125rem;
-  color: var(--text-on-dark);
-  background: rgba(255, 255, 255, 0.08);
-  cursor: pointer;
-  transition: filter var(--transition-base);
-}
-
-.landing-drawer__close:hover {
-  filter: brightness(1.2);
-}
-
-.landing-drawer__nav {
+  left: 0;
+  z-index: 55;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  flex: 1;
+  max-height: calc(100dvh - 6rem);
   overflow-y: auto;
-  padding: 1rem 0.875rem;
+  padding: 0.75rem 1rem 1rem;
+  border: none;
+  border-bottom: 1px solid var(--neutral-border);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-xl);
+  transform-origin: top center;
+  animation: landing-menu-in var(--transition-base) ease both;
 }
 
-.landing-drawer__link {
+@keyframes landing-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.375rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.landing-mobile-menu__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-mobile-menu__link {
+  display: block;
   padding: 0.75rem 0.875rem;
   border-radius: var(--radius-md);
   font-size: 0.9375rem;
@@ -365,30 +305,30 @@ html {
   transition: background var(--transition-base), color var(--transition-base);
 }
 
-.landing-drawer__link:hover {
+.landing-mobile-menu__link:hover {
   color: var(--primary-dark);
   background: var(--accent-light);
 }
 
-/* Scroll-spy highlight inside the mobile drawer. */
-.landing-drawer__link--active {
+.landing-mobile-menu__link:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* Scroll-spy highlight inside the mobile dropdown. */
+.landing-mobile-menu__link--active {
   color: var(--primary-dark);
   background: var(--accent-light);
   box-shadow: inset 3px 0 0 var(--primary);
 }
 
-.landing-drawer__footer {
-  padding: 1rem 1.25rem 1.25rem;
-  border-top: 1px solid var(--neutral-border);
-  background: var(--surface-bg);
-}
-
-.landing-drawer__cta {
+.landing-mobile-menu__cta {
   display: inline-flex;
   width: 100%;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  margin-top: 0.25rem;
   padding: 0.75rem 1rem;
   border-radius: var(--radius-md);
   font-size: 0.9375rem;
@@ -399,23 +339,33 @@ html {
   transition: filter var(--transition-base);
 }
 
-.landing-drawer__cta:hover {
+.landing-mobile-menu__cta:hover {
   filter: brightness(1.08);
 }
 
-.landing-drawer__hint {
-  margin: 0.625rem 0 0;
+.landing-mobile-menu__cta:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: -2px;
+}
+
+.landing-mobile-menu__hint {
+  margin: 0.5rem 0 0;
   font-size: 0.75rem;
   text-align: center;
   color: var(--text-muted);
 }
 
-@keyframes landing-fade-in {
-  from {
-    opacity: 0;
+@media (prefers-reduced-motion: reduce) {
+  .landing-mobile-menu {
+    animation: none;
   }
-  to {
-    opacity: 1;
+}
+
+/* Desktop safety: the toggle is hidden ≥768px, so an open menu would be
+   orphaned after a resize — hide it there unconditionally. */
+@media (min-width: 768px) {
+  .landing-mobile-menu {
+    display: none;
   }
 }
 
