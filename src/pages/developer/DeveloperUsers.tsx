@@ -4,6 +4,7 @@ import {
     FiCheckCircle,
     FiCopy,
     FiKey,
+    FiLock,
     FiSearch,
     FiServer,
     FiShield,
@@ -16,6 +17,8 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { SkeletonLine } from "../../components/Skeleton";
 import { getAPICall, patchAPICall, postAPICall } from "../../api/api";
 import { useUser } from "../../hooks/useUser";
+import { useFeatureFlags } from "../../hooks/useFeatureFlags";
+import { FEATURE_META } from "./featureMeta";
 import { ROLES, type UserAccount, type UserRoles } from "../../constant/users";
 import { toast } from "../../helper/toast";
 import "../../style/analyticsReports.css";
@@ -49,6 +52,12 @@ const ROLE_META: Record<UserRoles, { label: string; icon: typeof FiShield }> = {
     [ROLES.DEVELOPER]: { label: "Developer", icon: FiServer },
 };
 
+const LOGIN_SWITCHES: Array<{ key: string; role: UserRoles }> = [
+    { key: "login_admin", role: ROLES.ADMIN },
+    { key: "login_teacher", role: ROLES.TEACHER },
+    { key: "login_student", role: ROLES.STUDENT },
+];
+
 export default function DeveloperUsers() {
     const { user: me } = useUser();
     const [accounts, setAccounts] = useState<UserAccount[] | null>(null);
@@ -64,6 +73,13 @@ export default function DeveloperUsers() {
     // null while the reset dialog is in "confirm" state; string once generated.
     const [tempPassword, setTempPassword] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
+
+    // Role login switches (docs/role-login-switches-plan.md) — reuse the
+    // feature-flag system: flags flow from GET /features; setFlag is the
+    // optimistic write, refetchFlags rolls back on failure.
+    const { flags, loading: flagsLoading, setFlag, refetch: refetchFlags } = useFeatureFlags();
+    const [pendingLoginKey, setPendingLoginKey] = useState<string | null>(null);
+    const [loginSwitchTarget, setLoginSwitchTarget] = useState<string | null>(null);
 
     const resetTriggerRef = useRef<HTMLButtonElement>(null);
     const resetTitleId = useId();
@@ -133,6 +149,43 @@ export default function DeveloperUsers() {
                 ),
             () => patchAPICall(`/users/${account.id}/status`, { status: "active" }),
         );
+    }
+
+    function handleLoginSwitchToggle(key: string, nextEnabled: boolean) {
+        // Disabling a whole role's logins is the risky direction — confirm first.
+        if (!nextEnabled) {
+            setLoginSwitchTarget(key);
+            return;
+        }
+        setPendingLoginKey(key);
+        setFlag(key, true);
+        void (async () => {
+            try {
+                await patchAPICall(`/features/${key}`, { enabled: true });
+            } catch {
+                // Interceptor toasted; roll the switch back to server truth.
+                await refetchFlags();
+            } finally {
+                setPendingLoginKey(null);
+            }
+        })();
+    }
+
+    function handleConfirmLoginDisable() {
+        const key = loginSwitchTarget;
+        if (!key) return;
+        setPendingLoginKey(key);
+        setFlag(key, false);
+        void (async () => {
+            try {
+                await patchAPICall(`/features/${key}`, { enabled: false });
+            } catch {
+                await refetchFlags();
+            } finally {
+                setPendingLoginKey(null);
+                setLoginSwitchTarget(null);
+            }
+        })();
     }
 
     function handleConfirmDeactivate() {
@@ -251,6 +304,78 @@ export default function DeveloperUsers() {
                         <FiUsers aria-hidden="true" />
                         {loading ? "Syncing…" : `${activeCount}/${accounts?.length ?? 0} active`}
                     </span>
+                </div>
+            </div>
+
+            {/* ==================== Role login switches ==================== */}
+            <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b p-5">
+                    <div className="min-w-0">
+                        <h4 className="text-sm font-bold text-neutral-800">Role login switches</h4>
+                        <p className="mt-0.5 text-[0.75rem] text-neutral-500">
+                            While a switch is off, that role cannot sign in. Sessions already open expire naturally (max 1 hour). Developer logins are never affected.
+                        </p>
+                    </div>
+                    <span className="analytics__chip inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1 text-xs font-semibold">
+                        <FiLock aria-hidden="true" />
+                        {flagsLoading ? "Syncing…" : `${LOGIN_SWITCHES.filter((sw) => flags[sw.key]).length}/${LOGIN_SWITCHES.length} enabled`}
+                    </span>
+                </div>
+                <div className="p-5" aria-busy={flagsLoading}>
+                    {flagsLoading ? (
+                        <div className="grid grid-cols-1 gap-3">
+                            {Array.from({ length: 3 }).map((_, index) => (
+                                <div key={index} className="flex items-center gap-4 rounded-xl border border-[var(--neutral-border)] p-4">
+                                    <SkeletonLine width="2.75rem" height="2.75rem" radius="0.75rem" />
+                                    <div className="min-w-0 flex-1">
+                                        <SkeletonLine width="30%" height="0.875rem" />
+                                        <SkeletonLine width="65%" height="0.75rem" className="mt-2" />
+                                    </div>
+                                    <SkeletonLine width="2.75rem" height="1.5rem" radius="9999px" />
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <ul className="grid grid-cols-1 gap-3">
+                            {LOGIN_SWITCHES.map((sw) => {
+                                const enabled = Boolean(flags[sw.key]);
+                                const busy = pendingLoginKey === sw.key;
+                                const RoleIcon = ROLE_META[sw.role].icon;
+                                return (
+                                    <li
+                                        key={sw.key}
+                                        className={`developer-feature flex flex-wrap items-center gap-4 rounded-xl border border-[var(--neutral-border)] p-4 ${enabled ? "" : "developer-feature--disabled"}`}
+                                    >
+                                        <span className="developer-feature__icon inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
+                                            <RoleIcon />
+                                        </span>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className="text-sm font-bold text-neutral-800">{FEATURE_META[sw.key]?.label ?? sw.key}</span>
+                                                <code className="developer-feature__key">{sw.key}</code>
+                                                <span className={`developer-feature__status-pill developer-feature__status-pill--${enabled ? "on" : "off"} px-2 py-0.5`}>
+                                                    {enabled ? "Logins enabled" : "Logins disabled"}
+                                                </span>
+                                            </div>
+                                            <p className="mt-1 text-[0.8125rem] leading-relaxed text-neutral-500">{FEATURE_META[sw.key]?.description}</p>
+                                        </div>
+                                        <label className="inline-flex cursor-pointer items-center gap-2">
+                                            <span className="sr-only">
+                                                {enabled ? `Disable ${FEATURE_META[sw.key]?.label ?? sw.key}` : `Enable ${FEATURE_META[sw.key]?.label ?? sw.key}`}
+                                            </span>
+                                            <input
+                                                type="checkbox"
+                                                className="developer-switch"
+                                                checked={enabled}
+                                                disabled={busy}
+                                                onChange={(event) => handleLoginSwitchToggle(sw.key, event.target.checked)}
+                                            />
+                                        </label>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
                 </div>
             </div>
 
@@ -422,6 +547,24 @@ export default function DeveloperUsers() {
                 pendingLabel="Deactivating…"
                 onConfirm={() => void handleConfirmDeactivate()}
                 onClose={() => setStatusTarget(null)}
+            />
+
+            {/* ==================== Disable role logins confirmation ==================== */}
+            <ConfirmDialog
+                open={loginSwitchTarget !== null}
+                title="Disable all logins for this role?"
+                description={
+                    loginSwitchTarget
+                        ? `Every ${FEATURE_META[loginSwitchTarget]?.label?.replace(" Logins", "") ?? loginSwitchTarget} account will be unable to sign in. Sessions already open expire naturally (max 1 hour). Your developer account is not affected.`
+                        : ""
+                }
+                confirmLabel="Disable logins"
+                confirmIcon={<FiLock aria-hidden="true" />}
+                tone="danger"
+                pending={loginSwitchTarget !== null && pendingLoginKey === loginSwitchTarget}
+                pendingLabel="Disabling…"
+                onConfirm={() => void handleConfirmLoginDisable()}
+                onClose={() => setLoginSwitchTarget(null)}
             />
 
             {/* ==================== Role change confirmation ==================== */}
