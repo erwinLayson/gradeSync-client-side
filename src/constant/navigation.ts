@@ -12,6 +12,7 @@ import {
   FaScroll,
   FaToggleOn,
   FaUserGraduate,
+  FaUsersCog,
 } from "react-icons/fa";
 
 
@@ -102,6 +103,7 @@ export const DASHBOARD_LINKS = {
       title: "Configuration",
       sections: [
         { label: "Landing Content", path: "/developer/landing-content", icon: FaImage },
+        { label: "User Accounts", path: "/developer/users", icon: FaUsersCog },
         { label: "Settings", path: "/developer/settings", icon: FaCog }
       ]
     }
