@@ -206,7 +206,6 @@
 .login-options {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   font-size: 0.8125rem;
 }
 
@@ -228,15 +227,9 @@
   cursor: pointer;
 }
 
-.login-options__link {
-  font-weight: 600;
-  color: var(--primary-dark);
-  text-decoration: none;
-  transition: color var(--transition-base);
-}
-
-.login-options__link:hover {
-  color: var(--primary);
+/* ---------- Login error banner ---------- */
+.login-error-banner {
+  line-height: 1.4;
 }
 
 /* ---------- Submit button ---------- */

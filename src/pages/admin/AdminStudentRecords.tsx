@@ -13,6 +13,8 @@ import {
 
 import { getAPICall, patchAPICall } from "../../api/api";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { ModalDialog } from "../../components/ModalDialog";
+import { PageCard } from "../../components/PageCard";
 import Skeleton from "../../components/Skeleton";
 import { getInitials } from "../../helper/initials";
 import { toast } from "../../helper/toast";
@@ -293,7 +295,9 @@ export default function AdminStudentRecords() {
             </div>
 
             {/* ==================== Matrix ==================== */}
-            <div className="tracker__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <PageCard
+        className="tracker__card"
+            >
                 {summary.length === 0 ? (
                     <div className="tracker__empty flex flex-col items-center justify-center px-6 py-20 text-center">
                         <span className="tracker__empty-icon inline-flex h-14 w-14 items-center justify-center rounded-2xl text-2xl" aria-hidden="true">
@@ -435,20 +439,17 @@ export default function AdminStudentRecords() {
                         submitting student records.
                     </p>
                 </div>
-            </div>
+            </PageCard>
 
             {/* ==================== Drill-down modal ==================== */}
-            {drilldown && (
-                <div
-                    className="tracker__modal fixed inset-0 z-[1000] grid place-items-center p-5"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="tracker-modal-title"
-                    onMouseDown={(event) => {
-                        if (event.target === event.currentTarget) setDrilldown(null);
-                    }}
-                >
-                    <div className="tracker__modal-panel w-full max-w-[40rem] overflow-y-auto rounded-3xl bg-white shadow-xl">
+            <ModalDialog
+                open={drilldown !== null}
+                onClose={() => setDrilldown(null)}
+                labelledById="tracker-modal-title"
+                className="tracker__modal-panel w-full max-w-[40rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+            >
+                {drilldown && (
+                    <>
                         <header className="tracker__modal-header flex items-start justify-between gap-4 p-6 pb-5">
                             <div className="tracker__modal-heading min-w-0">
                                 <span className="tracker__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
@@ -555,9 +556,9 @@ export default function AdminStudentRecords() {
                                 </div>
                             )}
                         </div>
-                    </div>
-                </div>
-            )}
+                    </>
+                )}
+            </ModalDialog>
 
             {/* ==================== Advance quarter confirm ==================== */}
             <ConfirmDialog

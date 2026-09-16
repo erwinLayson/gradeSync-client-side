@@ -1,21 +1,10 @@
 /* ============================================================
    ConfirmDialog — shared confirmation dialog (component stylesheet)
+   The overlay/portal behavior comes from ModalDialog; this file only
+   styles the panel content.
    Colors / spacing / radius / shadows come from the design
    tokens defined in src/index.css (:root).
    ============================================================ */
-
-.confirm-dialog {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: grid;
-  place-items: center;
-  padding: 1.25rem;
-  background: rgba(7, 44, 28, 0.6);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  animation: confirm-dialog-fade var(--transition-base) ease-out forwards;
-}
 
 .confirm-dialog__panel {
   position: relative;
@@ -117,6 +106,12 @@
   background: var(--surface-bg);
 }
 
+.confirm-dialog__cancel:disabled,
+.confirm-dialog__close:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .confirm-dialog__cancel:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
@@ -166,15 +161,6 @@
   cursor: wait;
 }
 
-@keyframes confirm-dialog-fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
 @keyframes confirm-dialog-pop {
   from {
     opacity: 0;
@@ -187,7 +173,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .confirm-dialog,
   .confirm-dialog__panel {
     animation: none;
   }

@@ -11,6 +11,8 @@ export default function useTeachers<T>() {
             setLoading(true);
             const response = await getAPICall<T>(endpoint);
             setTeachers(response.data ?? null);
+        }catch {
+            // Error toast is handled by the axios interceptor in api.ts
         }finally {
             setLoading(false);
         }

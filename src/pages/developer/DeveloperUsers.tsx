@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
     FiBookOpen,
     FiCheckCircle,
@@ -14,6 +14,7 @@ import {
 } from "react-icons/fi";
 
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { ModalDialog } from "../../components/ModalDialog";
 import { SkeletonLine } from "../../components/Skeleton";
 import { getAPICall, patchAPICall, postAPICall } from "../../api/api";
 import { useUser } from "../../hooks/useUser";
@@ -264,26 +265,6 @@ export default function DeveloperUsers() {
         setResetTarget(null);
         setTempPassword(null);
         resetTriggerRef.current?.focus();
-    }
-
-    // Reset dialog: Escape closes, overlay click closes, body scroll locked —
-    // mirroring ConfirmDialog's behaviour for this one custom reveal state.
-    useEffect(() => {
-        if (!resetTarget) return;
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") closeResetDialog();
-        };
-        document.addEventListener("keydown", handleKeyDown);
-        const previousOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-            document.body.style.overflow = previousOverflow;
-        };
-    }, [resetTarget]);
-
-    function handleResetOverlayMouseDown(event: MouseEvent<HTMLDivElement>) {
-        if (event.target === event.currentTarget) closeResetDialog();
     }
 
     const loading = accounts === null;
@@ -586,16 +567,16 @@ export default function DeveloperUsers() {
             />
 
             {/* ==================== Reset password + one-time reveal ==================== */}
-            {resetTarget && (
-                <div
-                    className="confirm-dialog"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby={resetTitleId}
-                    aria-describedby={resetDescId}
-                    onMouseDown={handleResetOverlayMouseDown}
-                >
-                    <div className="confirm-dialog__panel">
+            <ModalDialog
+                open={resetTarget !== null}
+                onClose={closeResetDialog}
+                labelledById={resetTitleId}
+                describedById={resetDescId}
+                restoreFocusRef={resetTriggerRef}
+                className="confirm-dialog__panel"
+            >
+                {resetTarget && (
+                    <>
                         <span className="confirm-dialog__icon confirm-dialog__icon--primary" aria-hidden="true">
                             <FiKey />
                         </span>
@@ -651,12 +632,11 @@ export default function DeveloperUsers() {
                                     >
                                         {pendingId === resetTarget.id ? "Generating…" : "Generate password"}
                                     </button>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
+                                </div>                        </>
+                    )}
+                </>
+                )}
+            </ModalDialog>
 
             {/* Status hint */}
             {!loading && (accounts?.length ?? 0) > 0 && (

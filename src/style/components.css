@@ -1,0 +1,20 @@
+/* ============================================================
+   Shared design-system components (PageCard / EmptyState / KpiCard)
+   PageCard and KpiCard intentionally have no rules here: their look
+   is either Tailwind utilities or the consumer's stylesheet
+   (`analytics__*` KPI rules live in analyticsReports.css).
+   ============================================================ */
+
+/* ---------- EmptyState ---------- */
+.empty-state__icon {
+  color: var(--primary);
+  background: var(--neutral-border);
+}
+
+.empty-state__title {
+  color: var(--text-dark);
+}
+
+.empty-state__text {
+  color: var(--text-muted);
+}

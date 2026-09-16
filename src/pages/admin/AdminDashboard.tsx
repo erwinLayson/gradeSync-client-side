@@ -16,6 +16,8 @@ import {
 } from "react-icons/fi";
 
 import { getAPICall } from "../../api/api";
+import { KpiCard, type KpiTrend } from "../../components/KpiCard";
+import { PageCard } from "../../components/PageCard";
 import { SkeletonLine } from "../../components/Skeleton";
 import "../../style/skeleton.css";
 
@@ -122,16 +124,6 @@ export default function AdminDashboard() {
     const kpisLoading = analyticsLoading;
     const chartsLoading = analyticsLoading;
     const snapshotLoading = analyticsLoading;
-
-    // Small shivering placeholder pill that matches the trend chip size.
-    const loadingPill = (
-        <span
-            className="mt-1.5 inline-flex items-center px-2 py-0.5"
-            aria-hidden="true"
-        >
-            <SkeletonLine width="4.5rem" height="0.875rem" radius="9999px" />
-        </span>
-    );
 
     // Enrollment status: null while loading, true/false once known.
     const enrollmentOpen =
@@ -267,7 +259,7 @@ export default function AdminDashboard() {
     return (
         <section className="dashboard flex flex-col gap-5" aria-busy={analyticsLoading || settingsLoading}>
             {/* ==================== Hero ==================== */}
-            <div className="dashboard__hero relative overflow-hidden rounded-2xl p-6 sm:p-8">
+            <PageCard className="dashboard__hero relative p-6 sm:p-8">
                 <div className="dashboard__hero-glow dashboard__hero-glow--accent" aria-hidden="true" />
                 <div className="dashboard__hero-glow dashboard__hero-glow--leaf" aria-hidden="true" />
 
@@ -305,39 +297,20 @@ export default function AdminDashboard() {
                         )}
                     </div>
                 </div>
-            </div>
+            </PageCard>
 
             {/* ==================== KPI cards ==================== */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                {kpis.map((kpi) => {
-                    const Icon = kpi.icon;
-                    return (
-                        <div key={kpi.label} className="analytics__kpi flex items-center gap-4 p-4">
-                            {kpisLoading ? (
-                                <SkeletonLine width="2.75rem" height="2.75rem" radius="0.75rem" />
-                            ) : (
-                                <span className="analytics__kpi-icon inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
-                                    <Icon />
-                                </span>
-                            )}
-                            <div className="min-w-0 flex-1">
-                                <span className="analytics__kpi-label block text-[0.6875rem] font-bold uppercase tracking-[0.08em]">{kpi.label}</span>
-                                {kpisLoading ? (
-                                    <SkeletonLine width="4.5rem" height="1.75rem" radius="0.5rem" className="mt-1.5" />
-                                ) : (
-                                    <span className="analytics__kpi-value mt-0.5 block text-[1.5rem] font-bold leading-none">{kpi.value}</span>
-                                )}
-                                {kpisLoading ? (
-                                    loadingPill
-                                ) : (
-                                    <span className={`analytics__trend analytics__trend--${kpi.trend} mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 text-[0.6875rem]`}>
-                                        {kpi.delta}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    );
-                })}
+                {kpis.map((kpi) => (
+                    <KpiCard
+                        key={kpi.label}
+                        label={kpi.label}
+                        value={kpi.value}
+                        icon={kpi.icon}
+                        loading={kpisLoading}
+                        trend={{ tone: kpi.trend as KpiTrend, text: kpi.delta }}
+                    />
+                ))}                
             </div>
 
             {/* ==================== Quick actions ==================== */}
@@ -368,7 +341,7 @@ export default function AdminDashboard() {
 
             {/* ==================== Enrollment status + students per school year ==================== */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+                <PageCard className="analytics__card">
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Enrollment</span>
@@ -459,9 +432,9 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     </div>
-                </div>
+                </PageCard>
 
-                <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+                <PageCard className="analytics__card">
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Enrollment</span>
@@ -540,12 +513,12 @@ export default function AdminDashboard() {
                             </p>
                         </div>
                     )}
-                </div>
+                </PageCard>
             </div>
 
             {/* ==================== Male / female enrollment + at a glance ==================== */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+                <PageCard className="analytics__card">
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Demographics</span>
@@ -603,9 +576,9 @@ export default function AdminDashboard() {
                             </p>
                         </div>
                     )}
-                </div>
+                </PageCard>
 
-                <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+                <PageCard className="analytics__card">
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Snapshot</span>
@@ -638,7 +611,7 @@ export default function AdminDashboard() {
                             );
                         })}
                     </div>
-                </div>
+                </PageCard>
             </div>
 
             {/* ==================== Footer note ==================== */}

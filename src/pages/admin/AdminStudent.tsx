@@ -24,6 +24,9 @@ import "../../style/adminStudent.css";
 // Components
 import Table, { type TableColumns } from "../../components/Table.js";
 import { ConfirmDialog } from "../../components/ConfirmDialog.js";
+import { PageCard } from "../../components/PageCard.js";
+import { EmptyState } from "../../components/EmptyState.js";
+import { ModalDialog } from "../../components/ModalDialog.js";
 
 // Helpers Functions
 import { Validate } from "../../helper/validate.js";
@@ -152,31 +155,6 @@ export default function AdminStudents() {
         (editTriggerRef.current ?? triggerRef.current)?.focus();
         editTriggerRef.current = null;
     }, []);
-
-    function handleOverlayMouseDown(event: React.MouseEvent<HTMLDivElement>) {
-        if (event.target === event.currentTarget) {
-            closeModal();
-        }
-    }
-
-    useEffect(() => {
-        if (!modalStatus) return;
-
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                closeModal();
-            }
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        const previousOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-            document.body.style.overflow = previousOverflow;
-        };
-    }, [modalStatus, closeModal]);
 
     function openCreateModal() {
         editTriggerRef.current = null;
@@ -374,7 +352,11 @@ export default function AdminStudents() {
     if (loading) {
         return (
             <section className="students flex flex-col gap-5">
-                <div className="students__card overflow-hidden rounded-2xl bg-white shadow-sm" aria-busy="true" aria-label="Loading students">
+                <PageCard
+        className="students__card"
+        ariaBusy={true}
+        ariaLabel="Loading students"
+                >
                     <div className="students__header flex flex-wrap items-center justify-between gap-4 p-5">
                         <div className="students__heading min-w-0">
                             <h2 className="students__title text-base font-bold">Student Records</h2>
@@ -384,14 +366,16 @@ export default function AdminStudents() {
                     <div className="p-6">
                         <Skeleton count={4} lines={1} height="2.5rem" gap="0.75rem" />
                     </div>
-                </div>
+                </PageCard>
             </section>
         );
     }
 
     return (
         <section className="students flex flex-col gap-5">
-            <div className="students__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <PageCard
+        className="students__card"
+            >
                 <div className="students__header flex flex-wrap items-center justify-between gap-4 p-5">
                     <div className="students__heading min-w-0">
                         <h2 className="students__title text-base font-bold">Student Records</h2>
@@ -690,35 +674,29 @@ export default function AdminStudents() {
                                 onRowClick={openStudentDetails}
                             />
                         ) : (
-                            <div className="students__empty flex flex-col items-center justify-center px-6 py-14 text-center">
-                                <span className="students__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
-                                    <FiUserPlus />
-                                </span>
-                                <p className="students__empty-title mt-3 text-sm font-bold">
-                                    {students && students.length > 0 ? "No matching students" : "No students found"}
-                                </p>
-                                <p className="students__empty-text mt-1 text-[0.8125rem]">
-                                    {students && students.length > 0
+                            <EmptyState
+                                className="students__empty"
+                                icon={<FiUserPlus />}
+                                title={students && students.length > 0 ? "No matching students" : "No students found"}
+                                description={
+                                    students && students.length > 0
                                         ? "Try adjusting your search or letter filter."
-                                        : "Student records will appear here once they are enrolled."}
-                                </p>
-                            </div>
+                                        : "Student records will appear here once they are enrolled."
+                                }
+                            />
                         )}
                     </>
                 )}
-            </div>
+            </PageCard>
 
             {/* ==================== Create / Edit student Modal ==================== */}
-            {modalStatus && (
-                <div
-                    className="students-modal fixed inset-0 z-[1000] grid place-items-center p-5"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="students-modal-title"
-                    onMouseDown={handleOverlayMouseDown}
-                >
-                    <div className="students-modal__panel w-full max-w-[36rem] overflow-y-auto rounded-3xl bg-white shadow-xl">
-                        <header className="students-modal__header flex items-start justify-between gap-4 p-6 pb-5">
+            <ModalDialog
+                open={Boolean(modalStatus)}
+                onClose={closeModal}
+                labelledById="students-modal-title"
+                className="students-modal__panel w-full max-w-[36rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+            >
+                    <header className="students-modal__header flex items-start justify-between gap-4 p-6 pb-5">
                             <div className="students-modal__heading">
                                 <span className="students-modal__eyebrow">{modalStatus === "create" ? "New record" : "Update record"}</span>
                                 <h3 id="students-modal-title" className="students-modal__title mt-0.5 text-xl font-bold">
@@ -853,9 +831,7 @@ export default function AdminStudents() {
                                 </button>
                             </footer>
                         </form>
-                    </div>
-                </div>
-            )}
+            </ModalDialog>
 
             {/* Delete student confirmation */}
             <ConfirmDialog

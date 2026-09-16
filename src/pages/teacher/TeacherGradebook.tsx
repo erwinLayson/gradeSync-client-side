@@ -16,12 +16,12 @@ import {
     useState,
     type ChangeEvent,
     type FormEvent,
-    type MouseEvent,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { deleteAPICall, getAPICall, patchAPICall, postAPICall, putAPICall } from "../../api/api";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { ModalDialog } from "../../components/ModalDialog";
 import Skeleton from "../../components/Skeleton";
 import { getInitials } from "../../helper/initials";
 import { toast } from "../../helper/toast";
@@ -393,12 +393,6 @@ export default function TeacherGradebook() {
         setModal(null);
     }, []);
 
-    function handleOverlayMouseDown(event: MouseEvent<HTMLDivElement>) {
-        if (event.target === event.currentTarget) {
-            closeModal();
-        }
-    }
-
     function handleModalInputChange(event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
         const { name, value } = event.target;
         setModalForm((prev) => ({ ...prev, [name]: value }));
@@ -457,26 +451,6 @@ export default function TeacherGradebook() {
         }
     }
 
-    // Escape closes any open modal + locks body scroll while one is open
-    useEffect(() => {
-        if (!modal && !weightsModalOpen) return;
-
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key !== "Escape") return;
-            if (modal) closeModal();
-            if (weightsModalOpen) setWeightsModalOpen(false);
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        const previousOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-            document.body.style.overflow = previousOverflow;
-        };
-    }, [modal, weightsModalOpen, closeModal]);
-
     // ================= Delete assessment ================
     async function handleDeleteAssessment() {
         if (!deletingAssessment || deleting) return;
@@ -506,12 +480,6 @@ export default function TeacherGradebook() {
 
     function closeWeightsModal() {
         setWeightsModalOpen(false);
-    }
-
-    function handleWeightsOverlayMouseDown(event: MouseEvent<HTMLDivElement>) {
-        if (event.target === event.currentTarget) {
-            closeWeightsModal();
-        }
     }
 
     function handleWeightsInputChange(event: ChangeEvent<HTMLInputElement>) {
@@ -996,15 +964,14 @@ export default function TeacherGradebook() {
             </div>
 
             {/* ==================== Assessment create/edit modal ==================== */}
-            {modal && (
-                <div
-                    className="teacher-gradebook__modal fixed inset-0 z-[1000] grid place-items-center p-5"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="teacher-gradebook-modal-title"
-                    onMouseDown={handleOverlayMouseDown}
-                >
-                    <div className="teacher-gradebook__modal-panel w-full max-w-[30rem] overflow-y-auto rounded-3xl bg-white shadow-xl">
+            <ModalDialog
+                open={modal !== null}
+                onClose={closeModal}
+                labelledById="teacher-gradebook-modal-title"
+                className="teacher-gradebook__modal-panel w-full max-w-[30rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+            >
+                {modal && (
+                    <>
                         <header className="teacher-gradebook__modal-header flex items-start justify-between gap-4 p-6 pb-5">
                             <div className="teacher-gradebook__modal-heading">
                                 <span className="teacher-gradebook__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
@@ -1129,20 +1096,17 @@ export default function TeacherGradebook() {
                                 </button>
                             </footer>
                         </form>
-                    </div>
-                </div>
-            )}
+                    </>
+                )}
+            </ModalDialog>
 
             {/* ==================== Grading weights modal ==================== */}
-            {weightsModalOpen && (
-                <div
-                    className="teacher-gradebook__modal fixed inset-0 z-[1000] grid place-items-center p-5"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="teacher-gradebook-weights-title"
-                    onMouseDown={handleWeightsOverlayMouseDown}
-                >
-                    <div className="teacher-gradebook__modal-panel w-full max-w-[30rem] overflow-y-auto rounded-3xl bg-white shadow-xl">
+            <ModalDialog
+                open={weightsModalOpen}
+                onClose={closeWeightsModal}
+                labelledById="teacher-gradebook-weights-title"
+                className="teacher-gradebook__modal-panel w-full max-w-[30rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+            >
                         <header className="teacher-gradebook__modal-header flex items-start justify-between gap-4 p-6 pb-5">
                             <div className="teacher-gradebook__modal-heading">
                                 <span className="teacher-gradebook__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
@@ -1236,9 +1200,7 @@ export default function TeacherGradebook() {
                                 </button>
                             </footer>
                         </form>
-                    </div>
-                </div>
-            )}
+            </ModalDialog>
 
             {/* ==================== Delete assessment confirmation ==================== */}
             <ConfirmDialog

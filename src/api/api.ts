@@ -58,7 +58,11 @@ function getErrorMessage(error: unknown): string {
 }
 
 export const postAPICall = async <DataSendType, ResponseDataType>(url: string, data: DataSendType, options?: RequestOptions) => {
-  const response = await API.post(url, data, { skipErrorToast: options?.skipErrorToast })
+  // null/undefined data means "no request body" (e.g. action endpoints like
+  // POST /users/:id/reset-password). Passing null straight to axios would
+  // JSON.stringify it into a literal "null" body, which body-parser (strict
+  // mode) rejects with a 400 parse error.
+  const response = await API.post(url, data ?? undefined, { skipErrorToast: options?.skipErrorToast })
   const body = response.data as APIResponse<ResponseDataType>
 
   if (options?.toast ?? true) {
@@ -106,13 +110,12 @@ export interface UploadResultData {
 }
 
 // Multipart upload (POST /uploads). The FormData overrides the instance's
-// JSON content-type; axios appends the multipart boundary automatically.
+// JSON content-type and axios appends the multipart boundary automatically.
 export const uploadFile = async <ResponseDataType = UploadResultData>(url: string, file: File, options?: RequestOptions) => {
   const formData = new FormData();
   formData.append("image", file);
   const response = await API.post(url, formData, {
     skipErrorToast: options?.skipErrorToast,
-    headers: { "Content-Type": "multipart/form-data" },
   })
   const body = response.data as APIResponse<ResponseDataType>
 

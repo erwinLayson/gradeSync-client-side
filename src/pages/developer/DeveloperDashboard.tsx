@@ -9,6 +9,7 @@ import {
     FiXCircle,
 } from "react-icons/fi";
 
+import { KpiCard } from "../../components/KpiCard";
 import { SkeletonLine } from "../../components/Skeleton";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 import { useAuth } from "../../hooks/useAuth";
@@ -78,24 +79,15 @@ export default function DeveloperDashboard() {
 
             {/* ==================== At-a-glance KPIs ==================== */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                {kpis.map((kpi) => {
-                    const Icon = kpi.icon;
-                    return (
-                        <div key={kpi.label} className="analytics__kpi flex items-center gap-4 p-4">
-                            <span className="analytics__kpi-icon inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
-                                <Icon />
-                            </span>
-                            <div className="min-w-0 flex-1">
-                                <span className="analytics__kpi-label block text-[0.6875rem] font-bold uppercase tracking-[0.08em]">{kpi.label}</span>
-                                {loading ? (
-                                    <SkeletonLine width="3rem" height="1.75rem" radius="0.5rem" className="mt-1.5" />
-                                ) : (
-                                    <span className="analytics__kpi-value mt-0.5 block text-[1.5rem] font-bold leading-none">{kpi.value}</span>
-                                )}
-                            </div>
-                        </div>
-                    );
-                })}
+                {kpis.map((kpi) => (
+                    <KpiCard
+                        key={kpi.label}
+                        label={kpi.label}
+                        value={kpi.value}
+                        icon={kpi.icon}
+                        loading={loading}
+                    />
+                ))}
             </div>
 
             {/* ==================== Feature status grid ==================== */}

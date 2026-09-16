@@ -13,6 +13,8 @@ import {
 } from "react-icons/fi";
 
 import { getAPICall } from "../../api/api";
+import { KpiCard } from "../../components/KpiCard";
+import { PageCard } from "../../components/PageCard";
 import { SkeletonLine } from "../../components/Skeleton";
 import "../../style/skeleton.css";
 import "../../style/analyticsReports.css";
@@ -193,7 +195,7 @@ export default function AnalyticsReports() {
     return (
         <section className="analytics flex flex-col gap-5">
             {/* ==================== Header ==================== */}
-            <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <PageCard variant="flat" className="analytics__card">
                 <div className="analytics__header flex flex-wrap items-center justify-between gap-4 p-5">
                     <div className="min-w-0">
                         <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">School Performance</span>
@@ -214,39 +216,31 @@ export default function AnalyticsReports() {
                         </select>
                     </label>
                 </div>
-            </div>
-
-            {/* ==================== KPI cards ==================== */}
+            </PageCard>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                {kpis.map((kpi) => {
-                    const Icon = kpi.icon;
-                    return (
-                        <div key={kpi.label} className="analytics__kpi flex items-center gap-4 p-4">
-                            <span className="analytics__kpi-icon inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
-                                <Icon />
-                            </span>
-                            <div className="min-w-0 flex-1">
-                                <span className="analytics__kpi-label block text-[0.6875rem] font-bold uppercase tracking-[0.08em]">{kpi.label}</span>
-                                <span className="analytics__kpi-value mt-0.5 block text-[1.5rem] font-bold leading-none">
-                                    {loading ? (
-                                        <SkeletonLine width="4.5rem" height="1.75rem" radius="0.5rem" className="mt-0.5" />
-                                    ) : (
-                                        kpi.value
-                                    )}
-                                </span>
-                                <span className="analytics__trend analytics__trend--live mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 text-[0.6875rem]">
+                {kpis.map((kpi) => (
+                    <KpiCard
+                        key={kpi.label}
+                        label={kpi.label}
+                        value={kpi.value}
+                        icon={kpi.icon}
+                        loading={loading}
+                        trend={{
+                            tone: "live",
+                            text: (
+                                <>
                                     <FiLoader className={loading ? "analytics__spin" : ""} aria-hidden="true" />
                                     {loading ? "Loading" : "Live data"}
-                                </span>
-                            </div>
-                        </div>
-                    );
-                })}
+                                </>
+                            ),
+                        }}
+                    />
+                ))}
             </div>
 
             {/* ==================== Enrollment bars + passing donut ==================== */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+                <PageCard variant="flat" className="analytics__card">
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Enrollment</span>
@@ -309,9 +303,9 @@ export default function AnalyticsReports() {
                             </div>
                         </div>
                     )}
-                </div>
+                </PageCard>
 
-                <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+                <PageCard variant="flat" className="analytics__card">
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Grades</span>
@@ -369,12 +363,12 @@ export default function AnalyticsReports() {
                             </div>
                         </div>
                     )}
-                </div>
+                </PageCard>
             </div>
 
             {/* ==================== Subject bars + attendance trend ==================== */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+                <PageCard variant="flat" className="analytics__card">
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Academics</span>
@@ -408,9 +402,9 @@ export default function AnalyticsReports() {
                             ))}
                         </div>
                     )}
-                </div>
+                </PageCard>
 
-                <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+                <PageCard variant="flat" className="analytics__card">
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Attendance</span>
@@ -483,12 +477,12 @@ export default function AnalyticsReports() {
                             </div>
                         </div>
                     )}
-                </div>
+                </PageCard>
             </div>
 
             {/* ==================== Top performers + subject summary ==================== */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+                <PageCard variant="flat" className="analytics__card">
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Achievers</span>
@@ -548,9 +542,9 @@ export default function AnalyticsReports() {
                             </table>
                         </div>
                     )}
-                </div>
+                </PageCard>
 
-                <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+                <PageCard variant="flat" className="analytics__card">
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Summary</span>
@@ -599,7 +593,7 @@ export default function AnalyticsReports() {
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </PageCard>
             </div>
 
             <p className="analytics__subtitle flex items-center gap-2 px-1 text-[0.75rem]">

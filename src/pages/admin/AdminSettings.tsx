@@ -18,6 +18,7 @@ import { useUser } from "../../hooks/useUser";
 import { invalidateSchoolInfoCache } from "../../hooks/useSchoolInfo";
 import { getAPICall, patchAPICall, putAPICall, deleteAPICall } from "../../api/api.js";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { PageCard } from "../../components/PageCard";
 import { toast } from "../../helper/toast";
 
 import type { SchoolInfoProps } from "../../constant/schoolInfo.js";
@@ -96,7 +97,7 @@ function BulkEnrollmentSection({ savedSection, handleSave }: BulkEnrollmentProps
     }
 
     return (
-        <div className="settings__card overflow-hidden rounded-2xl bg-white shadow-sm">
+        <PageCard className="settings__card">
             <div className="settings__head flex flex-wrap items-center justify-between gap-4 border-b p-5">
                 <div className="flex items-start gap-3">
                     <span className="settings__icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
@@ -164,7 +165,7 @@ function BulkEnrollmentSection({ savedSection, handleSave }: BulkEnrollmentProps
                 onConfirm={handleClearAll}
                 onClose={() => setConfirmOpen(false)}
             />
-        </div>
+        </PageCard>
     );
 }
 
@@ -508,6 +509,7 @@ export default function AdminSettings() {
             handleSave("credentials");
         } catch {
             // Error toast is handled by the axios interceptor in api.ts
+        } finally {
             setSubmitting(false);
         }
     }
@@ -535,7 +537,7 @@ export default function AdminSettings() {
             </div>
 
             {/* ==================== School Information ==================== */}
-            <div className="settings__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <PageCard className="settings__card">
                 <div className="settings__head flex flex-wrap items-center justify-between gap-4 border-b p-5">
                     <div className="flex items-start gap-3">
                         <span className="settings__icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
@@ -668,10 +670,10 @@ export default function AdminSettings() {
                         </div>
                     </footer>
                 </form>
-            </div>
+            </PageCard>
 
             {/* ==================== Academic Year ==================== */}
-            <div className="settings__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <PageCard className="settings__card">
                 <div className="settings__head flex flex-wrap items-center justify-between gap-4 border-b p-5">
                     <div className="flex items-start gap-3">
                         <span className="settings__icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
@@ -786,10 +788,10 @@ export default function AdminSettings() {
                         </div>
                     </footer>
                 </form>
-            </div>
+            </PageCard>
 
             {/* ==================== Grading Weights ==================== */}
-            <div className="settings__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <PageCard className="settings__card">
                 <div className="settings__head flex flex-wrap items-center justify-between gap-4 border-b p-5">
                     <div className="flex items-start gap-3">
                         <span className="settings__icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
@@ -950,10 +952,10 @@ export default function AdminSettings() {
                         </div>
                     </footer>
                 </form>
-            </div>
+            </PageCard>
 
             {/* ==================== Login Credentials ==================== */}
-            <div className="settings__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <PageCard className="settings__card">
                 <div className="settings__head flex flex-wrap items-center justify-between gap-4 border-b p-5">
                     <div className="flex items-start gap-3">
                         <span className="settings__icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
@@ -1036,7 +1038,7 @@ export default function AdminSettings() {
                         </div>
                     </footer>
                 </form>
-            </div>
+            </PageCard>
             {/* ==================== Bulk Enrollment Management ==================== */}
             <BulkEnrollmentSection savedSection={savedSection} handleSave={handleSave} />
         </section>

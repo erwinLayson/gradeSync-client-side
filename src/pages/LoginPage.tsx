@@ -31,18 +31,27 @@ function LoginPage() {
   const navigate = useNavigate()
   const { fetchUser } = useUser()
   const [showPassword, setShowPassword] = useState(false)
-  const [loginCredentials, setLoginCredentials] = useState<LoginCredentials>({ email: '', password: '' })
+  const [rememberEmail, setRememberEmail] = useState(() =>
+    localStorage.getItem("gradeSync-remembered-email") ?? ""
+  )
+  const [loginCredentials, setLoginCredentials] = useState<LoginCredentials>({
+    email: rememberEmail,
+    password: ""
+  })
   const [loading, setLoading] = useState(false)
 
   function handleLoginCredentialsChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.currentTarget;
     setLoginCredentials((prev) => ({ ...prev, [name]: value }));
+    if (name === "email" && rememberEmail !== "") {
+      setRememberEmail(value);
+    }
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    Validate(loginCredentials)
+    if (!Validate(loginCredentials)) return
 
     try {
       setLoading(true);
@@ -63,14 +72,19 @@ function LoginPage() {
         return
       }
 
+      // Persist the remembered email (clears if the checkbox is unchecked).
+      if (rememberEmail) {
+        localStorage.setItem("gradeSync-remembered-email", rememberEmail);
+      } else {
+        localStorage.removeItem("gradeSync-remembered-email");
+      }
+
       await fetchUser()
 
       const userRole = responseData.role as UserRoles;
       const dashboard = RedirectToDashboard(userRole)
       
       navigate(dashboard)
-    } catch (err) {
-      console.error('Login error:', err);
     } finally {
       setLoading(false)
     }
@@ -167,16 +181,14 @@ function LoginPage() {
             {/* Options */}
             <div className="login-options">
               <label className="login-options__remember">
-                <input type="checkbox" className="login-options__checkbox" />
+                <input
+                  type="checkbox"
+                  className="login-options__checkbox"
+                  checked={rememberEmail !== ""}
+                  onChange={(e) => setRememberEmail(e.target.checked ? loginCredentials.email : "")}
+                />
                 Remember me
               </label>
-              <a
-                href="#forgot-password"
-                onClick={(event) => event.preventDefault()}
-                className="login-options__link"
-              >
-                Forgot password?
-              </a>
             </div>
 
             {/* Submit */}

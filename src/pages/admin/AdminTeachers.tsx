@@ -11,6 +11,9 @@ import { getInitials } from "../../helper/initials";
 import { getAPICall, postAPICall, patchAPICall, deleteAPICall } from "../../api/api";
 
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { EmptyState } from "../../components/EmptyState";
+import { PageCard } from "../../components/PageCard";
+import { ModalDialog } from "../../components/ModalDialog";
 import Skeleton from "../../components/Skeleton";
 
 import "../../style/adminTeachers.css";
@@ -62,31 +65,6 @@ export default function AdminTeachers() {
         (editTriggerRef.current ?? triggerRef.current)?.focus();
         editTriggerRef.current = null;
     }, []);
-
-    function handleOverlayMouseDown(event: React.MouseEvent<HTMLDivElement>) {
-        if (event.target === event.currentTarget) {
-            closeModal();
-        }
-    }
-
-    useEffect(() => {
-        if (!modalStatus) return;
-
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                closeModal();
-            }
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        const previousOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-            document.body.style.overflow = previousOverflow;
-        };
-    }, [modalStatus, closeModal]);
 
     function openCreateModal() {
         editTriggerRef.current = null;
@@ -200,9 +178,8 @@ export default function AdminTeachers() {
         try {
             const response = await getAPICall<TeacherSubjectDetails[]>(`/teachers/${teacherId}/subjects`);
             if (selectedTeacherIdRef.current !== teacherId) return;
-            console.log("Fetched teacher subjects details:", response.data);    
             setTeacherSubjectsDetails(response.data ?? null);
-        }  finally {
+        } finally {
             setLoadingTeacherDetails(false);
         }
     }
@@ -216,7 +193,11 @@ export default function AdminTeachers() {
     if (teachersLoading) {
         return (
             <section className="teachers flex flex-col gap-5">
-                <div className="teachers__card overflow-hidden rounded-2xl bg-white shadow-sm" aria-busy="true" aria-label="Loading teachers">
+                <PageCard
+        className="teachers__card"
+        ariaBusy={true}
+        ariaLabel="Loading teachers"
+                >
                     <div className="teachers__header flex flex-wrap items-center justify-between gap-4 p-5">
                         <div className="teachers__heading min-w-0">
                             <h2 className="teachers__title text-base font-bold">Teacher Records</h2>
@@ -226,14 +207,16 @@ export default function AdminTeachers() {
                     <div className="p-6">
                         <Skeleton count={4} lines={1} height="2.5rem" gap="0.75rem" />
                     </div>
-                </div>
+                </PageCard>
             </section>
         );
     }
 
     return (
         <section className="teachers flex flex-col gap-5">
-            <div className="teachers__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <PageCard
+        className="teachers__card"
+            >
                 <div className="teachers__header flex flex-wrap items-center justify-between gap-4 p-5">
                     <div className="teachers__heading min-w-0">
                         <h2 className="teachers__title text-base font-bold">Teacher Records</h2>
@@ -350,13 +333,12 @@ export default function AdminTeachers() {
                 {/* ================ Empty State ================ */}
                 {/* If no teachers are found, display an empty state */}
                 {teachers && teachers.length  <= 0 && (
-                    <div className="teachers__empty flex flex-col items-center justify-center px-6 py-14 text-center">
-                        <span className="teachers__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
-                            <FiUsers />
-                        </span>
-                        <p className="teachers__empty-title mt-3 text-sm font-bold">No teachers found</p>
-                        <p className="teachers__empty-text mt-1 text-[0.8125rem]">Teacher records will appear here once staff are registered.</p>
-                    </div>
+                    <EmptyState
+                        className="teachers__empty"
+                        icon={<FiUsers />}
+                        title="No teachers found"
+                        description="Teacher records will appear here once staff are registered."
+                    />
                 )}
 
                 {/* ===================== Teacher subject Details =====================*/}
@@ -469,18 +451,15 @@ export default function AdminTeachers() {
                         </section>
                     </div>
                 )}
-            </div>
+            </PageCard>
 
             {/* ==================== Create / Edit Teacher modal ==================== */}
-            {modalStatus && (
-                <div
-                    className="teachers-modal fixed inset-0 z-[1000] grid place-items-center p-5"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="teachers-modal-title"
-                    onMouseDown={handleOverlayMouseDown}
-                >
-                    <div className="teachers-modal__panel w-full max-w-[36rem] overflow-y-auto rounded-3xl bg-white shadow-xl">
+            <ModalDialog
+                open={Boolean(modalStatus)}
+                onClose={closeModal}
+                labelledById="teachers-modal-title"
+                className="teachers-modal__panel w-full max-w-[36rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+            >
                         <header className="teachers-modal__header flex items-start justify-between gap-4 p-6 pb-5">
                             <div className="teachers-modal__heading">
                                 <span className="teachers-modal__eyebrow">{modalStatus === "create" ? "New record" : "Update record"}</span>
@@ -580,9 +559,7 @@ export default function AdminTeachers() {
                                 </button>
                             </footer>
                         </form>
-                    </div>
-                </div>
-            )}
+            </ModalDialog>
 
             {/* Delete teacher confirmation */}
             <ConfirmDialog

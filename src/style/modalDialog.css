@@ -1,0 +1,34 @@
+/* ============================================================
+   ModalDialog — shared modal primitive (component stylesheet)
+   Provides the portal overlay styling. Panel appearance is the
+   responsibility of each consumer (page CSS / Tailwind classes).
+   ============================================================ */
+
+.modal-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  overflow-y: auto;
+  background: rgba(7, 44, 28, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: modal-dialog-fade var(--transition-base) ease-out forwards;
+}
+
+@keyframes modal-dialog-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-dialog {
+    animation: none;
+  }
+}

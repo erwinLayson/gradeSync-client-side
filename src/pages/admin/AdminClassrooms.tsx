@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { FiPlus, FiX, FiArrowLeft, FiEdit, FiTrash2, FiHome, FiUsers, FiBookOpen, FiUserPlus, FiUserCheck, FiRefreshCw } from "react-icons/fi";
 
 import { 
@@ -33,6 +33,9 @@ import useClassroom from "../../hooks/useClassroom.js";
 
 // Components
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { PageCard } from "../../components/PageCard";
+import { EmptyState } from "../../components/EmptyState";
+import { ModalDialog } from "../../components/ModalDialog";
 
 // Main component
 export default function AdminClassrooms() {
@@ -117,41 +120,6 @@ setSelectedSubjectIds([]);
 triggerRef.current?.focus();
 }, []);
 
-function handleOverlayMouseDown(event: React.MouseEvent<HTMLDivElement>) {
-if (event.target === event.currentTarget) {
-closeModal();
-setModalStatus(null);
-setNewClassroomSubjectAdded(null);
-setSelectedSubjectIds([]);
-setSubjectsNotInClass(null);
-setEditSubjectTeacher(null);
-setAdviserSelection(null);
-setAllTeachers(null);
-setAdviserTakenBy({});
-setEditingClassroom(null);
-}
-}
-
-useEffect(() => {
-if (!isModalOpen) return;
-
-const handleKeyDown = (event: KeyboardEvent) => {
-if (event.key === "Escape") {
-    closeModal();
-    setModalStatus(null);
-}
-};
-
-document.addEventListener("keydown", handleKeyDown);
-const previousOverflow = document.body.style.overflow;
-document.body.style.overflow = "hidden";
-
-return () => {
-document.removeEventListener("keydown", handleKeyDown);
-document.body.style.overflow = previousOverflow;
-};
-}, [isModalOpen, closeModal]);
-
 function handleModalClose() {
 closeModal();
 setNewClassroom({section: "", gradeLevel: ""});
@@ -162,7 +130,9 @@ setModalStatus(null);
 setEditSubjectTeacher(null);
 setAdviserSelection(null);
 setAllTeachers(null);
+setAdviserTakenBy({});
 setEditingClassroom(null);
+setSubjectsNotInClass(null);
 }
 
 // Open the assign-adviser modal: loads the teacher list and preselects the current adviser.
@@ -238,7 +208,7 @@ try {
 await postAPICall<Omit<ClassroomResponseProps, "id" | "gradeLevel" | "totalStudent"> & { gradeLevel: string }, null>("/classrooms", newClassroom);
 refetchClassroom()
 setNewClassroom({ section: "", gradeLevel: "" });
-closeModal();
+handleModalClose();
 }catch {
 // Error toast is handled by the axios interceptor in api.ts
 }
@@ -524,10 +494,23 @@ setNewClassroomSubjectAdded((prev) =>
 // handle form submission for adding new classroom subjects
 async function handleSubmitOfNewClassroomSubjects(e: React.FormEvent<HTMLFormElement>) {
 e.preventDefault();
-if (!selectedClassroom || !newClassroomSubjectAdded) return;
+if (!selectedClassroom) return;
 
-for (const newSubject of newClassroomSubjectAdded) {
-  Validate(newSubject);
+// A subject only lands in `newClassroomSubjectAdded` once its teacher radio
+// is picked. If a subject was checked but has no teacher, it would otherwise
+// be silently dropped — abort with a clear message instead.
+if (selectedSubjectIds.length === 0) {
+  toast.warning("Select at least one subject to add.");
+  return;
+}
+const needsTeacher = selectedSubjectIds.filter((subjectId) =>
+  !(newClassroomSubjectAdded ?? []).some((item) => item.subjectId === subjectId && item.teacherId)
+);
+if (needsTeacher.length > 0) {
+  toast.warning(
+    `Assign a teacher for ${needsTeacher.length === 1 ? "the selected subject" : `${needsTeacher.length} selected subjects`} before adding.`
+  );
+  return;
 }
 
 try {
@@ -536,10 +519,11 @@ try {
   });
   // Reset the form
   setNewClassroomSubjectAdded(null);
+  setSelectedSubjectIds([]);
   setIsModalOpen(false);
   fetchClassroomTeachersWithSubject();
-} catch (error) {
-  console.error("Error submitting new classroom subjects:", error);
+} catch {
+  // Error toast handled by API interceptor
 }
 }
 
@@ -548,7 +532,11 @@ try {
 if (loading) {
 return (
 <section className="classrooms flex flex-col gap-5">
-    <div className="classrooms__card overflow-hidden rounded-2xl bg-white shadow-sm" aria-busy="true" aria-label="Loading classrooms">
+    <PageCard
+    className="classrooms__card"
+    ariaBusy={true}
+    ariaLabel="Loading classrooms"
+    >
         <div className="classrooms__header flex flex-wrap items-center justify-between gap-4 p-5">
             <div className="classrooms__heading min-w-0">
                 <h2 className="classrooms__title text-base font-bold">Classroom Records</h2>
@@ -558,7 +546,7 @@ return (
         <div className="p-6">
             <Skeleton count={4} lines={1} height="9.5rem" radius="0.75rem" grid="repeat(2, 1fr)" />
         </div>
-    </div>
+    </PageCard>
 </section>
 );
 }
@@ -566,7 +554,9 @@ return (
 return (
 <section className="classrooms flex flex-col gap-5">
 {/* classroom list  */}
-<div className="classrooms__card overflow-hidden rounded-2xl bg-white shadow-sm">
+<PageCard
+    className="classrooms__card"
+>
     <div className="classrooms__header flex flex-wrap items-center justify-between gap-4 p-5">
         <div className="classrooms__heading min-w-0">
             <h2 className="classrooms__title text-base font-bold">Classroom Records</h2>
@@ -700,13 +690,12 @@ return (
                     ))}
                 </div>
             ) : (
-                <div className="classrooms__empty flex flex-col items-center justify-center px-6 py-14 text-center">
-                    <span className="classrooms__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
-                        <FiHome />
-                    </span>
-                    <p className="classrooms__empty-title mt-3 text-sm font-bold">No classrooms found</p>
-                    <p className="classrooms__empty-text mt-1 text-[0.8125rem]">Classrooms will appear here once they are created.</p>
-                </div>
+                <EmptyState
+                    className="classrooms__empty"
+                    icon={<FiHome />}
+                    title="No classrooms found"
+                    description="Classrooms will appear here once they are created."
+                />
             )}
         </div>
     )}
@@ -1014,18 +1003,15 @@ return (
         </div>
     )}
 
-</div>
+</PageCard>
 
 {/* classroom Modal */}
-{isModalOpen && (
-    <div
-        className="classrooms-modal fixed inset-0 z-[1000] grid place-items-center p-5"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="classrooms-modal-title"
-        onMouseDown={handleOverlayMouseDown}
-    >
-        <div className="classrooms-modal__panel flex w-full max-w-[36rem] flex-col overflow-hidden rounded-3xl bg-white shadow-xl">
+<ModalDialog
+    open={isModalOpen}
+    onClose={handleModalClose}
+    labelledById="classrooms-modal-title"
+    className="classrooms-modal__panel flex w-full max-w-[36rem] flex-col overflow-hidden rounded-3xl bg-white shadow-xl"
+>
             <header className="classrooms-modal__header flex shrink-0 items-start justify-between gap-4 p-6 pb-5">
                 <div className="classrooms-modal__heading">
                     <span className="classrooms-modal__eyebrow uppercase tracking-[0.08em]">
@@ -1357,9 +1343,7 @@ return (
                     </button>
                 </footer>
             </form>
-        </div>
-    </div>
-)}
+</ModalDialog>
 
 {/* Delete subject confirmation dialog */}
 <ConfirmDialog

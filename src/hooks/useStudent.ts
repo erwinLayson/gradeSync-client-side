@@ -12,8 +12,8 @@ export default function useStudent<StudentType>() {
 
             const response = await getAPICall<StudentType>(endpoint ?? "/students" , options);
             setStudents(response.data ?? null);
-        }catch(err) {
-            console.error("Error fetching students:", err);
+        }catch {
+            // Error toast is handled by the axios interceptor in api.ts
         }finally {
             setLoading(false);
         }

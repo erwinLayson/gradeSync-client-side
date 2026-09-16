@@ -5,11 +5,10 @@ function useSubjects<T>() {
     const [subjects, setSubjects] = useState<T | null>(null);
     const [subjectsLoading, setSubjectsLoading] = useState(true);
 
-    const fetchSubjects = async (endpont: string) => {
+    const fetchSubjects = async (endpoint: string) => {
         try {
             setSubjectsLoading(true);
-            const response = await getAPICall<T>(endpont);
-            console.log(response.data)
+            const response = await getAPICall<T>(endpoint);
             setSubjects(response.data ?? null);
         }catch {
             setSubjects(null)

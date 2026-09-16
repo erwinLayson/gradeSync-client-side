@@ -16,6 +16,9 @@ import type { Teacher } from "../../constant/teachers";
 
 // Components
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { PageCard } from "../../components/PageCard";
+import { EmptyState } from "../../components/EmptyState";
+import { ModalDialog } from "../../components/ModalDialog";
 
 interface newAssignedTeachers {
 subjectId: number | null;
@@ -64,32 +67,6 @@ const closeModal = useCallback(() => {
     setEditingSubject(null);
     triggerRef.current?.focus();
 }, []);
-
-function handleOverlayMouseDown(event: React.MouseEvent<HTMLDivElement>) {
-    if (event.target === event.currentTarget) {
-        closeModal();
-    }
-}
-
-useEffect(() => {
-    if (!isModalOpen) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key === "Escape") {
-            closeModal();
-        }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-        document.removeEventListener("keydown", handleKeyDown);
-        document.body.style.overflow = previousOverflow;
-    };
-}, [isModalOpen, closeModal]);
-
 
 // Handle input change for create subject modal
 function handleSubjectCreateModalInputChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -159,18 +136,36 @@ async function handleCreateModalForm(e: React.FormEvent<HTMLFormElement>) {
     }
 }
 
-// Open the edit-subject modal pre-filled with the card's values
-function handleEditSubjectClick(subject: Subject) {
+// Open the edit-subject modal pre-filled with the card's values.
+// Components are loaded from the detail endpoint so the editor shows the
+// real sub-components instead of an empty list (which used to be silently
+// saved and confused admins working on composite subjects).
+async function handleEditSubjectClick(subject: Subject) {
     setNewSubject({
         name: subject.name,
         code: subject.code,
         unit: String(subject.unit),
         hasComponents: subject.hasComponents ?? false,
-        components: [], // Components will be loaded from the selected subject details
+        components: [],
     });
     setEditingSubject(subject);
     setModalStatus("edit");
     setIsModalOpen(true);
+
+    if (!subject.hasComponents) return;
+
+    try {
+        const response = await getAPICall<SubjectWithTeachers>(`/subjects/${subject.id}/teachers`);
+        const components = (response.data?.components ?? []).map(({ name, code, weight }) => ({
+            name,
+            code,
+            weight,
+        }));
+        setNewSubject((prev) => ({ ...prev, components }));
+    } catch {
+        // Error toast is handled by the axios interceptor; the modal stays open
+        // so name/code/unit can still be edited.
+    }
 }
 
 // Handle form submission for editing an existing subject
@@ -200,11 +195,9 @@ async function handleEditModalForm(e: React.FormEvent<HTMLFormElement>) {
     }
 }
 
-// TODO: Implement the API call to fetch unassigned teachers for the selected subject
 async function handleAssignModalForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!selectedSubject || !newAssignedTeachers) return;
-    console.log("assigning teachers to subject:", newAssignedTeachers);
 
     try {
         await postAPICall<newAssignedTeachers, null>(`/subjects/${selectedSubject.id}/assign-teachers`, newAssignedTeachers);
@@ -212,8 +205,8 @@ async function handleAssignModalForm(e: React.FormEvent<HTMLFormElement>) {
         await fetchSelectedSubjectDetails(selectedSubject.id);
         setNewAssignedTeachers(null);
         closeModal();
-    } catch (error) {
-        console.error("Error assigning teachers to subject:", error);
+    } catch {
+        // Error toast is handled by the axios interceptor in api.ts
     }
 }
 
@@ -318,8 +311,8 @@ async function fetchSelectedSubjectDetails(subjectId: number) {
         setLoading(true);
         const response = await getAPICall<SubjectWithTeachers>(`/subjects/${subjectId}/teachers`);
         setSelectedSubject(response.data ?? null);
-    } catch (error) {
-        console.error("Error fetching subject details:", error);
+    } catch {
+        // Error toast is handled by the axios interceptor in api.ts
     } finally {
         setLoading(false);
     }
@@ -337,8 +330,8 @@ async function fetchSubjects() {
 
         const response = await getAPICall<Subject[]>('/subjects');
         setSubjects(response.data ?? null);
-    } catch (error) {
-        console.error("Error fetching subjects:", error);
+    } catch {
+        // Error toast is handled by the axios interceptor in api.ts
     } finally {
         setLoading(false);
     }
@@ -348,7 +341,11 @@ async function fetchSubjects() {
 if (loading) {
     return (
         <section className="subjects flex flex-col gap-5">
-            <div className="subjects__card overflow-hidden rounded-2xl bg-white shadow-sm" aria-busy="true" aria-label="Loading subjects">
+            <PageCard
+        className="subjects__card"
+        ariaBusy={true}
+        ariaLabel="Loading subjects"
+            >
                 <div className="subjects__header flex flex-wrap items-center justify-between gap-4 p-5">
                     <div className="subjects__heading min-w-0">
                         <h2 className="subjects__title text-base font-bold">Subject Records</h2>
@@ -358,14 +355,16 @@ if (loading) {
                 <div className="p-6">
                     <Skeleton count={4} lines={1} height="9.5rem" radius="0.75rem" grid="repeat(2, 1fr)" />
                 </div>
-            </div>
+            </PageCard>
         </section>
     );
 }
 
 return (
     <section className="subjects flex flex-col gap-5">
-        <div className="subjects__card overflow-hidden rounded-2xl bg-white shadow-sm">
+        <PageCard
+    className="subjects__card"
+        >
             <div className="subjects__header flex flex-wrap items-center justify-between gap-4 p-5">
                 <div className="subjects__heading min-w-0">
                     <h2 className="subjects__title text-base font-bold">Subject Records</h2>
@@ -478,13 +477,12 @@ return (
                             ))}
                         </div>
                     ) : (
-                        <div className="subjects__empty flex flex-col items-center justify-center px-6 py-14 text-center">
-                            <span className="subjects__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
-                                <FiBookOpen />
-                            </span>
-                            <p className="subjects__empty-title mt-3 text-sm font-bold">No subjects found</p>
-                            <p className="subjects__empty-text mt-1 text-[0.8125rem]">Subjects will appear here once they are created.</p>
-                        </div>
+                        <EmptyState
+                            className="subjects__empty"
+                            icon={<FiBookOpen />}
+                            title="No subjects found"
+                            description="Subjects will appear here once they are created."
+                        />
                     )}
                 </div>
             )}
@@ -644,19 +642,16 @@ return (
                     </section>
                 </div>
             )}
-        </div>
+        </PageCard>
 
 
-        {/* Create subject Modal */}
-        {isModalOpen && (
-            <div
-                className="subjects-modal fixed inset-0 z-[1000] grid place-items-center p-5"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="subjects-modal-title"
-                onMouseDown={handleOverlayMouseDown}
-            >
-                <div className="subjects-modal__panel w-full max-w-[36rem] overflow-y-auto rounded-3xl bg-white shadow-xl">
+        {/* Create/Edit/Assign subject Modal */}
+        <ModalDialog
+            open={isModalOpen}
+            onClose={closeModal}
+            labelledById="subjects-modal-title"
+            className="subjects-modal__panel w-full max-w-[36rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+        >
                     <header className="subjects-modal__header flex items-start justify-between gap-4 p-6 pb-5">
                         {/* Create Subject Heading */}
                         {modalStatus === "create" && (
@@ -879,11 +874,9 @@ return (
                             </button>
                         </footer>
                     </form>
-                </div>
-            </div>
-        )}
+            </ModalDialog>
 
-        {/* Remove teacher confirmation dialog */}
+            {/* Remove teacher confirmation dialog */}
         <ConfirmDialog
             open={removeTarget !== null}
             title="Remove teacher from subject?"

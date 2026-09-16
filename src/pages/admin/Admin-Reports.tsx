@@ -12,6 +12,7 @@ import {
     FiUsers
 } from "react-icons/fi";
 
+import { PageCard } from "../../components/PageCard";
 import "../../style/adminReports.css";
 
 // ==================== Hardcoded sample data (client-side only) ====================
@@ -318,7 +319,7 @@ export default function AdminReports() {
     return (
         <section className="reports flex flex-col gap-5">
             {/* ==================== Report type picker ==================== */}
-            <div className="reports__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <PageCard className="reports__card">
                 <div className="reports__header flex flex-wrap items-center justify-between gap-4 p-5">
                     <div className="reports__heading min-w-0">
                         <span className="reports__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Report Builder</span>
@@ -361,10 +362,10 @@ export default function AdminReports() {
                         );
                     })}
                 </div>
-            </div>
+            </PageCard>
 
             {/* ==================== Filters ==================== */}
-            <div className="reports__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <PageCard className="reports__card">
                 <div className="reports__toolbar flex flex-wrap items-end gap-4 p-5">
                     {[
                         { label: "School Year", value: schoolYear, setter: setSchoolYear, options: SCHOOL_YEARS },
@@ -387,10 +388,10 @@ export default function AdminReports() {
                         </label>
                     ))}
                 </div>
-            </div>
+            </PageCard>
 
             {/* ==================== Preview ==================== */}
-            <div className="reports__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <PageCard className="reports__card">
                 <div className="reports__preview-head flex flex-wrap items-center justify-between gap-4 p-5">
                     <div className="min-w-0">
                         <span className="reports__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Preview</span>
@@ -427,10 +428,10 @@ export default function AdminReports() {
                     </p>
                     <span className="reports__preview-badge inline-flex shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold">6 of 1,248</span>
                 </div>
-            </div>
+            </PageCard>
 
             {/* ==================== Recent reports ==================== */}
-            <div className="reports__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <PageCard className="reports__card">
                 <div className="reports__header flex flex-wrap items-center justify-between gap-4 p-5">
                     <div className="min-w-0">
                         <span className="reports__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">History</span>
@@ -460,7 +461,7 @@ export default function AdminReports() {
                         </div>
                     ))}
                 </div>
-            </div>
+            </PageCard>
         </section>
     );
 }

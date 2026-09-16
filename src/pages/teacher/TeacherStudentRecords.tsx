@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     FiAlertTriangle,
     FiCheckCircle,
@@ -14,6 +14,7 @@ import {
 
 import { getAPICall, postAPICall } from "../../api/api";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { ModalDialog } from "../../components/ModalDialog";
 import Skeleton from "../../components/Skeleton";
 import { getInitials } from "../../helper/initials";
 import { toast } from "../../helper/toast";
@@ -58,6 +59,8 @@ export default function TeacherStudentRecords() {
 
     // Review modal: the student whose record is being reviewed before freezing.
     const [reviewing, setReviewing] = useState<StudentClassRecordRow | null>(null);
+    // The Review button that opened the modal; ModalDialog returns focus here on close.
+    const reviewTriggerRef = useRef<HTMLButtonElement>(null);
     // Which per-student submit is in flight (disables that row's button).
     const [submittingEnrollmentId, setSubmittingEnrollmentId] = useState<number | null>(null);
     // Bulk submit state.
@@ -485,6 +488,11 @@ export default function TeacherStudentRecords() {
                                                 ) : (
                                                     <button
                                                         type="button"
+                                                        ref={
+                                                            reviewing?.enrollmentId === student.enrollmentId
+                                                                ? reviewTriggerRef
+                                                                : undefined
+                                                        }
                                                         className="teacher-records__review inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-[0.6875rem] font-bold"
                                                         disabled={isBusy || submissionsLocked}
                                                         onClick={() => setReviewing(student)}
@@ -515,17 +523,15 @@ export default function TeacherStudentRecords() {
             </div>
 
             {/* ==================== Review modal ==================== */}
-            {reviewing && (
-                <div
-                    className="teacher-records__modal fixed inset-0 z-[1000] grid place-items-center p-5"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="teacher-records-modal-title"
-                    onMouseDown={(event) => {
-                        if (event.target === event.currentTarget) setReviewing(null);
-                    }}
-                >
-                    <div className="teacher-records__modal-panel w-full max-w-[36rem] overflow-y-auto rounded-3xl bg-white shadow-xl">
+            <ModalDialog
+                open={reviewing !== null}
+                onClose={() => setReviewing(null)}
+                labelledById="teacher-records-modal-title"
+                restoreFocusRef={reviewTriggerRef}
+                className="teacher-records__modal-panel w-full max-w-[36rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+            >
+                {reviewing && (
+                    <div>
                         <header className="teacher-records__modal-header flex items-start justify-between gap-4 p-6 pb-5">
                             <div className="teacher-records__modal-heading min-w-0">
                                 <span className="teacher-records__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
@@ -649,8 +655,8 @@ export default function TeacherStudentRecords() {
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </ModalDialog>
 
             {/* ==================== Submit-all confirm ==================== */}
             <ConfirmDialog
