@@ -36,6 +36,7 @@ import DeveloperDashboard from './pages/developer/DeveloperDashboard'
 import DeveloperFeatures from './pages/developer/DeveloperFeatures'
 import DeveloperLandingContent from './pages/developer/DeveloperLandingContent'
 import DeveloperUsers from './pages/developer/DeveloperUsers'
+import DeveloperDataWipe from './pages/developer/DeveloperDataWipe'
 import DeveloperSettings from './pages/developer/DeveloperSettings'
 
 // Components
@@ -118,6 +119,7 @@ function App() {
               <Route path="/developer/features" element={<DeveloperFeatures />} />
               <Route path="/developer/landing-content" element={<DeveloperLandingContent />} />
               <Route path="/developer/users" element={<DeveloperUsers />} />
+              <Route path="/developer/data-wipe" element={<DeveloperDataWipe />} />
               <Route path="/developer/settings" element={<DeveloperSettings />} />
             </Route>
 

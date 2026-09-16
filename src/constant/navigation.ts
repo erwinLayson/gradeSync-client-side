@@ -5,6 +5,7 @@ import {
   FaClipboardCheck,
   FaClipboardList,
   FaCog,
+  FaDatabase,
   FaHome,
   FaIdCard,
   FaImage,
@@ -104,6 +105,7 @@ export const DASHBOARD_LINKS = {
       sections: [
         { label: "Landing Content", path: "/developer/landing-content", icon: FaImage },
         { label: "User Accounts", path: "/developer/users", icon: FaUsersCog },
+        { label: "Data Wipe", path: "/developer/data-wipe", icon: FaDatabase },
         { label: "Settings", path: "/developer/settings", icon: FaCog }
       ]
     }
