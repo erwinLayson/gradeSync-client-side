@@ -29,26 +29,36 @@ export const DASHBOARD_PATH = {
 export const DASHBOARD_LINKS = {
   admin: [
     {
-      title: "Main", 
+      title: "Main",
       sections: [
-        { label: "Dashboard", path: "/admin/dashboard",icon: FaHome, },
-        { label: "Reports & Analytics",path: "/admin/analytics-reports", icon: FaChartLine,},
-      ]
-    }, 
-    {
-      title: "Academics",
-      sections: [
-        { label: "Enrollments",path: "/admin/enrollments",icon: FaClipboardList,},
-        { label: "Students", path: "/admin/students", icon: FaUserGraduate,},
-        { label: "Classrooms",path: "/admin/classrooms", icon: FaSchool, },
-        { label: "Subjects", path: "/admin/subjects", icon: FaBookOpen,},
-        { label: "Teachers", path: "/admin/teachers", icon: FaChalkboardTeacher, },
-        { label: "Submission Tracker", path: "/admin/student-records", icon: FaClipboardList, },
-        { label: "Reports", path: "/admin/reports", icon: FaChartLine, },
+        { label: "Dashboard", path: "/admin/dashboard", icon: FaHome },
+        { label: "Reports & Analytics", path: "/admin/analytics-reports", icon: FaChartLine },
       ]
     },
     {
-      title: "Configuration",
+      title: "Academics",
+      sections: [
+        { label: "Enrollments", path: "/admin/enrollments", icon: FaClipboardList },
+        { label: "Students", path: "/admin/students", icon: FaUserGraduate },
+        { label: "Classrooms", path: "/admin/classrooms", icon: FaSchool },
+        { label: "Subjects", path: "/admin/subjects", icon: FaBookOpen },
+      ]
+    },
+    {
+      title: "Faculty",
+      sections: [
+        { label: "Teachers", path: "/admin/teachers", icon: FaChalkboardTeacher },
+      ]
+    },
+    {
+      title: "Records",
+      sections: [
+        { label: "Submission Tracker", path: "/admin/student-records", icon: FaClipboardList },
+        { label: "Reports", path: "/admin/reports", icon: FaChartLine },
+      ]
+    },
+    {
+      title: "System",
       sections: [
         { label: "Settings", path: "/admin/settings", icon: FaCog },
       ]

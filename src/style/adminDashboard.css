@@ -75,6 +75,11 @@
   color: var(--text-on-dark-soft);
 }
 
+.dashboard__hero-academic {
+  color: var(--accent-light);
+  letter-spacing: 0.04em;
+}
+
 .dashboard__hero-badge {
   border: 1px solid var(--border-on-dark);
   color: var(--text-on-dark);
@@ -157,6 +162,61 @@
 
 .dashboard__activity-time {
   color: var(--text-muted);
+}
+
+/* ---------- Attention Required ---------- */
+.dashboard__attention-item {
+  border-color: #fef3c7;
+  background: #fffbeb;
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.dashboard__attention-item:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.dashboard__attention-item--error {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.dashboard__attention-icon {
+  color: #d97706;
+  background: #fef3c7;
+}
+
+.dashboard__attention-icon--error {
+  color: #dc2626;
+  background: #fee2e2;
+}
+
+.dashboard__attention-action {
+  color: var(--primary-dark);
+  background: var(--surface-white);
+  border: 1px solid var(--neutral-border);
+}
+
+.dashboard__attention-action:hover {
+  background: var(--surface-bg);
+  border-color: var(--primary);
+}
+
+/* ---------- Academic Progress ---------- */
+.dashboard__progress-track {
+  height: 0.625rem;
+  border-radius: 9999px;
+  background: var(--surface-bg);
+  overflow: hidden;
+}
+
+.dashboard__progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--gradient-brand);
+  transition: width var(--transition-slow) ease;
 }
 
 /* ---------- Enrollment status ---------- */
