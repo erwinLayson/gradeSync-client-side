@@ -286,7 +286,7 @@ export default function StudentProspectus() {
                                                         {subject.code}
                                                     </span>
                                                 </td>
-                                                {quarters.map((quarter, index) => (
+                                                {quarters.map((_quarter, index) => (
                                                     <td key={index} className="px-3 py-3 text-center font-semibold">
                                                         {subject.quarters[index] ?? "—"}
                                                     </td>

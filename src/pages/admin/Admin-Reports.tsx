@@ -211,7 +211,7 @@ function PreviewTable({ type }: { type: ReportTypeId }) {
                             <td className="reports__cell--name px-6 py-3.5">{row.name}</td>
                             <td className="reports__cell--muted px-6 py-3.5">{row.subject}</td>
                             {quarterKeys.map((q) => (
-                                <td key={q} className="px-6 py-3.5 font-mono">{row[q].toFixed(1)}</td>
+                                <td key={q} className="px-6 py-3.5 font-mono">{(row as unknown as Record<string, number>)[q].toFixed(1)}</td>
                             ))}
                             <td className="px-6 py-3.5 font-mono font-bold">{row.final.toFixed(1)}</td>
                             <td className="px-6 py-3.5">
@@ -343,7 +343,7 @@ export default function AdminReports() {
                                 key={type.id}
                                 type="button"
                                 className={`reports__type relative flex flex-col items-start gap-3 p-4 text-left ${isActive ? "reports__type--active" : ""}`}
-                                onClick={() => setSelectedType(type.id)}
+                                onClick={() => setSelectedType(type.id as ReportTypeId)}
                                 aria-pressed={isActive}
                             >
                                 <div className="flex w-full items-start justify-between gap-3">

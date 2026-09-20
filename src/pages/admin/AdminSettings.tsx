@@ -476,7 +476,10 @@ export default function AdminSettings() {
         setNumQuartersSaving(true);
         setQ4Warning(null);
         try {
-            const response = await patchAPICall<{ quarter4Warning?: Record<string, number> }, AcademicSettingsData>(
+            const response = await patchAPICall<
+                { numQuarters: number; confirmForce?: boolean },
+                AcademicSettingsData & { quarter4Warning?: Record<string, number> }
+            >(
                 "/academic-settings",
                 { numQuarters: newNum, ...(confirmForce ? { confirmForce: true } : {}) },
                 { toast: false }

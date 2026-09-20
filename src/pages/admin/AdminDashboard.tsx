@@ -628,10 +628,10 @@ function StudentsPerSchoolYearCard({ loading: parentLoading }: { loading: boolea
 
     useEffect(() => {
         let cancelled = false;
-        getAPICall<{ startYear: string; endYear: string; count: number }[]>("/analytics", { toast: false })
+        getAPICall<{ studentsPerSchoolYear: { startYear: string; endYear: string; count: number }[] }>("/analytics", { toast: false })
             .then((response) => {
                 if (!cancelled) {
-                    const raw = (response.data as Record<string, unknown>)?.studentsPerSchoolYear;
+                    const raw = response.data?.studentsPerSchoolYear;
                     if (Array.isArray(raw)) {
                         setChartData(raw);
                     }
