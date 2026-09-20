@@ -57,12 +57,12 @@
 
 .settings__icon {
   color: var(--primary);
-  background: var(--neutral-border);
+  background: var(--primary-light);
 }
 
 .settings__badge {
   color: var(--primary-dark);
-  background: var(--neutral-border);
+  background: var(--primary-light);
 }
 
 /* ---------- Form fields ---------- */
@@ -109,7 +109,7 @@
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2315803D' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23176B3A' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.65rem center;
   padding-right: 2.25rem;
@@ -140,9 +140,9 @@
 }
 
 .settings__status--open {
-  border-color: #D1FAE5;
-  background: #F6FBF7;
-  color: #065F46;
+  border-color: #C8E6D0;
+  background: var(--primary-light);
+  color: var(--primary-dark);
 }
 
 .settings__status--closed {
@@ -156,11 +156,11 @@
   height: 0.5rem;
   border-radius: 9999px;
   background: var(--success);
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 0 0 4px rgba(23, 107, 58, 0.15);
 }
 
 .settings__status-dot--closed {
-  background: #EF4444;
+  background: var(--error);
   box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
 }
 
@@ -343,4 +343,19 @@
 
 .settings__error svg {
   color: var(--error);
+}
+
+/* ---------- Radio buttons ---------- */
+.settings__radio {
+  accent-color: var(--primary);
+  width: 1rem;
+  height: 1rem;
+}
+
+.settings__radio-label {
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+.settings__radio-label--active {
+  box-shadow: 0 0 0 1px var(--primary);
 }

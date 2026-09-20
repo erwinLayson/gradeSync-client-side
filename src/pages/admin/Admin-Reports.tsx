@@ -13,6 +13,7 @@ import {
 } from "react-icons/fi";
 
 import { PageCard } from "../../components/PageCard";
+import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import "../../style/adminReports.css";
 
 // ==================== Hardcoded sample data (client-side only) ====================
@@ -60,9 +61,9 @@ const REPORT_TYPES = [
         meta: "12 subjects",
         icon: FiFileText
     }
-] as const;
+];
 
-type ReportTypeId = (typeof REPORT_TYPES)[number]["id"];
+type ReportTypeId = "master" | "roster" | "grade" | "attendance" | "teacher" | "subject";
 
 // Hardcoded preview rows per report type.
 const MASTER_ROWS = [
@@ -129,12 +130,12 @@ const RECENT_REPORTS = [
 const SCHOOL_YEARS = ["2025–2026", "2024–2025", "2023–2024"];
 const GRADE_LEVELS = ["All Levels", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"];
 const SECTIONS = ["All Sections", "Section A", "Section B", "Section C", "Section D"];
-const QUARTERS = ["All Quarters", "Quarter 1", "Quarter 2", "Quarter 3", "Quarter 4"];
 const FORMATS = ["PDF", "Excel", "CSV"];
 
 // ==================== Preview rendering ====================
 
 function PreviewTable({ type }: { type: ReportTypeId }) {
+    const { numQuarters } = useAcademicSettings();
     if (type === "master") {
         return (
             <table className="reports__table w-full min-w-[42rem] border-collapse text-sm">
@@ -190,16 +191,16 @@ function PreviewTable({ type }: { type: ReportTypeId }) {
     }
 
     if (type === "grade") {
+        const quarterKeys = Array.from({ length: numQuarters }, (_, i) => `q${i + 1}` as const);
         return (
             <table className="reports__table w-full min-w-[52rem] border-collapse text-sm">
                 <thead>
                     <tr>
                         <th className="px-6 py-3">Student</th>
                         <th className="px-6 py-3">Subject</th>
-                        <th className="px-6 py-3">Q1</th>
-                        <th className="px-6 py-3">Q2</th>
-                        <th className="px-6 py-3">Q3</th>
-                        <th className="px-6 py-3">Q4</th>
+                        {quarterKeys.map((q, i) => (
+                            <th key={q} className="px-6 py-3">Q{i + 1}</th>
+                        ))}
                         <th className="px-6 py-3">Final</th>
                         <th className="px-6 py-3">Remarks</th>
                     </tr>
@@ -209,13 +210,12 @@ function PreviewTable({ type }: { type: ReportTypeId }) {
                         <tr key={row.name}>
                             <td className="reports__cell--name px-6 py-3.5">{row.name}</td>
                             <td className="reports__cell--muted px-6 py-3.5">{row.subject}</td>
-                            <td className="px-6 py-3.5 font-mono">{row.q1.toFixed(1)}</td>
-                            <td className="px-6 py-3.5 font-mono">{row.q2.toFixed(1)}</td>
-                            <td className="px-6 py-3.5 font-mono">{row.q3.toFixed(1)}</td>
-                            <td className="px-6 py-3.5 font-mono">{row.q4.toFixed(1)}</td>
+                            {quarterKeys.map((q) => (
+                                <td key={q} className="px-6 py-3.5 font-mono">{row[q].toFixed(1)}</td>
+                            ))}
                             <td className="px-6 py-3.5 font-mono font-bold">{row.final.toFixed(1)}</td>
                             <td className="px-6 py-3.5">
-                                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold ${row.remarks === "Passed" ? "bg-[#D1FAE5] text-[#065F46]" : "bg-[#FEF2F2] text-[#EF4444]"}`}>
+                                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold ${row.remarks === "Passed" ? "bg-[#EAF5EE] text-[#176B3A]" : "bg-[#FEF2F2] text-[#EF4444]"}`}>
                                     {row.remarks}
                                 </span>
                             </td>
@@ -244,7 +244,7 @@ function PreviewTable({ type }: { type: ReportTypeId }) {
                             <td className="px-6 py-3.5">{row.present}</td>
                             <td className="reports__cell--muted px-6 py-3.5">{row.absent}</td>
                             <td className="px-6 py-3.5">
-                                <span className={`inline-flex rounded-full px-2.5 py-0.5 font-mono text-[0.6875rem] font-bold ${row.rate >= 90 ? "bg-[#D1FAE5] text-[#065F46]" : "bg-[#FEF3C7] text-[#B45309]"}`}>
+                                <span className={`inline-flex rounded-full px-2.5 py-0.5 font-mono text-[0.6875rem] font-bold ${row.rate >= 90 ? "bg-[#EAF5EE] text-[#176B3A]" : "bg-[#FEF3C7] text-[#B45309]"}`}>
                                     {row.rate}%
                                 </span>
                             </td>
@@ -307,6 +307,9 @@ function PreviewTable({ type }: { type: ReportTypeId }) {
 // ==================== Page ====================
 
 export default function AdminReports() {
+    const { numQuarters } = useAcademicSettings();
+    const QUARTERS = ["All Quarters", ...Array.from({ length: numQuarters }, (_, i) => `Quarter ${i + 1}`)];
+    const reportTypes = REPORT_TYPES.map(t => t.id === "grade" ? { ...t, meta: `${numQuarters} quarters` } : t);
     const [selectedType, setSelectedType] = useState<ReportTypeId>("master");
     const [schoolYear, setSchoolYear] = useState(SCHOOL_YEARS[0]!);
     const [gradeLevel, setGradeLevel] = useState(GRADE_LEVELS[0]!);
@@ -314,7 +317,7 @@ export default function AdminReports() {
     const [quarter, setQuarter] = useState(QUARTERS[0]!);
     const [format, setFormat] = useState(FORMATS[0]!);
 
-    const activeReport = REPORT_TYPES.find((type) => type.id === selectedType) ?? REPORT_TYPES[0]!;
+    const activeReport = reportTypes.find((type) => type.id === selectedType) ?? reportTypes[0]!;
 
     return (
         <section className="reports flex flex-col gap-5">
@@ -327,12 +330,12 @@ export default function AdminReports() {
                         <p className="reports__subtitle mt-1 text-[0.8125rem]">Select the report you want to generate, then preview it below.</p>
                     </div>
                     <span className="reports__preview-badge inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-semibold">
-                        {REPORT_TYPES.length} report types
+                        {reportTypes.length} report types
                     </span>
                 </div>
 
                 <div className="reports__types grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {REPORT_TYPES.map((type) => {
+                    {reportTypes.map((type) => {
                         const Icon = type.icon;
                         const isActive = type.id === selectedType;
                         return (

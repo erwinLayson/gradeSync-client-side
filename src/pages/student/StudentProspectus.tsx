@@ -11,6 +11,7 @@ import {
 import { getAPICall } from "../../api/api";
 import Skeleton from "../../components/Skeleton";
 import { getInitials } from "../../helper/initials";
+import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 
 import type { StudentClass, StudentClassesData, SubjectGrade } from "../../constant/studentClasses";
 
@@ -36,6 +37,7 @@ function aggregateAttendance(subjects: SubjectGrade[]) {
 }
 
 export default function StudentProspectus() {
+    const { quarters } = useAcademicSettings();
     const [loading, setLoading] = useState(true);
     const [student, setStudent] = useState<StudentClassesData["student"] | null>(null);
     const [years, setYears] = useState<StudentClass[]>([]);
@@ -268,10 +270,9 @@ export default function StudentProspectus() {
                                     <thead>
                                         <tr>
                                             <th className="px-5 py-3 text-left font-bold">Subject</th>
-                                            <th className="px-3 py-3 text-center font-bold">Q1</th>
-                                            <th className="px-3 py-3 text-center font-bold">Q2</th>
-                                            <th className="px-3 py-3 text-center font-bold">Q3</th>
-                                            <th className="px-3 py-3 text-center font-bold">Q4</th>
+                                            {quarters.map((quarter) => (
+                                                <th key={quarter} className="px-3 py-3 text-center font-bold">Q{quarter}</th>
+                                            ))}
                                             <th className="px-3 py-3 text-center font-bold">Final</th>
                                             <th className="px-5 py-3 text-center font-bold">Remarks</th>
                                         </tr>
@@ -285,7 +286,7 @@ export default function StudentProspectus() {
                                                         {subject.code}
                                                     </span>
                                                 </td>
-                                                {[0, 1, 2, 3].map((index) => (
+                                                {quarters.map((quarter, index) => (
                                                     <td key={index} className="px-3 py-3 text-center font-semibold">
                                                         {subject.quarters[index] ?? "—"}
                                                     </td>
@@ -311,7 +312,7 @@ export default function StudentProspectus() {
                                             </tr>
                                         ))}
                                         <tr className="student-prospectus__grade-general">
-                                            <td className="px-5 py-3" colSpan={5}>
+                                            <td className="px-5 py-3" colSpan={quarters.length + 1}>
                                                 General Average
                                             </td>
                                             <td className="px-3 py-3 text-center">

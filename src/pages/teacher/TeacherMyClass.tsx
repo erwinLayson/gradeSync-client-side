@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { FiBookOpen, FiGrid, FiHome, FiList, FiUsers } from "react-icons/fi";
 import { getAPICall } from "../../api/api";
 import Skeleton from "../../components/Skeleton";
+import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useUser } from "../../hooks/useUser";
 import { getInitials } from "../../helper/initials";
 
@@ -41,6 +42,7 @@ type ViewMode = "roster" | "grades";
 
 export default function TeacherMyClass() {
     const { user, loading: userLoading } = useUser();
+    const { quarters, numQuarters } = useAcademicSettings();
 
     const [adviserClass, setAdviserClass] = useState<AdvisedClassData | null>(null);
     const [roster, setRoster] = useState<ClassroomWithStudents | null>(null);
@@ -94,10 +96,9 @@ export default function TeacherMyClass() {
     const fetchGrades = useCallback(async () => {
         if (!adviserClass || !roster || roster.students.length === 0) return;
 
-        setLoadingGrades(true);
+            setLoadingGrades(true);
         try {
             const subjects = adviserClass.teachersWithSubjects;
-            const quarters = [1, 2, 3, 4];
 
             // Fetch gradebook for each subject × quarter combination
             const gradebookResults = await Promise.all(
@@ -439,7 +440,7 @@ export default function TeacherMyClass() {
                         <div className="teacher-classes__roster-heading min-w-0">
                             <h4 className="teacher-classes__roster-title text-[0.9375rem] font-bold">Student Grades</h4>
                             <p className="teacher-classes__roster-subtitle mt-1 text-[0.8125rem]">
-                                Live grades for all students across all subjects (Q1–Q4)
+                                Live grades for all students across all subjects (Q1–Q{numQuarters})
                             </p>
                         </div>
                         {!loadingGrades && studentGrades.length > 0 && (
@@ -461,7 +462,7 @@ export default function TeacherMyClass() {
                                             Student
                                         </th>
                                         {teachersWithSubjects.map((s) => (
-                                            <th key={s.classSubjectId} colSpan={4} className="border-x px-2 py-2 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em] bg-gray-50">
+                                            <th key={s.classSubjectId} colSpan={quarters.length} className="border-x px-2 py-2 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em] bg-gray-50">
                                                 <span className="block">{s.subjectName}</span>
                                                 <span className="block font-normal normal-case text-gray-500">{s.code}</span>
                                             </th>
@@ -469,7 +470,7 @@ export default function TeacherMyClass() {
                                     </tr>
                                     <tr>
                                         {teachersWithSubjects.map((s) => (
-                                            [1, 2, 3, 4].map((q) => (
+                                            quarters.map((q) => (
                                                 <th key={`${s.classSubjectId}-q${q}`} className="px-2 py-1.5 text-center text-[0.625rem] font-semibold text-gray-500">
                                                     Q{q}
                                                 </th>
@@ -489,7 +490,7 @@ export default function TeacherMyClass() {
                                                 </div>
                                             </td>
                                             {teachersWithSubjects.flatMap((s) =>
-                                                [1, 2, 3, 4].map((q) => {
+                                                quarters.map((q) => {
                                                     const grade = sg.grades[s.classSubjectId]?.[q]?.quarterGrade;
                                                     return (
                                                         <td key={`${sg.enrollmentId}-${s.classSubjectId}-q${q}`} className="px-2 py-3.5 text-center">

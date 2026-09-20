@@ -91,12 +91,12 @@
 
 .dashboard__hero-badge--open {
   color: #ecfdf5;
-  background: rgba(16, 185, 129, 0.22);
+  background: rgba(23, 107, 58, 0.25);
 }
 
 .dashboard__hero-badge--closed {
   color: #fef2f2;
-  background: rgba(220, 38, 38, 0.22);
+  background: rgba(239, 68, 68, 0.25);
 }
 
 /* ---------- Quick action buttons ---------- */
@@ -152,7 +152,7 @@
 
 .dashboard__activity-icon--ok {
   color: var(--success);
-  background: #ecfdf5;
+  background: var(--primary-light);
 }
 
 .dashboard__activity-icon--warn {
@@ -166,8 +166,8 @@
 
 /* ---------- Attention Required ---------- */
 .dashboard__attention-item {
-  border-color: #fef3c7;
-  background: #fffbeb;
+  border-color: #F5E6B8;
+  background: var(--accent-light);
   transition:
     border-color var(--transition-base),
     box-shadow var(--transition-base);
@@ -178,18 +178,18 @@
 }
 
 .dashboard__attention-item--error {
-  border-color: #fecaca;
-  background: #fef2f2;
+  border-color: #FECACA;
+  background: #FEF2F2;
 }
 
 .dashboard__attention-icon {
-  color: #d97706;
-  background: #fef3c7;
+  color: var(--accent);
+  background: #F5E6B8;
 }
 
 .dashboard__attention-icon--error {
-  color: #dc2626;
-  background: #fee2e2;
+  color: var(--error);
+  background: #FEE2E2;
 }
 
 .dashboard__attention-action {
@@ -221,13 +221,13 @@
 
 /* ---------- Enrollment status ---------- */
 .dashboard__status {
-  border-color: #d1fae5;
-  background: #f6fbf7;
+  border-color: #C8E6D0;
+  background: var(--primary-light);
 }
 
 .dashboard__status--closed {
-  border-color: #fecaca;
-  background: #fef2f2;
+  border-color: #FECACA;
+  background: #FEF2F2;
 }
 
 .dashboard__status-dot {
@@ -236,33 +236,33 @@
   flex-shrink: 0;
   border-radius: 9999px;
   background: var(--success);
-  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 0 0 5px rgba(23, 107, 58, 0.15);
   animation: dashboard-status-pulse 2.4s ease-in-out infinite;
 }
 
 .dashboard__status-dot--closed {
-  background: #dc2626;
-  box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.15);
+  background: var(--error);
+  box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.15);
   animation: dashboard-status-pulse-closed 2.4s ease-in-out infinite;
 }
 
 @keyframes dashboard-status-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.15);
+    box-shadow: 0 0 0 5px rgba(23, 107, 58, 0.15);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.08);
+    box-shadow: 0 0 0 8px rgba(23, 107, 58, 0.08);
   }
 }
 
 @keyframes dashboard-status-pulse-closed {
   0%,
   100% {
-    box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.15);
+    box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.15);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0.08);
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.08);
   }
 }
 

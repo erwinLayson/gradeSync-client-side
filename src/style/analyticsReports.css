@@ -41,7 +41,7 @@
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2315803D' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23176B3A' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.65rem center;
   padding-right: 2.25rem;
@@ -73,11 +73,11 @@
 
 .analytics__kpi-icon {
   color: var(--primary);
-  background: var(--neutral-border);
+  background: var(--primary-light);
 }
 
 .analytics__kpi-icon--accent {
-  color: var(--warning);
+  color: var(--accent);
   background: var(--accent-light);
 }
 
@@ -97,12 +97,12 @@
 
 .analytics__trend--up {
   color: var(--success);
-  background: #ecfdf5;
+  background: var(--primary-light);
 }
 
 .analytics__trend--down {
   color: var(--error);
-  background: #fef2f2;
+  background: #FEF2F2;
 }
 
 .analytics__trend--flat {
@@ -112,7 +112,7 @@
 
 .analytics__trend--live {
   color: var(--primary-dark);
-  background: var(--neutral-border);
+  background: var(--primary-light);
 }
 
 /* ---------- Loading spinner ---------- */
@@ -320,18 +320,18 @@
 }
 
 .analytics__rank--1 {
-  color: #92400e;
-  background: #fef3c7;
+  color: #92400E;
+  background: #FEF3C7;
 }
 
 .analytics__rank--2 {
-  color: #4b5563;
-  background: #f3f4f6;
+  color: var(--text-body);
+  background: #F3F4F6;
 }
 
 .analytics__rank--3 {
-  color: #7c2d12;
-  background: #ffedd5;
+  color: #7C2D12;
+  background: #FFEDD5;
 }
 
 .analytics__rank--rest {
@@ -343,7 +343,7 @@
 .analytics__pass-chip {
   border-radius: 9999px;
   color: var(--primary-dark);
-  background: var(--neutral-border);
+  background: var(--primary-light);
   font-variant-numeric: tabular-nums;
 }
 

@@ -40,6 +40,7 @@ interface SchoolYear {
 interface AcademicSettingsData {
   id: number;
   currentQuarter: number;
+  numQuarters: number;
   enrollmentOpen: boolean | number;
 }
 

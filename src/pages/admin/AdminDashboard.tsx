@@ -17,6 +17,7 @@ import {
 } from "react-icons/fi";
 
 import { getAPICall } from "../../api/api";
+import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { KpiCard, type KpiTrend } from "../../components/KpiCard";
 import { PageCard } from "../../components/PageCard";
 import { SkeletonLine } from "../../components/Skeleton";
@@ -46,6 +47,7 @@ function getGreeting(): string {
 
 export default function AdminDashboard() {
     const navigate = useNavigate();
+    const { numQuarters, quarters } = useAcademicSettings();
     const greeting = getGreeting();
     const today = new Date().toLocaleDateString(undefined, {
         weekday: "long",
@@ -177,7 +179,7 @@ export default function AdminDashboard() {
 
                 {/* KPI skeletons */}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    {Array.from({ length: 4 }).map((_, i) => (
+                    {Array.from({ length: numQuarters }).map((_, i) => (
                         <div key={i} className="analytics__kpi flex items-center gap-4 p-4">
                             <SkeletonLine width="2.75rem" height="2.75rem" radius="0.75rem" />
                             <div className="flex flex-1 flex-col gap-2">
@@ -191,7 +193,7 @@ export default function AdminDashboard() {
 
                 {/* Content skeletons */}
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {Array.from({ length: 4 }).map((_, i) => (
+                    {Array.from({ length: numQuarters }).map((_, i) => (
                         <div key={i} className="dashboard__quick flex items-center gap-3 rounded-xl border p-4">
                             <SkeletonLine width="2.5rem" height="2.5rem" radius="var(--radius-lg)" />
                             <div className="flex flex-1 flex-col gap-2">
@@ -372,7 +374,7 @@ export default function AdminDashboard() {
             {summary && summary.attentionItems.length === 0 && !loading && (
                 <PageCard className="analytics__card">
                     <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
-                        <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#D1FAE5] text-xl text-[#065F46]">
+                        <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#EAF5EE] text-xl text-[#176B3A]">
                             <FiCheckCircle />
                         </span>
                         <div>
@@ -476,8 +478,8 @@ export default function AdminDashboard() {
                                     </>
                                 ) : enrollmentOpen === true ? (
                                     <>
-                                        <p className="text-sm font-bold text-[#065F46]">Enrollment is open</p>
-                                        <p className="mt-0.5 text-[0.8125rem] text-[#065F46]/80">
+                                        <p className="text-sm font-bold text-[#176B3A]">Enrollment is open</p>
+                                        <p className="mt-0.5 text-[0.8125rem] text-[#176B3A]/80">
                                             New students can be enrolled from the Enrollments page.
                                         </p>
                                     </>
@@ -488,7 +490,7 @@ export default function AdminDashboard() {
                                     </>
                                 )}
                             </div>
-                            <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${enrollmentOpen === false ? "text-[#B91C1C]" : enrollmentOpen === true ? "text-[#065F46]" : "text-neutral-500"}`}>
+                            <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${enrollmentOpen === false ? "text-[#B91C1C]" : enrollmentOpen === true ? "text-[#176B3A]" : "text-neutral-500"}`}>
                                 {enrollmentOpen === false ? (
                                     <>
                                         <FiXCircle aria-hidden="true" />
@@ -508,11 +510,11 @@ export default function AdminDashboard() {
                         {summary && (
                             <div>
                                 <div className="flex items-center justify-between text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-neutral-400">
-                                    <span>{quarterLabel} of 4</span>
+                                    <span>{quarterLabel} of {numQuarters}</span>
                                     <span>Current quarter</span>
                                 </div>
                                 <div className="dashboard__quarter mt-2 flex gap-2" role="group" aria-label="Quarter progress">
-                                    {[1, 2, 3, 4].map((q) => (
+                                    {quarters.map((q) => (
                                         <span
                                             key={q}
                                             className={`dashboard__quarter-seg ${
@@ -527,7 +529,7 @@ export default function AdminDashboard() {
                                     ))}
                                 </div>
                                 <div className="mt-2 flex gap-2">
-                                    {[1, 2, 3, 4].map((q) => (
+                                    {quarters.map((q) => (
                                         <span key={q} className="flex-1 text-center text-[0.6875rem] font-semibold text-neutral-400">
                                             Q{q}
                                         </span>
@@ -540,7 +542,7 @@ export default function AdminDashboard() {
                             <div className="flex flex-col gap-2">
                                 <SkeletonLine width="100%" height="0.75rem" />
                                 <div className="flex gap-2">
-                                    {Array.from({ length: 4 }).map((_, i) => (
+                                    {Array.from({ length: numQuarters }).map((_, i) => (
                                         <SkeletonLine key={i} width="100%" height="0.5rem" radius="9999px" className="flex-1" />
                                     ))}
                                 </div>

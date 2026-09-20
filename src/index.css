@@ -2,45 +2,45 @@
 @import "./style/components.css";
 
 :root {
-  /* ===== Brand colors ===== */
-  --primary: #15803D;
-  --primary-dark: #065F46;
-  --primary-deep: #0d3f2a;
-  --primary-deeper: #072c1c;
-  --primary-mid: #116b3a;
-  --primary-light: #86EFAC;
-  --secondary: #1B6535;
-  --accent: #F59E0B;
-  --accent-light: #FFFBEB;
+  /* ===== Brand colors (Abang-Suizo Integrated School) ===== */
+  --primary: #176B3A;
+  --primary-dark: #0D4F2B;
+  --primary-deep: #0A3D21;
+  --primary-deeper: #072C16;
+  --primary-mid: #1A7E43;
+  --primary-light: #EAF5EE;
+  --secondary: #1A5C33;
+  --accent: #D4A72C;
+  --accent-light: #FDF8EC;
 
   /* ===== Gradients ===== */
   --gradient-page: linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-mid) 100%);
   --gradient-brand: linear-gradient(135deg, var(--primary), var(--secondary));
 
   /* ===== Semantic status ===== */
-  --success: #10B981;
+  --success: #176B3A;
   --error: #EF4444;
-  --warning: #F59E0B;
+  --warning: #D4A72C;
 
   /* ===== Surfaces ===== */
-  --surface-bg: #f6fbf7;
+  --surface-bg: #F7FAF8;
   --surface-white: #ffffff;
   --sidebar-bg-start: var(--primary-deep);
   --sidebar-bg-end: var(--primary-deeper);
 
   /* ===== Text ===== */
-  --text-dark: #0f172a;
-  --text-body: #334155;
-  --text-muted: #64748b;
+  --text-dark: #1F2937;
+  --text-body: #374151;
+  --text-muted: #6B7280;
   --text-on-dark: #ffffff;
-  --text-on-dark-soft: rgba(236, 253, 245, 0.7);
-  --text-on-dark-muted: rgba(209, 250, 229, 0.4);
-  --text-input: #1f2937;
-  --text-placeholder: #9ca3af;
+  --text-on-dark-soft: rgba(255, 255, 255, 0.75);
+  --text-on-dark-muted: rgba(255, 255, 255, 0.45);
+  --text-input: #1F2937;
+  --text-placeholder: #9CA3AF;
 
   /* ===== Borders ===== */
-  --neutral-border: #D1FAE5;
-  --border-on-dark: rgba(255, 255, 255, 0.1);
+  --neutral-border: #E5E7EB;
+  --border-on-dark: rgba(255, 255, 255, 0.12);
 
   /* ===== Sizing ===== */
   --sm: 1rem;

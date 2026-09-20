@@ -1,5 +1,5 @@
-import { useCallback, useRef, useState } from "react";
-import { FiPlus, FiX, FiArrowLeft, FiEdit, FiTrash2, FiHome, FiUsers, FiBookOpen, FiUserPlus, FiUserCheck, FiRefreshCw } from "react-icons/fi";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FiPlus, FiX, FiArrowLeft, FiEdit, FiTrash2, FiHome, FiUsers, FiBookOpen, FiUserPlus, FiUserCheck, FiRefreshCw, FiMoreVertical, FiEye } from "react-icons/fi";
 
 import { 
     getAPICall, 
@@ -92,6 +92,22 @@ const removeTriggerRef = useRef<HTMLButtonElement>(null);
 // Clear all students from classroom states
 const [clearClassConfirm, setClearClassConfirm] = useState(false);
 const [clearingClass, setClearingClass] = useState(false);
+
+// Card dropdown menu state
+const [cardMenuOpen, setCardMenuOpen] = useState<number | null>(null);
+
+// Close card dropdown on outside click
+useEffect(() => {
+    if (cardMenuOpen === null) return;
+    function handleClickOutside(e: MouseEvent) {
+        const target = e.target as HTMLElement;
+        if (!target.closest(".classrooms__item-menu-wrap")) {
+            setCardMenuOpen(null);
+        }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+}, [cardMenuOpen]);
 
 // Selected classroom Functions
 function handleSelectedClassroom(e: React.MouseEvent<HTMLElement>) {
@@ -632,8 +648,17 @@ return (
                         <article className="classrooms__item flex cursor-pointer flex-col overflow-hidden rounded-xl border" key={classroom.id} id={String(classroom.id)} onClick={handleSelectedClassroom}>
                             <div className="classrooms__item-head flex items-start justify-between gap-3 p-5 pb-4">
                                 <div className="classrooms__item-heading min-w-0">
-                                    <span className="classrooms__item-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Classroom</span>
+                                    <span className="classrooms__item-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Grade {classroom.gradeLevel}</span>
                                     <h3 className="classrooms__item-name mt-1 truncate text-[1.0625rem] font-bold">{classroom.section}</h3>
+                                    <div className="classrooms__item-adviser-wrap mt-2">
+                                        <span className="classrooms__item-adviser-name text-[0.8125rem] font-semibold">
+                                            {classroom.adviserFullname || ""}
+                                        </span>
+                                        {!classroom.adviserFullname && (
+                                            <span className="classrooms__item-adviser-name classrooms__item-adviser--none text-[0.75rem]">No adviser assigned</span>
+                                        )}
+                                        <span className="classrooms__item-adviser-label text-[0.6875rem]">Class Adviser</span>
+                                    </div>
                                 </div>
                                 <div className="classrooms__item-actions flex shrink-0 items-center gap-1.5">
                                     <button
@@ -648,41 +673,76 @@ return (
                                     >
                                         <FiEdit />
                                     </button>
-                                    <button
-                                        type="button"
-                                        className="classrooms__item-action classrooms__item-action--danger inline-flex h-8 w-8 items-center justify-center rounded-lg"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            archiveTriggerRef.current = e.currentTarget;
-                                            setArchiveTarget(classroom);
-                                        }}
-                                        aria-label={`Archive ${classroom.section}`}
-                                        title="Archive classroom"
-                                    >
-                                        <FiTrash2 />
-                                    </button>
-                                    <span className="classrooms__item-icon inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg" aria-hidden="true">
-                                        <FiHome />
-                                    </span>
+                                    <div className="classrooms__item-menu-wrap relative">
+                                        <button
+                                            type="button"
+                                            className="classrooms__item-action inline-flex h-8 w-8 items-center justify-center rounded-lg"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setCardMenuOpen(cardMenuOpen === classroom.id ? null : classroom.id);
+                                            }}
+                                            aria-label={`More actions for ${classroom.section}`}
+                                            aria-haspopup="true"
+                                            aria-expanded={cardMenuOpen === classroom.id}
+                                            title="More actions"
+                                        >
+                                            <FiMoreVertical />
+                                        </button>
+                                        {cardMenuOpen === classroom.id && (
+                                            <div className="classrooms__item-menu" role="menu">
+                                                <button
+                                                    type="button"
+                                                    className="classrooms__item-menu-item"
+                                                    role="menuitem"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setCardMenuOpen(null);
+                                                        const article = (e.currentTarget as HTMLElement).closest("article");
+                                                        if (article) {
+                                                            handleSelectedClassroom({ ...e, currentTarget: article } as React.MouseEvent<HTMLElement>);
+                                                        }
+                                                    }}
+                                                >
+                                                    <FiEye aria-hidden="true" /> View Class
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="classrooms__item-menu-item"
+                                                    role="menuitem"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setCardMenuOpen(null);
+                                                        handleEditClassroomClick(classroom);
+                                                    }}
+                                                >
+                                                    <FiEdit aria-hidden="true" /> Edit Classroom
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="classrooms__item-menu-item classrooms__item-menu-item--danger"
+                                                    role="menuitem"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setCardMenuOpen(null);
+                                                        archiveTriggerRef.current = e.currentTarget;
+                                                        setArchiveTarget(classroom);
+                                                    }}
+                                                >
+                                                    <FiTrash2 aria-hidden="true" /> Delete Classroom
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="classrooms__item-body flex flex-wrap items-center gap-6 p-4">
-                                <div className="classrooms__item-stat flex min-w-0 flex-col">
-                                    <span className="classrooms__item-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">Grade Level</span>
-                                    <span className="classrooms__item-grade text-sm font-bold">Grade {classroom.gradeLevel}</span>
-                                </div>
-                                <div className="classrooms__item-stat flex min-w-0 flex-col">
-                                    <span className="classrooms__item-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">Classroom ID</span>
-                                    <span className="classrooms__item-id font-mono text-[0.8125rem]">#{classroom.id}</span>
-                                </div>
-                                <div className="classrooms__item-stat flex min-w-0 flex-col">
-                                    <span className="classrooms__item-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">Total Students</span>
-                                    <span className="classrooms__item-id font-mono text-[0.8125rem]">{classroom.totalStudent}</span>
-                                </div>
-                                <div className="classrooms__item-stat flex min-w-0 flex-col">
-                                    <span className="classrooms__item-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">Class Adviser</span>
-                                    <span className={`classrooms__item-adviser truncate text-[0.8125rem] font-bold ${classroom.adviserFullname ? "" : "classrooms__item-adviser--none"}`}>
-                                        {classroom.adviserFullname || "Not assigned"}
+                            <div className="classrooms__item-body flex items-center justify-between p-4 pt-0">
+                                <div className="classrooms__item-stats flex items-center gap-4">
+                                    <span className="classrooms__item-student-count inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold">
+                                        <FiUsers aria-hidden="true" className="text-[0.875rem]" />
+                                        {classroom.totalStudent} {classroom.totalStudent === 1 ? "Student" : "Students"}
+                                    </span>
+                                    <span className="classrooms__item-id-badge inline-flex items-center rounded-md px-2 py-0.5 font-mono text-[0.6875rem] font-medium">
+                                        #{classroom.id}
                                     </span>
                                 </div>
                             </div>

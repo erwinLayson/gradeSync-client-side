@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 
 import { getAPICall, postAPICall } from "../../api/api";
 import Skeleton from "../../components/Skeleton";
+import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useUser } from "../../hooks/useUser";
 import { getInitials } from "../../helper/initials";
 import { toast } from "../../helper/toast";
@@ -60,8 +61,6 @@ interface SchoolYearOption {
 /** A quarter filter value: a specific quarter, or "all" to include everything. */
 type QuarterFilter = number | "all";
 
-const QUARTERS = [1, 2, 3, 4] as const;
-
 // ================= Helpers =================
 
 // Local yyyy-mm-dd for the date input value.
@@ -93,6 +92,7 @@ function formatLongDate(value: string): string {
 export default function TeacherAttendance() {
     const navigate = useNavigate();
     const { user, loading: userLoading } = useUser();
+    const { quarters } = useAcademicSettings();
 
     // ==================== State ====================
     const [teacher, setTeacher] = useState<TeacherDetails | null>(null);
@@ -527,7 +527,7 @@ export default function TeacherAttendance() {
                             >
                                 All
                             </button>
-                            {QUARTERS.map((quarter) => (
+                            {quarters.map((quarter) => (
                                 <button
                                     key={quarter}
                                     type="button"
@@ -685,7 +685,7 @@ export default function TeacherAttendance() {
                                 value={selectedQuarter}
                                 onChange={(event) => setSelectedQuarter(Number(event.target.value))}
                             >
-                                {QUARTERS.map((quarter) => (
+                                {quarters.map((quarter) => (
                                     <option key={quarter} value={quarter}>
                                         Quarter {quarter}
                                     </option>

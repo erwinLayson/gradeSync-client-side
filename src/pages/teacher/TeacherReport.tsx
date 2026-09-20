@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { FiDownload, FiFileText, FiUsers } from "react-icons/fi";
 
-import { getAPICall } from "../../api/api";
+import { getAPICall, API } from "../../api/api";
 import Skeleton from "../../components/Skeleton";
+import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useUser } from "../../hooks/useUser";
 import { getInitials } from "../../helper/initials";
 
@@ -28,17 +29,13 @@ interface ClassroomWithStudents extends ClassroomResponseProps {
     students: Student[];
 }
 
-type Quarter = 1 | 2 | 3 | 4;
-
-const QUARTER_LABELS: Record<Quarter, string> = {
-    1: "1st Quarter",
-    2: "2nd Quarter",
-    3: "3rd Quarter",
-    4: "4th Quarter",
-};
+type Quarter = number;
 
 export default function TeacherReport() {
     const { user, loading: userLoading } = useUser();
+    const { quarters } = useAcademicSettings();
+
+    const QUARTER_LABELS = Object.fromEntries(quarters.map((q) => [q, `${q === 1 ? "1st" : q === 2 ? "2nd" : q === 3 ? "3rd" : "4th"} Quarter`])) as Record<number, string>;
 
     const [adviserClass, setAdviserClass] = useState<AdvisedClassData | null>(null);
     const [roster, setRoster] = useState<ClassroomWithStudents | null>(null);
@@ -83,7 +80,7 @@ export default function TeacherReport() {
 
     const handleDownload = useCallback((enrollmentId: number) => {
         setDownloadingId(enrollmentId);
-        const baseURL = import.meta.env.VITE_DEPLOY_SERVER as string;
+        const baseURL = API.defaults.baseURL as string;
         window.open(`${baseURL}/student/${enrollmentId}/report-card`, "_blank");
         setTimeout(() => setDownloadingId(null), 1500);
     }, []);
@@ -170,7 +167,7 @@ export default function TeacherReport() {
                 <div className="flex items-center gap-3">
                     <span className="text-[0.8125rem] font-bold text-gray-700">Quarter:</span>
                     <div className="flex gap-1.5">
-                        {([1, 2, 3, 4] as Quarter[]).map((q) => (
+                        {quarters.map((q) => (
                             <button
                                 key={q}
                                 type="button"

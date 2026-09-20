@@ -18,18 +18,20 @@ import {
 import { getAPICall } from "../../api/api";
 import Skeleton from "../../components/Skeleton";
 import { getInitials } from "../../helper/initials";
+import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 
 import type {
     StudentClass,
     StudentClassesData,
 } from "../../constant/studentClasses";
-import { QUARTERS, TYPE_LABELS } from "../../constant/studentClasses";
+import { TYPE_LABELS } from "../../constant/studentClasses";
 
 import "../../style/studentClassroom.css";
 
 type DetailTab = "grades" | "activities" | "attendance";
 
 export default function StudentClassroom() {
+    const { quarters } = useAcademicSettings();
     const [loading, setLoading] = useState(true);
     const [student, setStudent] = useState<StudentClassesData["student"] | null>(null);
     const [classes, setClasses] = useState<StudentClass[]>([]);
@@ -216,7 +218,7 @@ export default function StudentClassroom() {
 
                     {activeTab !== "grades" && (
                         <div className="flex items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1 shadow-sm" role="group" aria-label="Select quarter">
-                            {QUARTERS.map((quarter) => (
+                            {quarters.map((quarter) => (
                                 <button
                                     key={quarter}
                                     type="button"
@@ -249,10 +251,9 @@ export default function StudentClassroom() {
                                     <thead>
                                         <tr>
                                             <th className="px-5 py-3 text-left font-bold">Subject</th>
-                                            <th className="px-3 py-3 text-center font-bold">Q1</th>
-                                            <th className="px-3 py-3 text-center font-bold">Q2</th>
-                                            <th className="px-3 py-3 text-center font-bold">Q3</th>
-                                            <th className="px-3 py-3 text-center font-bold">Q4</th>
+                                            {quarters.map((q) => (
+                                                <th key={q} className="px-3 py-3 text-center font-bold">Q{q}</th>
+                                            ))}
                                             <th className="px-3 py-3 text-center font-bold">Final</th>
                                             <th className="px-5 py-3 text-center font-bold">Remarks</th>
                                         </tr>

@@ -194,7 +194,7 @@ export default function DeveloperSettings() {
                         </p>
                     )}
                     {emailSaved && (
-                        <p className="flex items-center gap-2 rounded-lg bg-[#ecfdf5] px-3 py-2.5 text-[0.8125rem] font-semibold text-[#065F46]" role="status">
+                        <p className="flex items-center gap-2 rounded-lg bg-[#EAF5EE] px-3 py-2.5 text-[0.8125rem] font-semibold text-[#176B3A]" role="status">
                             <FiCheckCircle aria-hidden="true" />
                             Email updated — redirecting you to sign in with your new address…
                         </p>
@@ -287,7 +287,7 @@ export default function DeveloperSettings() {
                         </p>
                     )}
                     {saved && (
-                        <p className="flex items-center gap-2 rounded-lg bg-[#ecfdf5] px-3 py-2.5 text-[0.8125rem] font-semibold text-[#065F46]" role="status">
+                        <p className="flex items-center gap-2 rounded-lg bg-[#EAF5EE] px-3 py-2.5 text-[0.8125rem] font-semibold text-[#176B3A]" role="status">
                             <FiCheckCircle aria-hidden="true" />
                             Password updated successfully.
                         </p>

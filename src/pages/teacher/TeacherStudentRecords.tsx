@@ -16,6 +16,7 @@ import { getAPICall, postAPICall } from "../../api/api";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ModalDialog } from "../../components/ModalDialog";
 import Skeleton from "../../components/Skeleton";
+import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { getInitials } from "../../helper/initials";
 import { toast } from "../../helper/toast";
 
@@ -26,10 +27,6 @@ import type {
 } from "../../constant/studentRecord";
 
 import "../../style/teacherStudentRecords.css";
-
-// ================= Constants =================
-
-const QUARTERS = [1, 2, 3, 4] as const;
 
 // ================= Helpers =================
 
@@ -50,6 +47,7 @@ function formatSubmittedAt(iso: string | null): string | null {
 
 export default function TeacherStudentRecords() {
     // ================= State =================
+    const { quarters } = useAcademicSettings();
     const [loading, setLoading] = useState(true);
     const [quarter, setQuarter] = useState<number>(1);
     const [records, setRecords] = useState<ClassRecordsResponse | null>(null);
@@ -281,7 +279,7 @@ export default function TeacherStudentRecords() {
             {/* ==================== Quarter tabs + submit all ==================== */}
             <div className="teacher-records__toolbar flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm">
                 <div className="teacher-records__tabs flex items-center gap-1.5" role="tablist" aria-label="Select quarter">
-                    {QUARTERS.map((q) => (
+                    {quarters.map((q) => (
                         <button
                             key={q}
                             type="button"

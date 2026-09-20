@@ -36,6 +36,7 @@ import "../../style/adminSettings.css";
 interface AcademicSettingsData {
     id: number;
     currentQuarter: number;
+    numQuarters: number;
     enrollmentOpen: boolean | number;
     submissionsLocked: boolean | number;
 }
@@ -379,6 +380,9 @@ export default function AdminSettings() {
         enrollmentOpen: true,
         submissionsLocked: false
     });
+    const [numQuarters, setNumQuarters] = useState(4);
+    const [numQuartersSaving, setNumQuartersSaving] = useState(false);
+    const [q4Warning, setQ4Warning] = useState<Record<string, number> | null>(null);
     const [schoolYears, setSchoolYears] = useState<SchoolYear[]>([]);
     const [selectedSchoolYearId, setSelectedSchoolYearId] = useState("");
     // The school year that was active when the page loaded — used to sync
@@ -402,6 +406,7 @@ export default function AdminSettings() {
                         enrollmentOpen: Boolean(settings.enrollmentOpen),
                         submissionsLocked: Boolean(settings.submissionsLocked)
                     });
+                    setNumQuarters(settings.numQuarters ?? 4);
                 }
 
                 const years = yearsResponse.data ?? [];
@@ -464,6 +469,32 @@ export default function AdminSettings() {
             // Error toast is handled by the axios interceptor in api.ts
         } finally {
             setAcademicSaving(false);
+        }
+    }
+
+    async function handleSaveNumQuarters(newNum: number, confirmForce?: boolean) {
+        setNumQuartersSaving(true);
+        setQ4Warning(null);
+        try {
+            const response = await patchAPICall<{ quarter4Warning?: Record<string, number> }, AcademicSettingsData>(
+                "/academic-settings",
+                { numQuarters: newNum, ...(confirmForce ? { confirmForce: true } : {}) },
+                { toast: false }
+            );
+
+            // If backend returns a Q4 warning, show confirmation dialog
+            if (response.data?.quarter4Warning) {
+                setQ4Warning(response.data.quarter4Warning);
+                return;
+            }
+
+            setNumQuarters(newNum);
+            window.dispatchEvent(new Event("academic-settings-updated"));
+            handleSave("academic");
+        } catch {
+            // Error toast is handled by the axios interceptor in api.ts
+        } finally {
+            setNumQuartersSaving(false);
         }
     }
 
@@ -670,6 +701,100 @@ export default function AdminSettings() {
                         </div>
                     </footer>
                 </form>
+            </PageCard>
+
+            {/* ==================== Academic Period ==================== */}
+            <PageCard className="settings__card">
+                <div className="settings__head flex flex-wrap items-center justify-between gap-4 border-b p-5">
+                    <div className="flex items-start gap-3">
+                        <span className="settings__icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
+                            <FiCalendar />
+                        </span>
+                        <div className="min-w-0">
+                            <h3 className="settings__title text-base font-bold">Academic Period</h3>
+                            <p className="settings__subtitle mt-1 text-[0.8125rem]">Configure the number of grading quarters for the school year.</p>
+                        </div>
+                    </div>
+                    <span className="settings__badge inline-flex shrink-0 rounded-full px-2.5 py-1 text-[0.6875rem] font-semibold">School-wide</span>
+                </div>
+
+                <div className="p-5">
+                    <p className="settings__field-label mb-3 text-[0.6875rem] font-bold uppercase tracking-[0.08em]">Grading Periods</p>
+                    <div className="flex flex-col gap-3">
+                        <label className={`settings__radio-label flex cursor-pointer items-center gap-3 rounded-lg border p-3 ${numQuarters === 3 ? "settings__radio-label--active border-[var(--primary)] bg-[var(--primary-light)]" : "border-[var(--neutral-border)]"}`}>
+                            <input
+                                type="radio"
+                                name="numQuarters"
+                                value={3}
+                                checked={numQuarters === 3}
+                                onChange={() => {}}
+                                onClick={() => handleSaveNumQuarters(3)}
+                                disabled={numQuartersSaving || academicLoading}
+                                className="settings__radio"
+                            />
+                            <div>
+                                <span className="text-sm font-semibold">3 Quarters</span>
+                                <span className="ml-2 text-[0.75rem] text-[var(--text-muted)]">Quarter 1, Quarter 2, Quarter 3</span>
+                            </div>
+                        </label>
+                        <label className={`settings__radio-label flex cursor-pointer items-center gap-3 rounded-lg border p-3 ${numQuarters === 4 ? "settings__radio-label--active border-[var(--primary)] bg-[var(--primary-light)]" : "border-[var(--neutral-border)]"}`}>
+                            <input
+                                type="radio"
+                                name="numQuarters"
+                                value={4}
+                                checked={numQuarters === 4}
+                                onChange={() => {}}
+                                onClick={() => handleSaveNumQuarters(4)}
+                                disabled={numQuartersSaving || academicLoading}
+                                className="settings__radio"
+                            />
+                            <div>
+                                <span className="text-sm font-semibold">4 Quarters</span>
+                                <span className="ml-2 text-[0.75rem] text-[var(--text-muted)]">Quarter 1, Quarter 2, Quarter 3, Quarter 4</span>
+                            </div>
+                        </label>
+                    </div>
+                    <p className="mt-3 text-[0.8125rem] text-[var(--text-muted)]">
+                        Current configuration: <strong>{numQuarters} Quarters</strong>
+                    </p>
+                </div>
+
+                {/* Q4 Data Warning Dialog */}
+                {q4Warning && (
+                    <div className="border-t p-5">
+                        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
+                            <p className="mb-2 text-sm font-semibold text-amber-800">Quarter 4 contains existing data</p>
+                            <ul className="mb-3 list-inside list-disc text-[0.8125rem] text-amber-700">
+                                {q4Warning.assessments > 0 && <li>{q4Warning.assessments} assessment(s)</li>}
+                                {q4Warning.scores > 0 && <li>{q4Warning.scores} student score(s)</li>}
+                                {q4Warning.attendance > 0 && <li>{q4Warning.attendance} attendance record(s)</li>}
+                                {q4Warning.dailyAttendance > 0 && <li>{q4Warning.dailyAttendance} daily attendance record(s)</li>}
+                                {q4Warning.submissions > 0 && <li>{q4Warning.submissions} submitted record(s)</li>}
+                            </ul>
+                            <p className="mb-3 text-[0.8125rem] text-amber-700">
+                                Switching to 3 quarters will hide Quarter 4 from all views, but the data will be preserved in the database. If you switch back to 4 quarters later, the data will be visible again.
+                            </p>
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    className="settings__btn rounded-lg bg-[var(--primary-dark)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--primary-deep)]"
+                                    onClick={() => handleSaveNumQuarters(3, true)}
+                                    disabled={numQuartersSaving}
+                                >
+                                    {numQuartersSaving ? "Saving…" : "I understand, switch to 3 quarters"}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="settings__btn rounded-lg border border-[var(--neutral-border)] px-4 py-2 text-sm font-semibold text-[var(--text-body)] hover:bg-[var(--surface-bg)]"
+                                    onClick={() => setQ4Warning(null)}
+                                    disabled={numQuartersSaving}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </PageCard>
 
             {/* ==================== Academic Year ==================== */}
@@ -890,11 +1015,11 @@ export default function AdminSettings() {
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 px-5 pb-5 text-[0.75rem] font-semibold">
                         <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-                            <span className="flex items-center gap-1.5 text-[#065F46]">
+                            <span className="flex items-center gap-1.5 text-[#176B3A]">
                                 <span className="settings__legend-dot settings__legend-dot--ww" aria-hidden="true" />
                                 Written Work {weightDisplay("writtenWorkWeight")}%
                             </span>
-                            <span className="flex items-center gap-1.5 text-[#065F46]">
+                            <span className="flex items-center gap-1.5 text-[#176B3A]">
                                 <span className="settings__legend-dot settings__legend-dot--pt" aria-hidden="true" />
                                 Performance Tasks {weightDisplay("performanceTaskWeight")}%
                             </span>
@@ -912,7 +1037,7 @@ export default function AdminSettings() {
                                 Number.isNaN(weightsTotal)
                                     ? "bg-[#FEF2F2] text-[#EF4444]"
                                     : Math.abs(weightsTotal - 100) <= 0.001
-                                      ? "bg-[#D1FAE5] text-[#065F46]"
+                                      ? "bg-[#EAF5EE] text-[#176B3A]"
                                       : "bg-[#FEF3C7] text-[#B45309]"
                             }`}
                         >

@@ -13,6 +13,7 @@ import {
 
 import { getAPICall, patchAPICall } from "../../api/api";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { ModalDialog } from "../../components/ModalDialog";
 import { PageCard } from "../../components/PageCard";
 import Skeleton from "../../components/Skeleton";
@@ -35,6 +36,7 @@ interface SchoolYear {
 interface AcademicSettingsData {
     id: number;
     currentQuarter: number;
+    numQuarters: number;
     enrollmentOpen: boolean | number;
     submissionsLocked: boolean | number;
 }
@@ -44,10 +46,6 @@ interface DrilldownState {
     quarter: number;
     data: ClassRecordsResponse | null;
 }
-
-// ================= Constants =================
-
-const QUARTERS = [1, 2, 3, 4] as const;
 
 // ================= Helpers =================
 
@@ -68,6 +66,8 @@ function missingGradeCount(data: ClassRecordsResponse, enrollmentId: number): nu
 // ================= Component =================
 
 export default function AdminStudentRecords() {
+    const { numQuarters, quarters } = useAcademicSettings();
+
     // ================= State =================
     const [loading, setLoading] = useState(true);
     const [years, setYears] = useState<SchoolYear[]>([]);
@@ -152,7 +152,7 @@ export default function AdminStudentRecords() {
 
     // ================= Advance quarter =================
     const canAdvance = (() => {
-        if (currentQuarter === null || currentQuarter >= 4) return false;
+        if (currentQuarter === null || currentQuarter >= numQuarters) return false;
         return summary.every((row) => {
             if (!row.adviserId) return false;
             if (row.totalStudents === 0) return true;
@@ -162,7 +162,7 @@ export default function AdminStudentRecords() {
     })();
 
     async function handleAdvanceQuarter() {
-        if (currentQuarter === null || currentQuarter >= 4 || advancing) return;
+        if (currentQuarter === null || currentQuarter >= numQuarters || advancing) return;
         setAdvancing(true);
         try {
             const nextQuarter = currentQuarter + 1;
@@ -286,7 +286,7 @@ export default function AdminStudentRecords() {
                         className="settings__btn inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold disabled:cursor-not-allowed disabled:opacity-50"
                         disabled={!canAdvance || advancing}
                         onClick={() => setConfirmAdvance(true)}
-                        title={!canAdvance ? (currentQuarter === null || currentQuarter >= 4 ? "Quarter 4 is the final quarter" : "Not all classes have completed submission for the current quarter") : "Advance to the next quarter"}
+                        title={!canAdvance ? (currentQuarter === null || currentQuarter >= numQuarters ? `Quarter ${numQuarters} is the final quarter` : "Not all classes have completed submission for the current quarter") : "Advance to the next quarter"}
                     >
                         {advancing ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiSkipForward aria-hidden="true" />}
                         {advancing ? "Advancing…" : `Advance to Q${(currentQuarter ?? 0) + 1}`}
@@ -323,7 +323,7 @@ export default function AdminStudentRecords() {
                                     <th className="px-3 py-3 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
                                         Students
                                     </th>
-                                    {QUARTERS.map((q) => (
+                                    {quarters.map((q) => (
                                         <th key={q} className="px-3 py-3 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
                                             <span className="inline-flex items-center gap-1.5">
                                                 Q{q}
@@ -381,7 +381,7 @@ export default function AdminStudentRecords() {
                                                 {row.totalStudents}
                                             </td>
 
-                                            {QUARTERS.map((q) => {
+                                            {quarters.map((q) => {
                                                 const count = row.submitted[q] ?? 0;
                                                 const complete = row.totalStudents > 0 && count >= row.totalStudents;
                                                 const hasAny = count > 0;

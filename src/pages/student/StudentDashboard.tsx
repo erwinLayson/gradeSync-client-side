@@ -36,6 +36,7 @@ import "../../style/studentDashboard.css";
 interface AcademicSettingsData {
     id: number;
     currentQuarter: number;
+    numQuarters: number;
     enrollmentOpen: boolean | number;
     submissionsLocked: boolean | number;
 }

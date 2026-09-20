@@ -125,7 +125,7 @@
 .teacher-dashboard__count {
   border-radius: 9999px;
   color: var(--primary-dark);
-  background: var(--neutral-border);
+  background: var(--primary-light);
 }
 
 .teacher-dashboard__count svg {
@@ -133,8 +133,8 @@
 }
 
 .teacher-dashboard__count--alert {
-  color: #92400e;
-  background: #fef3c7;
+  color: #92400E;
+  background: #FEF3C7;
 }
 
 /* ---------- Schedule ---------- */

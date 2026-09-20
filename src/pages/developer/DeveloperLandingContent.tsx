@@ -302,7 +302,7 @@ function SectionCard({ sectionKey, dirty, saving, error, savedAt, children, onSa
                         </span>
                     )}
                     {savedAt && !dirty && (
-                        <span className="flex items-center gap-1 rounded-full bg-[#ECFDF5] px-2.5 py-1 text-[0.6875rem] font-bold text-[#065F46]">
+                        <span className="flex items-center gap-1 rounded-full bg-[#EAF5EE] px-2.5 py-1 text-[0.6875rem] font-bold text-[#176B3A]">
                             <FiCheckCircle aria-hidden="true" />
                             {savedAt}
                         </span>
@@ -947,7 +947,7 @@ function LandingContentEditor() {
                         Preview page
                     </a>
                     {savedBanner && (
-                        <span className="flex items-center gap-1.5 rounded-full bg-[#ECFDF5] px-3 py-1.5 text-xs font-bold text-[#065F46]" role="status">
+                        <span className="flex items-center gap-1.5 rounded-full bg-[#EAF5EE] px-3 py-1.5 text-xs font-bold text-[#176B3A]" role="status">
                             <FiCheckCircle aria-hidden="true" />
                             Saved — live on the landing page
                         </span>

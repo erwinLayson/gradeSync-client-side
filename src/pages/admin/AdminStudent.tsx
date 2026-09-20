@@ -15,6 +15,7 @@ import {
 } from "react-icons/fi";
 
 import useStudent from "../../hooks/useStudent";
+import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 
 import type { StudentResponseProps, NewStudentProps } from "../../constant/students.js";
 import type { StudentClassesData } from "../../constant/studentClasses.js";
@@ -75,6 +76,7 @@ function getLastNameInitial(student: StudentResponseProps): string {
 
 export default function AdminStudents() {
     const { students, loading, refetchStudents } = useStudent<StudentResponseProps[]>();
+    const { quarters } = useAcademicSettings();
 
     /* =================== Create / Edit student modal =================== */
     const [modalStatus, setModalStatus] = useState<ModalStatus>(null);
@@ -543,10 +545,9 @@ export default function AdminStudents() {
                                                                     <th className="px-5 py-3 text-left font-bold">Subject</th>
                                                                     <th className="px-3 py-3 text-left font-bold">Code</th>
                                                                     <th className="px-3 py-3 text-center font-bold">Units</th>
-                                                                    <th className="px-3 py-3 text-center font-bold">Q1</th>
-                                                                    <th className="px-3 py-3 text-center font-bold">Q2</th>
-                                                                    <th className="px-3 py-3 text-center font-bold">Q3</th>
-                                                                    <th className="px-3 py-3 text-center font-bold">Q4</th>
+                                                                    {quarters.map((q) => (
+                                                                        <th key={q} className="px-3 py-3 text-center font-bold">Q{q}</th>
+                                                                    ))}
                                                                     <th className="px-3 py-3 text-center font-bold">Final</th>
                                                                     <th className="px-5 py-3 text-left font-bold">Remarks</th>
                                                                 </tr>

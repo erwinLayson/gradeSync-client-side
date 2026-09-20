@@ -70,5 +70,3 @@ export const TYPE_LABELS: Record<AssessmentType, string> = {
     performance_task: "Performance Task",
     quarterly_assessment: "Quarterly Assessment",
 };
-
-export const QUARTERS = [1, 2, 3, 4];

@@ -11,6 +11,7 @@ import {
 } from "react-icons/fi";
 
 import { useTeacherOverview } from "../../hooks/useTeacherOverview";
+import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { getInitials } from "../../helper/initials";
 import GenderPieChart from "../../components/GenderPieChart";
 
@@ -18,6 +19,7 @@ import "../../style/teacherDashboard.css";
 
 export default function TeacherDashboard() {
     const navigate = useNavigate();
+    const { quarters } = useAcademicSettings();
     const {
         teacher,
         classes,
@@ -45,7 +47,7 @@ export default function TeacherDashboard() {
                     </div>
                 </div>
                 <div className="teacher-dashboard__stats grid grid-cols-2 gap-3 lg:grid-cols-4">
-                    {[1, 2, 3, 4].map((i) => (
+                    {quarters.map((i) => (
                         <div className="teacher-dashboard__stat flex items-center gap-3 rounded-xl border p-4" key={i}>
                             <div className="teacher-dashboard__skeleton-bar teacher-dashboard__skeleton-bar--icon" />
                             <div className="min-w-0 flex-1">

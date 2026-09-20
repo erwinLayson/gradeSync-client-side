@@ -20,6 +20,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 
 import { deleteAPICall, getAPICall, patchAPICall, postAPICall, putAPICall } from "../../api/api";
+import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ModalDialog } from "../../components/ModalDialog";
 import Skeleton from "../../components/Skeleton";
@@ -89,8 +90,6 @@ interface ComputedRow {
 }
 
 // ================= Constants =================
-
-const QUARTERS = [1, 2, 3, 4] as const;
 
 const ASSESSMENT_TYPE_META: Record<AssessmentType, { label: string; short: string }> = {
     written_work: { label: "Written Work", short: "WW" },
@@ -198,6 +197,7 @@ function toDateInputValue(dateGiven: string | null): string {
 export default function TeacherGradebook() {
     const navigate = useNavigate();
     const { classId } = useParams(); // URL param is actually the class_subjects id
+    const { quarters } = useAcademicSettings();
     const classSubjectId = Number(classId);
 
     // ================ pages Data ================
@@ -601,7 +601,7 @@ export default function TeacherGradebook() {
             {/* ==================== Quarter tabs + actions ==================== */}
             <div className="teacher-gradebook__toolbar flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm">
                 <div className="teacher-gradebook__tabs flex items-center gap-1.5" role="tablist" aria-label="Select quarter">
-                    {QUARTERS.map((q) => (
+                    {quarters.map((q) => (
                         <button
                             key={q}
                             type="button"

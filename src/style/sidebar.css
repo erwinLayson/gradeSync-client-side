@@ -38,7 +38,7 @@
   width: 16rem;
   height: 16rem;
   background: radial-gradient(circle, var(--accent), transparent 70%);
-  opacity: 0.18;
+  opacity: 0.12;
 }
 
 .sidebar__glow--leaf {
@@ -47,7 +47,7 @@
   width: 18rem;
   height: 18rem;
   background: radial-gradient(circle, var(--primary-light), transparent 70%);
-  opacity: 0.15;
+  opacity: 0.1;
 }
 
 /* ---------- Header ---------- */
@@ -273,7 +273,7 @@
   height: 1.25rem;
   border-radius: 0 9999px 9999px 0;
   background: var(--accent);
-  box-shadow: 0 0 10px rgba(251, 191, 36, 0.55);
+  box-shadow: 0 0 10px rgba(212, 167, 44, 0.45);
   opacity: 0;
   transform: translateY(-50%);
   transition: opacity var(--transition-base);
@@ -287,12 +287,12 @@
 .sidebar__icon {
   flex-shrink: 0;
   font-size: 1.125rem;
-  color: rgba(209, 250, 229, 0.6);
+  color: rgba(255, 255, 255, 0.5);
   transition: color var(--transition-base);
 }
 
 .sidebar__link:hover .sidebar__icon {
-  color: rgba(236, 253, 245, 1);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .sidebar__link--active .sidebar__icon {
@@ -547,7 +547,7 @@
     position: fixed;
     inset: 0;
     z-index: 999;
-    background: rgba(7, 44, 28, 0.55);
+    background: rgba(10, 61, 33, 0.55);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
     animation: sidebar-backdrop-fade var(--transition-base) ease-out forwards;
