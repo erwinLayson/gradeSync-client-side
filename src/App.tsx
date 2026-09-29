@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 // Pages
 import LoginPage from './pages/LoginPage'
 import LandingPage from './pages/LandingPage'
+import UnauthorizedPage from './pages/UnauthorizedPage'
+import NotFoundPage from './pages/NotFoundPage'
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -53,6 +55,9 @@ function App() {
         {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        {/* Target of ProtectedRoutes when a role lacks access — previously
+            missing, which left a blank page. */}
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
           {/* Master Layout */}
           <Route element={<MasterLayout />}>
@@ -124,6 +129,9 @@ function App() {
             </Route>
 
           </Route>
+
+        {/* Catch-all: unknown URLs render the 404 page instead of nothing. */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
   )
