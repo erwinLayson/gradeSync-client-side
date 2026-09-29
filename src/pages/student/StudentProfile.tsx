@@ -23,7 +23,8 @@ interface StudentProfileData {
         lastname?: string;
         suffix?: string | null;
         fullname: string;
-        birthdate: string;
+        // students.birthdate is nullable; the profile endpoint returns null when unset.
+        birthdate: string | null;
         sex: string;
     };
     details: StudentDetailsProps | null;

@@ -16,7 +16,8 @@ students: {
     studentLrn: string;
     studentEmail: string;
     fullname: string;
-    studentBirthdate: string;
+    // Nullable: the roster endpoint formats the nullable students.birthdate column.
+    studentBirthdate: string | null;
     studentAge: number;
     studentSex: string;
 }[]

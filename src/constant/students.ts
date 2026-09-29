@@ -3,7 +3,9 @@ export interface StudentResponseProps {
     lrn: number,
     email: string,
     fullname: string,
-    birthdate: string,
+    // students.birthdate is nullable in the database; the list endpoints render it
+    // through the server-side date formatter, which returns null for missing values.
+    birthdate: string | null,
     age: number,
     sex: string,
     firstname?: string,
