@@ -5,6 +5,7 @@ import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useUser } from "../../hooks/useUser";
 import { getInitials } from "../../helper/initials";
+import { isPassing } from "../../helper/grades";
 
 import type { ClassroomResponseProps, ClassroomTeachersWithSubjectProps } from "../../constant/classrooms";
 
@@ -21,7 +22,8 @@ interface Student {
     studentLrn: string;
     studentEmail: string;
     fullname: string;
-    studentBirthdate: string;
+    // Nullable: the roster endpoint formats the nullable students.birthdate column.
+    studentBirthdate: string | null;
     studentAge: number;
     studentSex: string;
 }
@@ -100,12 +102,15 @@ export default function TeacherMyClass() {
         try {
             const subjects = adviserClass.teachersWithSubjects;
 
-            // Fetch gradebook for each subject × quarter combination
+            // Fetch gradebook for each subject × quarter combination. These are a
+            // fan-out of best-effort reads (the table degrades to "—" per cell),
+            // so a failure for one subject must not raise a global error toast.
             const gradebookResults = await Promise.all(
                 subjects.flatMap((s) =>
                     quarters.map((q) =>
                         getAPICall<{ student: { enrollmentId: number; quarterGrade: number | null }[] }>(
-                            `/gradebook/${s.classSubjectId}/details?quarter=${q}`
+                            `/gradebook/${s.classSubjectId}/details?quarter=${q}`,
+                            { skipErrorToast: true }
                         ).catch(() => ({ data: null }))
                     )
                 )
@@ -496,7 +501,7 @@ export default function TeacherMyClass() {
                                                         <td key={`${sg.enrollmentId}-${s.classSubjectId}-q${q}`} className="px-2 py-3.5 text-center">
                                                             {grade != null ? (
                                                                 <span className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-md text-[0.75rem] font-bold ${
-                                                                    grade >= 75 ? "text-green-700"
+                                                                    isPassing(grade) ? "text-green-700"
                                                                     : "text-red-700"
                                                                 }`}>
                                                                     {grade.toFixed(1)}
