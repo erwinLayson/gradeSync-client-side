@@ -31,6 +31,7 @@ import { ModalDialog } from "../../components/ModalDialog.js";
 
 // Helpers Functions
 import { Validate } from "../../helper/validate.js";
+import { isPassing } from "../../helper/grades";
 
 // API Calls
 import { API, deleteAPICall, getAPICall, patchAPICall, postAPICall } from "../../api/api.js";
@@ -56,7 +57,7 @@ const EMPTY_STUDENT: NewStudentProps = {
 type ModalStatus = "create" | "edit" | null;
 
 // Normalize a birthdate string into the yyyy-mm-dd format expected by <input type="date">.
-function toDateInputValue(value: string | undefined): string {
+function toDateInputValue(value: string | null | undefined): string {
     if (!value) return "";
     if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
     const date = new Date(value);
@@ -523,7 +524,7 @@ export default function AdminStudents() {
                                                             <span className={`inline-flex min-w-[3rem] items-center justify-center rounded-full px-2.5 py-1 text-xs font-bold ${
                                                                 cls.generalAverage === null
                                                                     ? "bg-neutral-100 text-neutral-400"
-                                                                    : cls.generalAverage >= 75
+                                                                    : isPassing(cls.generalAverage)
                                                                         ? "students-detail__grade-pass"
                                                                         : "students-detail__grade-fail"
                                                             }`}>
@@ -567,14 +568,14 @@ export default function AdminStudents() {
                                                                                 {quarter ?? "—"}
                                                                             </td>
                                                                         ))}
-                                                                        <td className={`px-3 py-3 text-center font-bold ${(subject.final ?? 0) >= 75 ? "text-emerald-700" : "text-neutral-800"}`}>
+                                                                        <td className={`px-3 py-3 text-center font-bold ${isPassing(subject.final) ? "text-emerald-700" : "text-neutral-800"}`}>
                                                                             {subject.final ?? "—"}
                                                                         </td>
                                                                         <td className="px-5 py-3">
                                                                             <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
                                                                                 subject.remarks === null
                                                                                     ? "bg-neutral-100 text-neutral-400"
-                                                                                    : (subject.final ?? 0) >= 75
+                                                                                    : isPassing(subject.final)
                                                                                         ? "students-detail__grade-pass"
                                                                                         : "students-detail__grade-fail"
                                                                             }`}>
@@ -582,30 +583,31 @@ export default function AdminStudents() {
                                                                             </span>
                                                                         </td>
                                                                     </tr>
-                                                                    {/* Component breakdown for composite subjects */}
-                                                                    {(subject as any).componentBreakdown && (subject as any).componentBreakdown.length > 0 && (
-                                                                        (subject as any).componentBreakdown.map((comp: any) => (
-                                                                            <tr key={`${subject.classSubjectId ?? subject.name}-${comp.componentId}`} className="bg-gray-50">
-                                                                                <td className="px-5 py-2 pl-10">
-                                                                                    <span className="block text-xs font-medium text-neutral-600">└ {comp.name}</span>
+                                                                    {/* Component breakdown for composite subjects. The per-component
+                                                                        final rating is computed on the server with the same helper as
+                                                                        subject finals (calculateFinalGrade) — it is never re-derived or
+                                                                        re-averaged here, so the breakdown always matches the composite
+                                                                        grade printed on the row above. */}
+                                                                    {(subject.componentBreakdown ?? []).map((comp) => (
+                                                                        <tr key={`${subject.classSubjectId ?? subject.name}-${comp.componentId}`} className="bg-gray-50">
+                                                                            <td className="px-5 py-2 pl-10">
+                                                                                <span className="block text-xs font-medium text-neutral-600">└ {comp.name}</span>
+                                                                            </td>
+                                                                            <td className="px-3 py-2 text-xs text-neutral-500">{comp.code}</td>
+                                                                            <td className="px-3 py-2 text-center text-xs text-neutral-500">
+                                                                                {comp.weight === null ? "—" : `${comp.weight}%`}
+                                                                            </td>
+                                                                            {quarters.map((_quarter, index) => (
+                                                                                <td key={index} className="px-3 py-2 text-center text-xs text-neutral-600">
+                                                                                    {comp.grades[index] ?? "—"}
                                                                                 </td>
-                                                                                <td className="px-3 py-2 text-xs text-neutral-500">{comp.code}</td>
-                                                                                <td className="px-3 py-2 text-center text-xs text-neutral-500">{comp.weight}%</td>
-                                                                                {comp.grades.map((grade: number | null, index: number) => (
-                                                                                    <td key={index} className="px-3 py-2 text-center text-xs text-neutral-600">
-                                                                                        {grade ?? "—"}
-                                                                                    </td>
-                                                                                ))}
-                                                                                <td className="px-3 py-2 text-center text-xs font-medium text-neutral-600">
-                                                                                    {comp.grades.filter((g: number | null) => g !== null).length > 0
-                                                                                        ? Math.round(comp.grades.filter((g: number | null) => g !== null).reduce((a: number, b: number) => a + b, 0) / comp.grades.filter((g: number | null) => g !== null).length)
-                                                                                        : "—"
-                                                                                    }
-                                                                                </td>
-                                                                                <td className="px-5 py-2"></td>
-                                                                            </tr>
-                                                                        ))
-                                                                    )}
+                                                                            ))}
+                                                                            <td className="px-3 py-2 text-center text-xs font-medium text-neutral-600">
+                                                                                {comp.final ?? "—"}
+                                                                            </td>
+                                                                            <td className="px-5 py-2"></td>
+                                                                        </tr>
+                                                                    ))}
                                                                     </>
                                                                 ))}
                                                             </tbody>

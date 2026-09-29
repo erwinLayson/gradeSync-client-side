@@ -577,7 +577,9 @@ export default function AdminDashboard() {
                                 icon: FiUserPlus,
                             },
                             {
-                                label: "Grades Finalized",
+                                // Enrollments that already have at least one computed
+                                // quarter grade (central engine, current quarter).
+                                label: "Students Graded",
                                 value: summary ? summary.gradedEnrollments.toLocaleString() : "—",
                                 icon: FiClipboard,
                             },

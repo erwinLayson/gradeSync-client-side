@@ -34,7 +34,11 @@ interface EnrollmentByGrade {
 
 interface SubjectPerformance {
     subject: string;
-    score: number;
+    /** Mean of the subject's quarter grades (real grades, current quarter). */
+    score: number | null;
+    /** Share of that subject's quarter grades at or above the passing mark. */
+    passRate: number | null;
+    gradedCount: number;
 }
 
 interface TopPerformer {
@@ -55,6 +59,8 @@ interface AnalyticsData {
     students: number;
     teachers: number;
     classrooms: number;
+    /** The quarter every grade metric below is scoped to. */
+    quarter: number;
     averageGrade: number | null;
     passingRate: number | null;
     passingCount: number;
@@ -181,7 +187,11 @@ export default function AnalyticsReports() {
             { label: "Total Students", value: String(analytics?.students ?? 0), icon: FiUsers },
             { label: "Teaching Staff", value: String(analytics?.teachers ?? 0), icon: FiBookOpen },
             { label: "Active Classes", value: String(analytics?.classrooms ?? 0), icon: FiActivity },
-            { label: "Average Grade", value: analytics?.averageGrade != null ? analytics.averageGrade.toFixed(1) : "—", icon: FiBarChart2 }
+            {
+                label: analytics?.quarter != null ? `Average Grade (Q${analytics.quarter})` : "Average Grade",
+                value: analytics?.averageGrade != null ? analytics.averageGrade.toFixed(1) : "—",
+                icon: FiBarChart2
+            }
         ],
         [analytics]
     );
@@ -373,7 +383,7 @@ export default function AnalyticsReports() {
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Academics</span>
                             <h3 className="analytics__title mt-1 text-base font-bold">Subject Performance</h3>
-                            <p className="analytics__subtitle mt-1 text-[0.8125rem]">Average subject score out of 100</p>
+                            <p className="analytics__subtitle mt-1 text-[0.8125rem]">Average grade per subject for the current quarter</p>
                         </div>
                     </div>
 
@@ -395,9 +405,9 @@ export default function AnalyticsReports() {
                                 <div key={row.subject} className="analytics__hbar-row">
                                     <span className="analytics__hbar-label text-[0.8125rem] font-semibold">{row.subject}</span>
                                     <div className="analytics__hbar-track">
-                                        <div className="analytics__hbar-fill" style={{ width: `${Math.min(100, row.score)}%` }} />
+                                        <div className="analytics__hbar-fill" style={{ width: `${Math.min(100, row.score ?? 0)}%` }} />
                                     </div>
-                                    <span className="analytics__hbar-value text-[0.8125rem] font-bold">{row.score}</span>
+                                    <span className="analytics__hbar-value text-[0.8125rem] font-bold">{row.score ?? "—"}</span>
                                 </div>
                             ))}
                         </div>
@@ -515,7 +525,7 @@ export default function AnalyticsReports() {
                                         <th className="px-6 py-3">Rank</th>
                                         <th className="px-6 py-3">Student</th>
                                         <th className="px-6 py-3">Section</th>
-                                        <th className="px-6 py-3 text-right">GWA</th>
+                                        <th className="px-6 py-3 text-right">General Average</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -566,9 +576,11 @@ export default function AnalyticsReports() {
                                 {(analytics?.subjectPerformance ?? []).map((row) => (
                                     <tr key={row.subject}>
                                         <td className="analytics__cell--name px-6 py-3.5">{row.subject}</td>
-                                        <td className="analytics__cell--mono px-6 py-3.5 text-right font-bold">{Number(row.score).toFixed(1)}</td>
+                                        <td className="analytics__cell--mono px-6 py-3.5 text-right font-bold">{row.score === null ? "—" : Number(row.score).toFixed(1)}</td>
                                         <td className="px-6 py-3.5 text-right">
-                                            <span className="analytics__pass-chip inline-flex rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold">{Math.round(row.score)}%</span>
+                                            <span className="analytics__pass-chip inline-flex rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold">
+                                                {row.passRate === null ? "—" : `${row.passRate}%`}
+                                            </span>
                                         </td>
                                     </tr>
                                 ))}

@@ -14,6 +14,7 @@ import {
 import { getAPICall } from "../../api/api";
 import Skeleton from "../../components/Skeleton";
 import { getInitials } from "../../helper/initials";
+import { isPassing } from "../../helper/grades";
 
 import type { StudentClass, StudentClassesData, AttendanceQuarter } from "../../constant/studentClasses";
 
@@ -45,7 +46,7 @@ interface AcademicSettingsData {
 
 function gradeClass(final: number | null): string {
     if (final === null) return "student-dashboard__grade-ng";
-    return final >= 75 ? "student-dashboard__grade-good" : "student-dashboard__grade-warn";
+    return isPassing(final) ? "student-dashboard__grade-good" : "student-dashboard__grade-warn";
 }
 
 // ==================== Component ====================

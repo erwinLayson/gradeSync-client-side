@@ -26,6 +26,7 @@ import { ModalDialog } from "../../components/ModalDialog";
 import Skeleton from "../../components/Skeleton";
 import { getInitials } from "../../helper/initials";
 import { toast } from "../../helper/toast";
+import { computeFlatQuarterGradePreview, isPassing } from "../../helper/grades";
 
 import type { Assessment, AssessmentType } from "../../constant/assessment";
 import type { GradeWeights } from "../../constant/gradingWeights";
@@ -52,6 +53,17 @@ interface StudentGradebookRow {
     attendance: StudentAttendanceSummary | null;
     quarterGrade: number | null;
     remarks: string | null;
+    // Per-component grades computed by the server for composite subjects (MAPEH).
+    componentGrades?: ComponentGrade[] | null;
+}
+
+/** One sub-component's server-computed grade (server: computeCompositeQuarterGrade). */
+interface ComponentGrade {
+    componentId: number;
+    componentName: string;
+    componentCode: string;
+    weight: number;
+    grade: number | null;
 }
 
 interface GradebookDetails {
@@ -87,6 +99,10 @@ interface ComputedRow {
     totalMaxScore: number;
     quarterGrade: number | null;
     remarks: string | null;
+    // Server-provided component grades (composite subjects only).
+    componentGrades: ComponentGrade[];
+    // True when quarterGrade/remarks came from the server instead of the live preview.
+    fromServer: boolean;
 }
 
 // ================= Constants =================
@@ -113,58 +129,45 @@ const WEIGHTS_FIELD_LABELS: Array<{ key: keyof GradeWeights; label: string; hint
 
 // ================= Helpers =================
 
-// Recompute totals / quarter grade / remarks for one student from the draft
-// scores, mirroring the server's formula (weighted percentages per component).
+// Build one student's sheet row.
+//
+// FLAT subject   -> live preview from the draft sheet, using the shared helper that
+//                   mirrors the server's flat formula (helper/grades.ts).
+// COMPOSITE      -> the server's own composite grade and remarks are displayed as-is.
+//                   The client never aggregates components: each component is graded
+//                   and weighted by component.weight on the server
+//                   (computeCompositeQuarterGrade), so per-component grades are the
+//                   server's values too. Attendance is likewise the server's concern.
 function computeStudentRow(
+    student: StudentGradebookRow,
     assessments: Assessment[],
     weights: GradeWeights,
     draftRow: Record<number, string> | undefined,
     attendance: StudentAttendanceSummary | null,
+    isCompositeSubject: boolean,
 ): ComputedRow {
-    const gradedAssessments = assessments.filter((assessment) => {
-        const raw = draftRow?.[assessment.id];
-        return raw !== undefined && raw.trim() !== "";
-    });
+    const preview = computeFlatQuarterGradePreview(assessments, weights, draftRow, attendance);
 
-    const totalScore = gradedAssessments.reduce((sum, assessment) => sum + Number(draftRow?.[assessment.id]), 0);
-    const totalMaxScore = gradedAssessments.reduce((sum, assessment) => sum + Number(assessment.maxScore), 0);
+    if (isCompositeSubject) {
+        return {
+            // Totals are a raw score summary of the visible sheet, not a grade.
+            totalScore: preview.totalScore,
+            totalMaxScore: preview.totalMaxScore,
+            quarterGrade: student.quarterGrade,
+            remarks: student.remarks,
+            componentGrades: student.componentGrades ?? [],
+            fromServer: true,
+        };
+    }
 
-    const weightByType: Record<AssessmentType, number> = {
-        written_work: Number(weights.writtenWorkWeight),
-        performance_task: Number(weights.performanceTaskWeight),
-        quarterly_assessment: Number(weights.quarterlyAssessmentWeight),
+    return {
+        totalScore: preview.totalScore,
+        totalMaxScore: preview.totalMaxScore,
+        quarterGrade: preview.quarterGrade,
+        remarks: preview.remarks,
+        componentGrades: [],
+        fromServer: false,
     };
-
-    const assessmentTypes: AssessmentType[] = ["written_work", "performance_task", "quarterly_assessment"];
-
-    let weightedPercentageSum = 0;
-    let activeWeightSum = 0;
-
-    for (const assessmentType of assessmentTypes) {
-        const typeAssessments = gradedAssessments.filter((assessment) => assessment.type === assessmentType);
-        if (typeAssessments.length === 0) continue;
-
-        const earnedScoreSum = typeAssessments.reduce((sum, assessment) => sum + Number(draftRow?.[assessment.id]), 0);
-        const maxScoreSum = typeAssessments.reduce((sum, assessment) => sum + Number(assessment.maxScore), 0);
-        if (maxScoreSum === 0) continue;
-
-        const typePercentage = (earnedScoreSum / maxScoreSum) * 100;
-        weightedPercentageSum += typePercentage * weightByType[assessmentType];
-        activeWeightSum += weightByType[assessmentType];
-    }
-
-    const attendanceWeight = Number(weights.attendanceWeight);
-    if (attendance && attendance.totalDays > 0 && attendanceWeight > 0) {
-        const attendancePercentage = (attendance.presentDays / attendance.totalDays) * 100;
-        weightedPercentageSum += attendancePercentage * attendanceWeight;
-        activeWeightSum += attendanceWeight;
-    }
-
-    const quarterGrade =
-        activeWeightSum === 0 ? null : Math.round((weightedPercentageSum / activeWeightSum) * 100) / 100;
-    const remarks = quarterGrade === null ? null : quarterGrade >= 75 ? "Passed" : "Failed";
-
-    return { totalScore, totalMaxScore, quarterGrade, remarks };
 }
 
 // Build the draft map from freshly fetched data (server scores -> input strings).
@@ -305,15 +308,17 @@ export default function TeacherGradebook() {
         for (const student of students) {
             rows.push(
                 computeStudentRow(
+                    student,
                     assessments,
                     gradeBookDetails.gradingWeights,
                     draftScores[student.enrollmentId],
                     student.attendance,
+                    isCompositeSubject,
                 ),
             );
         }
         return rows;
-    }, [gradeBookDetails, students, assessments, draftScores]);
+    }, [gradeBookDetails, students, assessments, draftScores, isCompositeSubject]);
 
     const passedCount = computedRows.filter((row) => row.remarks === "Passed").length;
     const failedCount = computedRows.filter((row) => row.remarks === "Failed").length;
@@ -917,15 +922,36 @@ export default function TeacherGradebook() {
                                             </td>
                                             <td className="px-3 py-3.5 text-center">
                                                 {computed.quarterGrade !== null ? (
-                                                    <span
-                                                        className={`teacher-gradebook__grade inline-flex items-center justify-center rounded-lg px-2 py-1 font-mono text-[0.8125rem] font-bold${
-                                                            computed.quarterGrade >= 75
-                                                                ? " teacher-gradebook__grade--pass"
-                                                                : " teacher-gradebook__grade--fail"
-                                                        }`}
-                                                    >
-                                                        {computed.quarterGrade.toFixed(2)}
-                                                    </span>
+                                                    <div className="flex flex-col items-center gap-0.5">
+                                                        <span
+                                                            className={`teacher-gradebook__grade inline-flex items-center justify-center rounded-lg px-2 py-1 font-mono text-[0.8125rem] font-bold${
+                                                                isPassing(computed.quarterGrade)
+                                                                    ? " teacher-gradebook__grade--pass"
+                                                                    : " teacher-gradebook__grade--fail"
+                                                            }`}
+                                                            title={
+                                                                computed.fromServer
+                                                                    ? "Composite grade computed by the server from the saved component grades — save any score changes to refresh it"
+                                                                    : "Live preview from the score sheet"
+                                                            }
+                                                        >
+                                                            {computed.quarterGrade.toFixed(2)}
+                                                        </span>
+                                                        {computed.componentGrades.length > 0 && (
+                                                            <span className="teacher-gradebook__attendance-days text-[0.625rem] leading-none">
+                                                                {computed.componentGrades
+                                                                    .map(
+                                                                        (componentGrade) =>
+                                                                            `${componentGrade.componentCode} ${
+                                                                                componentGrade.grade === null
+                                                                                    ? "—"
+                                                                                    : componentGrade.grade.toFixed(2)
+                                                                            }`,
+                                                                    )
+                                                                    .join(" · ")}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 ) : (
                                                     <span className="text-[0.8125rem] text-gray-400">—</span>
                                                 )}
@@ -959,6 +985,13 @@ export default function TeacherGradebook() {
                         <FiUsers aria-hidden="true" />
                         {students.length} students &middot; {passedCount} passed &middot; {failedCount} failed
                     </p>
+                    {isCompositeSubject && (
+                        <p className="teacher-gradebook__foot-note">
+                            Composite subject: the quarter grade and each component grade are
+                            computed by the server from saved scores (weighted by component weight).
+                            Save changes to refresh.
+                        </p>
+                    )}
                     
                 </div>
             </div>

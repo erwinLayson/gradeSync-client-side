@@ -18,6 +18,7 @@ import {
 import { getAPICall } from "../../api/api";
 import Skeleton from "../../components/Skeleton";
 import { getInitials } from "../../helper/initials";
+import { isPassing } from "../../helper/grades";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 
 import type {
@@ -315,12 +316,12 @@ export default function StudentClassroom() {
                                                 {selectedClass.generalAverage !== null ? (
                                                     <span
                                                         className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
-                                                            selectedClass.generalAverage >= 75
+                                                            isPassing(selectedClass.generalAverage)
                                                                 ? "student-classes__grade-passed"
                                                                 : "student-classes__grade-failed"
                                                         }`}
                                                     >
-                                                        {selectedClass.generalAverage >= 75 ? "Passed" : "Failed"}
+                                                        {isPassing(selectedClass.generalAverage) ? "Passed" : "Failed"}
                                                     </span>
                                                 ) : (
                                                     <span className="text-xs text-neutral-400">In progress</span>
@@ -433,7 +434,7 @@ export default function StudentClassroom() {
                                                                         ) : (
                                                                             <span
                                                                                 className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
-                                                                                    percentage >= 75
+                                                                                    isPassing(percentage)
                                                                                         ? "student-classes__grade-passed"
                                                                                         : "student-classes__grade-failed"
                                                                                 }`}

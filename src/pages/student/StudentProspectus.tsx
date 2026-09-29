@@ -11,6 +11,7 @@ import {
 import { getAPICall } from "../../api/api";
 import Skeleton from "../../components/Skeleton";
 import { getInitials } from "../../helper/initials";
+import { isPassing } from "../../helper/grades";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 
 import type { StudentClass, StudentClassesData, SubjectGrade } from "../../constant/studentClasses";
@@ -65,7 +66,7 @@ export default function StudentProspectus() {
 
     const totalSubjects = years.reduce((sum, year) => sum + year.subjects.length, 0);
     const promotedYears = years.filter(
-        (year) => year.generalAverage !== null && year.generalAverage >= 75,
+        (year) => year.generalAverage !== null && isPassing(year.generalAverage),
     ).length;
 
     // ==================== Loading state ====================
@@ -225,7 +226,7 @@ export default function StudentProspectus() {
                 {years.map((year) => {
                     const attendance = aggregateAttendance(year.subjects);
                     const graded = year.generalAverage !== null;
-                    const promoted = graded && year.generalAverage! >= 75;
+                    const promoted = graded && isPassing(year.generalAverage);
 
                     return (
                         <article key={year.enrollmentId} className="student-prospectus__year-card overflow-hidden rounded-2xl">
