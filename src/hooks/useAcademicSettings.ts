@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { getAPICall } from "../api/api";
+import { ROLES } from "../constant/users";
 import { useUser } from "./useUser";
 
 export interface AcademicSettings {
@@ -13,19 +14,32 @@ export interface AcademicSettings {
 
 // Module-level cache so all pages share a single request.
 let cachedPromise: Promise<AcademicSettings | null> | null = null;
-// Track which user the cache belongs to so we re-fetch after login/logout.
-let cachedUserId: number | string | null = null;
+// Track which user (and role) the cache belongs to so we re-fetch after
+// login/logout — and so a student never reuses an admin/teacher response.
+let cachedKey: string | null = null;
 
 // Called after academic settings are edited so consumers re-fetch on the next render.
 export function invalidateAcademicSettingsCache() {
     cachedPromise = null;
-    cachedUserId = null;
+    cachedKey = null;
 }
 
-function fetchAcademicSettings(userId: number | string | null): Promise<AcademicSettings | null> {
-    if (!cachedPromise || cachedUserId !== userId) {
-        cachedUserId = userId;
-        cachedPromise = getAPICall<AcademicSettings>("/academic-settings", { toast: false })
+// The grading configuration lives behind two endpoints with identical payloads:
+// /academic-settings is restricted to admin/teacher, while students read the
+// same data through the student-only /students/current-quarter. Calling the
+// admin/teacher route as a student returned 403 ("Forbidden"), which surfaced as
+// an error toast on the student's My Classrooms and Prospectus pages.
+function settingsEndpointFor(role: string | null | undefined): string {
+    return role === ROLES.STUDENT ? "/students/current-quarter" : "/academic-settings";
+}
+
+function fetchAcademicSettings(userId: number | string | null, role: string | null | undefined): Promise<AcademicSettings | null> {
+    const key = `${userId ?? "anonymous"}:${role ?? "none"}`;
+    if (!cachedPromise || cachedKey !== key) {
+        cachedKey = key;
+        // Expected-optional fetch: the hook falls back to sane defaults, so a
+        // failure must stay silent instead of raising a global error toast.
+        cachedPromise = getAPICall<AcademicSettings>(settingsEndpointFor(role), { toast: false, skipErrorToast: true })
             .then((response) => response.data ?? null)
             .catch(() => null);
     }
@@ -55,7 +69,7 @@ export function useAcademicSettings() {
         }
 
         const load = async () => {
-            const data = await fetchAcademicSettings(currentUserId);
+            const data = await fetchAcademicSettings(currentUserId, user?.role);
             if (!cancelled) {
                 setSettings(data);
                 setLoading(false);
