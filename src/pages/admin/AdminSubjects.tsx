@@ -390,7 +390,7 @@ return (
                                 aria-label="Open create subject form"
                             >
                                 <FiPlus aria-hidden="true" />
-                                Add Subject
+                                <span className="hidden md:block">Add Subject</span>
                             </button>
                             <button
                                 type="button"
@@ -399,7 +399,7 @@ return (
                                 aria-label="Refresh subject list"
                             >
                                 <span className="subjects__refresh-icon" aria-hidden="true">⟳</span>
-                                Refresh
+                                <span className="hidden md:block">Refresh</span>
                             </button>
                         </>
                     )}

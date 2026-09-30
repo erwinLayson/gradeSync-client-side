@@ -383,50 +383,57 @@ export default function AdminStudents() {
             >
                 <div className="students__header flex flex-wrap items-center justify-between gap-4 p-5">
                     <div className="students__heading min-w-0">
+                        <div className="flex gap-2 items-center">
+                            {viewStudent && (
+                                <button
+                                    type="button"
+                                    className="students-detail__back inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
+                                    onClick={goBackToStudents}
+                                    aria-label="Back to students list"
+                                >
+                                    <FiArrowLeft aria-hidden="true" />
+                                </button>
+                            )}
+                            
                         <h2 className="students__title text-base font-bold">Student Records</h2>
+                        </div>
                         <p className="students__subtitle mt-1 text-[0.8125rem]">Manage enrolled students</p>
                     </div>
-                    <div className="students__actions flex flex-wrap items-center gap-2">
-                        <span className="students__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
-                            {hasActiveFilter
-                                ? `${filteredStudents?.length ?? 0} of ${students?.length ?? 0} student${filteredStudents?.length === 1 ? "" : "s"}`
-                                : `${filteredStudents?.length ?? 0} student${filteredStudents?.length === 1 ? "" : "s"}`}
-                        </span>
-                        <button
-                            ref={triggerRef}
-                            type="button"
-                            className="students__add inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold"
-                            onClick={openCreateModal}
-                            aria-label="Open create student form"
-                        >
-                            <FiPlus aria-hidden="true" />
-                            Add Student
-                        </button>
-                        <button
-                            type="button"
-                            className="students__refresh inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
-                            onClick={() => refetchStudents("/students", { toast: true })}
-                            aria-label="Refresh student list"
-                        >
-                            <span className="students__refresh-icon" aria-hidden="true">⟳</span>
-                            Refresh
-                        </button>
-                    </div>
+                    {!viewStudent && (
+                        <div className="students__actions flex flex-wrap items-center gap-2">
+                            <span className="students__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
+                                {hasActiveFilter
+                                    ? `${filteredStudents?.length ?? 0} of ${students?.length ?? 0} student${filteredStudents?.length === 1 ? "" : "s"}`
+                                    : `${filteredStudents?.length ?? 0} student${filteredStudents?.length === 1 ? "" : "s"}`}
+                            </span>
+                            <button
+                                ref={triggerRef}
+                                type="button"
+                                className="students__add inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold"
+                                onClick={openCreateModal}
+                                aria-label="Open create student form"
+                            >
+                                <FiPlus aria-hidden="true" />
+                                <span className="hidden md:block">Add Student</span>
+                            </button>
+                            <button
+                                type="button"
+                                className="students__refresh inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
+                                onClick={() => refetchStudents("/students", { toast: true })}
+                                aria-label="Refresh student list"
+                            >
+                                <span className="students__refresh-icon" aria-hidden="true">⟳</span>
+                                <span className="hidden md:block">Refresh</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {viewStudent ? (
                     /* =================== Student details (replaces the table) =================== */
                     <div className="students-detail">
                         <div className="students-detail__nav flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4">
-                            <button
-                                type="button"
-                                className="students-detail__back inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
-                                onClick={goBackToStudents}
-                                aria-label="Back to students list"
-                            >
-                                <FiArrowLeft aria-hidden="true" />
-                                Back to Students
-                            </button>
+                           
                             <div className="flex flex-wrap items-center gap-3">
                                 <p className="text-[0.8125rem] text-neutral-500">
                                     Viewing <span className="font-semibold text-neutral-800">{viewStudent.fullname}</span>

@@ -574,14 +574,8 @@ return (
 >
     <div className="classrooms__header flex flex-wrap items-center justify-between gap-4 p-5">
         <div className="classrooms__heading min-w-0">
-            <h2 className="classrooms__title text-base font-bold">Classroom Records</h2>
-            <p className="classrooms__subtitle mt-1 text-[0.8125rem]">Manage school classrooms</p>
-        </div>
-        <div className="classrooms__actions flex flex-wrap items-center gap-2">
-            
-
-            {selectedClassroom ? (
-                <div className="flex items-center gap-2">
+            <div className="flex gap-2 items-center">
+                {selectedClassroom && (
                     <button
                         type="button"
                         className="classrooms__back inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
@@ -592,8 +586,18 @@ return (
                         )}
                         aria-label="Back to classroom list"
                     >
-                        <FiArrowLeft /> <span className="text-sm font-bold">Back to List</span>
+                        <FiArrowLeft />
                     </button>
+                )}
+                <h2 className="classrooms__title text-base font-bold">Classroom Records</h2>
+            </div>
+            <p className="classrooms__subtitle mt-1 text-[0.8125rem]">Manage school classrooms</p>
+        </div>
+        <div className="classrooms__actions flex flex-wrap items-center gap-2">
+            
+
+            {selectedClassroom ? (
+                <div className="flex items-center gap-2">
                     {(selectedClassroom.students?.length ?? 0) > 0 && (
                         <button
                             type="button"
@@ -620,7 +624,7 @@ return (
                     aria-label="Open create classroom form"
                 >
                     <FiPlus aria-hidden="true" />
-                    Add Classroom
+                    <span className="hidden md:block">Add Classroom</span>
                 </button>
 
                 <button
@@ -630,7 +634,7 @@ return (
                     aria-label="Refresh classroom list"
                 >
                     <span className="classrooms__refresh-icon" aria-hidden="true">⟳</span>
-                    Refresh
+                    <span className="hidden md:block">Refresh</span>
                 </button>
                 
             </>
