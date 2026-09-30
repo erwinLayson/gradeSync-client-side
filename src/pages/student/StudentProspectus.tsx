@@ -10,7 +10,6 @@ import {
 
 import { getAPICall } from "../../api/api";
 import Skeleton from "../../components/Skeleton";
-import { getInitials } from "../../helper/initials";
 import { isPassing } from "../../helper/grades";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 
@@ -89,12 +88,6 @@ export default function StudentProspectus() {
             <section className="student-prospectus__page flex flex-col gap-5">
                 <div className="student-prospectus__hero flex flex-wrap items-center justify-between gap-4 p-6">
                     <div className="flex min-w-0 items-center gap-4">
-                        <span
-                            className="student-prospectus__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-bold"
-                            aria-hidden="true"
-                        >
-                            {getInitials(student?.fullname ?? "?")}
-                        </span>
                         <div className="min-w-0">
                             <span className="student-prospectus__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
                                 Academic Prospectus
@@ -127,12 +120,6 @@ export default function StudentProspectus() {
             {/* ==================== Hero banner ==================== */}
             <div className="student-prospectus__hero flex flex-wrap items-center justify-between gap-4 p-6">
                 <div className="flex min-w-0 items-center gap-4">
-                    <span
-                        className="student-prospectus__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-bold"
-                        aria-hidden="true"
-                    >
-                        {getInitials(student.fullname)}
-                    </span>
                     <div className="min-w-0">
                         <span className="student-prospectus__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
                             Academic Prospectus
@@ -266,36 +253,34 @@ export default function StudentProspectus() {
                             </div>
 
                             {/* Grades table */}
-                            <div className="overflow-x-auto">
-                                <table className="student-prospectus__table text-sm">
+                            <div className="data-table__wrap">
+                                <table className="data-table">
                                     <thead>
                                         <tr>
-                                            <th className="px-5 py-3 text-left font-bold">Subject</th>
+                                            <th scope="col" className="data-table__th w-56">Subject</th>
                                             {quarters.map((quarter) => (
-                                                <th key={quarter} className="px-3 py-3 text-center font-bold">Q{quarter}</th>
+                                                <th key={quarter} scope="col" className="data-table__th data-table__th--center w-20">Q{quarter}</th>
                                             ))}
-                                            <th className="px-3 py-3 text-center font-bold">Final</th>
-                                            <th className="px-5 py-3 text-center font-bold">Remarks</th>
+                                            <th scope="col" className="data-table__th data-table__th--center w-20">Final</th>
+                                            <th scope="col" className="data-table__th data-table__th--center w-28">Remarks</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {year.subjects.map((subject) => (
-                                            <tr key={subject.classSubjectId ?? subject.name}>
-                                                <td className="px-5 py-3 font-semibold">
-                                                    {subject.name}
-                                                    <span className="ml-1.5 text-xs font-normal text-neutral-400">
-                                                        {subject.code}
-                                                    </span>
+                                            <tr key={subject.classSubjectId ?? subject.name} className="data-table__row">
+                                                <td className="data-table__td">
+                                                    <span className="data-table__value">{subject.name}</span>
+                                                    <span className="data-table__sub">{subject.code}</span>
                                                 </td>
                                                 {quarters.map((_quarter, index) => (
-                                                    <td key={index} className="px-3 py-3 text-center font-semibold">
+                                                    <td key={index} className="data-table__td data-table__td--center">
                                                         {subject.quarters[index] ?? "—"}
                                                     </td>
                                                 ))}
-                                                <td className="px-3 py-3 text-center font-bold">
+                                                <td className="data-table__td data-table__td--center data-table__td--primary">
                                                     {subject.final ?? "—"}
                                                 </td>
-                                                <td className="px-5 py-3 text-center">
+                                                <td className="data-table__td data-table__td--center">
                                                     {subject.remarks ? (
                                                         <span
                                                             className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
@@ -312,14 +297,14 @@ export default function StudentProspectus() {
                                                 </td>
                                             </tr>
                                         ))}
-                                        <tr className="student-prospectus__grade-general">
-                                            <td className="px-5 py-3" colSpan={quarters.length + 1}>
+                                        <tr className="student-prospectus__grade-general data-table__row">
+                                            <td className="data-table__td" colSpan={quarters.length + 1}>
                                                 General Average
                                             </td>
-                                            <td className="px-3 py-3 text-center">
+                                            <td className="data-table__td data-table__td--center data-table__td--primary">
                                                 {graded ? year.generalAverage : "—"}
                                             </td>
-                                            <td className="px-5 py-3 text-center">
+                                            <td className="data-table__td data-table__td--center">
                                                 {graded ? (
                                                     <span
                                                         className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${

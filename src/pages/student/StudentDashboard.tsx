@@ -13,7 +13,6 @@ import {
 
 import { getAPICall } from "../../api/api";
 import Skeleton from "../../components/Skeleton";
-import { getInitials } from "../../helper/initials";
 import { isPassing } from "../../helper/grades";
 
 import type { StudentClass, StudentClassesData, AttendanceQuarter } from "../../constant/studentClasses";
@@ -114,12 +113,6 @@ export default function StudentDashboard() {
             <section className="student-dashboard__page flex flex-col gap-5">
                 <div className="student-dashboard__hero flex flex-wrap items-center justify-between gap-4 p-6">
                     <div className="flex min-w-0 items-center gap-4">
-                        <span
-                            className="student-dashboard__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-bold"
-                            aria-hidden="true"
-                        >
-                            {getInitials(student?.fullname ?? "?")}
-                        </span>
                         <div className="min-w-0">
                             <span className="student-dashboard__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
                                 Welcome back
@@ -157,12 +150,6 @@ export default function StudentDashboard() {
             {/* ==================== Hero banner ==================== */}
             <div className="student-dashboard__hero flex flex-wrap items-center justify-between gap-4 p-6">
                 <div className="flex min-w-0 items-center gap-4">
-                    <span
-                        className="student-dashboard__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-bold"
-                        aria-hidden="true"
-                    >
-                        {getInitials(student.fullname)}
-                    </span>
                     <div className="min-w-0">
                         <span className="student-dashboard__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
                             Welcome back

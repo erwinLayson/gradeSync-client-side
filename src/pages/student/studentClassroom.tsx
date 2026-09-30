@@ -17,7 +17,6 @@ import {
 
 import { getAPICall } from "../../api/api";
 import Skeleton from "../../components/Skeleton";
-import { getInitials } from "../../helper/initials";
 import { isPassing } from "../../helper/grades";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 
@@ -247,45 +246,38 @@ export default function StudentClassroom() {
                                     Your live quarterly grades, final grade, and remarks for each subject.
                                 </p>
                             </div>
-                            <div className="overflow-x-auto">
-                                <table className="student-classes__grades-table text-sm">
+                            <div className="data-table__wrap">
+                                <table className="data-table">
                                     <thead>
                                         <tr>
-                                            <th className="px-5 py-3 text-left font-bold">Subject</th>
+                                            <th scope="col" className="data-table__th w-56">Subject</th>
                                             {quarters.map((q) => (
-                                                <th key={q} className="px-3 py-3 text-center font-bold">Q{q}</th>
+                                                <th key={q} scope="col" className="data-table__th data-table__th--center w-20">Q{q}</th>
                                             ))}
-                                            <th className="px-3 py-3 text-center font-bold">Final</th>
-                                            <th className="px-5 py-3 text-center font-bold">Remarks</th>
+                                            <th scope="col" className="data-table__th data-table__th--center w-20">Final</th>
+                                            <th scope="col" className="data-table__th data-table__th--center w-28">Remarks</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {selectedClass.subjects.map((subject) => (
-                                            <tr key={subject.classSubjectId ?? subject.name}>
-                                                <td className="px-5 py-3">
-                                                    <div className="flex min-w-0 items-center gap-3">
-                                                        <span className="student-classes__subjects-subject-icon inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm" aria-hidden="true">
-                                                            <FiBookOpen />
-                                                        </span>
-                                                        <div className="min-w-0">
-                                                            <p className="truncate text-sm font-bold text-neutral-900">{subject.name}</p>
-                                                            <p className="student-classes__subjects-subject-code mt-0.5 truncate text-xs">{subject.code}</p>
-                                                        </div>
-                                                    </div>
+                                            <tr key={subject.classSubjectId ?? subject.name} className="data-table__row">
+                                                <td className="data-table__td">
+                                                    <span className="data-table__value">{subject.name}</span>
+                                                    <span className="data-table__sub">{subject.code}</span>
                                                 </td>
                                                 {[0, 1, 2, 3].map((index) => (
-                                                    <td key={index} className="px-3 py-3 text-center font-semibold">
+                                                    <td key={index} className="data-table__td data-table__td--center">
                                                         {subject.quarters[index] ?? (
                                                             <span className="text-neutral-400">—</span>
                                                         )}
                                                     </td>
                                                 ))}
-                                                <td className="px-3 py-3 text-center font-bold">
+                                                <td className="data-table__td data-table__td--center data-table__td--primary">
                                                     {subject.final ?? (
                                                         <span className="text-neutral-400">—</span>
                                                     )}
                                                 </td>
-                                                <td className="px-5 py-3 text-center">
+                                                <td className="data-table__td data-table__td--center">
                                                     {subject.remarks ? (
                                                         <span
                                                             className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
@@ -303,16 +295,16 @@ export default function StudentClassroom() {
                                             </tr>
                                         ))}
                                         {/* General Average row */}
-                                        <tr className="student-classes__grades-general">
-                                            <td className="px-5 py-3" colSpan={5}>
+                                        <tr className="student-classes__grades-general data-table__row">
+                                            <td className="data-table__td" colSpan={5}>
                                                 General Average
                                             </td>
-                                            <td className="px-3 py-3 text-center font-bold">
+                                            <td className="data-table__td data-table__td--center data-table__td--primary">
                                                 {selectedClass.generalAverage ?? (
                                                     <span className="text-neutral-400">—</span>
                                                 )}
                                             </td>
-                                            <td className="px-5 py-3 text-center">
+                                            <td className="data-table__td data-table__td--center">
                                                 {selectedClass.generalAverage !== null ? (
                                                     <span
                                                         className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
@@ -391,16 +383,16 @@ export default function StudentClassroom() {
                                                 No activities recorded for this subject in Quarter {activeQuarter}.
                                             </p>
                                         ) : (
-                                            <div className="overflow-x-auto">
-                                                <table className="student-classes__grades-table text-sm">
+                                            <div className="data-table__wrap">
+                                                <table className="data-table">
                                                     <thead>
                                                         <tr>
-                                                            <th className="px-5 py-3 text-left font-bold">Type</th>
-                                                            <th className="px-3 py-3 text-left font-bold">Activity</th>
-                                                            <th className="px-3 py-3 text-center font-bold">Date</th>
-                                                            <th className="px-3 py-3 text-center font-bold">Max</th>
-                                                            <th className="px-3 py-3 text-center font-bold">Score</th>
-                                                            <th className="px-5 py-3 text-center font-bold">%</th>
+                                                            <th scope="col" className="data-table__th w-28">Type</th>
+                                                            <th scope="col" className="data-table__th w-56">Activity</th>
+                                                            <th scope="col" className="data-table__th data-table__th--center w-32">Date</th>
+                                                            <th scope="col" className="data-table__th data-table__th--num w-20">Max</th>
+                                                            <th scope="col" className="data-table__th data-table__th--num w-20">Score</th>
+                                                            <th scope="col" className="data-table__th data-table__th--center w-16">%</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -410,25 +402,25 @@ export default function StudentClassroom() {
                                                                     ? null
                                                                     : Math.min(100, Math.round((activity.score / activity.maxScore) * 10000) / 100);
                                                             return (
-                                                                <tr key={activity.id}>
-                                                                    <td className="px-5 py-3">
+                                                                <tr key={activity.id} className="data-table__row">
+                                                                    <td className="data-table__td">
                                                                         <span className="student-classes__activity-type inline-flex rounded-full px-2.5 py-1 text-xs font-bold">
                                                                             {TYPE_LABELS[activity.type]}
                                                                         </span>
                                                                     </td>
-                                                                    <td className="px-3 py-3 font-semibold">{activity.title}</td>
-                                                                    <td className="px-3 py-3 text-center text-neutral-600">
+                                                                    <td className="data-table__td data-table__td--primary">{activity.title}</td>
+                                                                    <td className="data-table__td data-table__td--center data-table__td--muted">
                                                                         {activity.dateGiven ?? "—"}
                                                                     </td>
-                                                                    <td className="px-3 py-3 text-center font-semibold">{activity.maxScore}</td>
-                                                                    <td className="px-3 py-3 text-center font-bold">
+                                                                    <td className="data-table__td data-table__td--num">{activity.maxScore}</td>
+                                                                    <td className="data-table__td data-table__td--num data-table__td--primary">
                                                                         {activity.score === null ? (
                                                                             <span className="text-neutral-400">—</span>
                                                                         ) : (
                                                                             activity.score
                                                                         )}
                                                                     </td>
-                                                                    <td className="px-5 py-3 text-center">
+                                                                    <td className="data-table__td data-table__td--center">
                                                                         {percentage === null ? (
                                                                             <span className="text-neutral-400">—</span>
                                                                         ) : (
@@ -599,12 +591,6 @@ export default function StudentClassroom() {
             <section className="student-classes__page flex flex-col gap-5">
                 <div className="student-classes__hero flex flex-wrap items-center justify-between gap-4 p-6">
                     <div className="flex min-w-0 items-center gap-4">
-                        <span
-                            className="student-classes__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-bold"
-                            aria-hidden="true"
-                        >
-                            {getInitials(student?.fullname ?? "?")}
-                        </span>
                         <div className="min-w-0">
                             <span className="student-classes__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
                                 Student
@@ -637,12 +623,6 @@ export default function StudentClassroom() {
             {/* Hero banner */}
             <div className="student-classes__hero flex flex-wrap items-center justify-between gap-4 p-6">
                 <div className="flex min-w-0 items-center gap-4">
-                    <span
-                        className="student-classes__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-bold"
-                        aria-hidden="true"
-                    >
-                        {getInitials(student.fullname)}
-                    </span>
                     <div className="min-w-0">
                         <span className="student-classes__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
                             Student

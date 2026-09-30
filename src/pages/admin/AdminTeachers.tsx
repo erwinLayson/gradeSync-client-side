@@ -6,8 +6,6 @@ import useTeachers from "../../hooks/useTeachers";
 import type { Teacher, NewTeacherProps, TeacherDetails, TeacherSubjectDetails } from "../../constant/teachers";
 
 import { Validate } from "../../helper/validate";
-import { getInitials } from "../../helper/initials";
-
 import { getAPICall, postAPICall, patchAPICall, deleteAPICall } from "../../api/api";
 
 import { ConfirmDialog } from "../../components/ConfirmDialog";
@@ -269,32 +267,28 @@ export default function AdminTeachers() {
 
                 {/* ================= Teachers Table ================= */}
                 {!selectedTeacher && teachers &&  (
-                    <div className="teachers__table-wrap overflow-x-auto">
-                        <table className="teachers__table w-full min-w-[40rem] border-collapse text-sm">
+                    <div className="data-table__wrap">
+                        <table className="data-table">
                             <thead>
                                 <tr>
-                                    <th scope="col" className="px-6 py-3">ID</th>
-                                    <th scope="col" className="px-6 py-3">Teacher</th>
-                                    <th scope="col" className="px-6 py-3">Email</th>
-                                    <th scope="col" className="w-20 px-6 py-3 text-right">Actions</th>
+                                    <th scope="col" className="data-table__th w-16">ID</th>
+                                    <th scope="col" className="data-table__th w-56">Teacher</th>
+                                    <th scope="col" className="data-table__th w-64">Email</th>
+                                    <th scope="col" className="data-table__th data-table__th--actions w-20">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {teachers.map((teacher) => (
                                     <tr key={teacher.id}
+                                        className="data-table__row data-table__row--clickable"
                                         onClick={() => handleSelectedTeacherClickEvent(teacher)}
                                     >
-                                        <td className="teachers__cell--id px-6 py-3.5">{teacher.id}</td>
-                                        <td className="teachers__cell--name px-6 py-3.5">
-                                            <div className="flex items-center gap-2.5">
-                                                <span className="teachers__avatar inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[0.6875rem] font-bold uppercase" aria-hidden="true">
-                                                    {getInitials(teacher.fullname)}
-                                                </span>
-                                                {teacher.fullname}
-                                            </div>
+                                        <td className="data-table__td data-table__td--mono">{teacher.id}</td>
+                                        <td className="data-table__td data-table__td--primary">{teacher.fullname}</td>
+                                        <td className="data-table__td data-table__td--muted">
+                                            <span className="data-table__truncate">{teacher.email}</span>
                                         </td>
-                                        <td className="teachers__cell--email px-6 py-3.5">{teacher.email}</td>
-                                        <td className="px-6 py-3.5 text-right">
+                                        <td className="data-table__td data-table__td--actions">
                                             <div className="flex items-center justify-end gap-1">
                                                 <button
                                                     type="button"
@@ -347,12 +341,6 @@ export default function AdminTeachers() {
                         {/* Hero profile banner */}
                         <div className="teachers__profile flex items-center justify-between gap-4 p-6">
                             <div className="teachers__profile-main flex min-w-0 items-center gap-4">
-                                <span
-                                    className="teachers__profile-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-base font-bold uppercase"
-                                    aria-hidden="true"
-                                >
-                                    {getInitials(selectedTeacher.fullname)}
-                                </span>
                                 <div className="teachers__profile-heading min-w-0">
                                     <span className="teachers__profile-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Teacher</span>
                                     <h3 className="teachers__profile-name mt-1 truncate text-[1.375rem] font-bold">{selectedTeacher.fullname}</h3>
@@ -402,34 +390,27 @@ export default function AdminTeachers() {
                                     <Skeleton count={3} lines={1} height="3.5rem" gap="0.75rem" />
                                 </div>
                             ) : teacherSubjectsDetails && teacherSubjectsDetails.length > 0 ? (
-                                <div className="teachers__subjects-table-wrap mt-4 overflow-x-auto rounded-xl border">
-                                    <table className="teachers__subjects-table w-full min-w-[36rem] border-collapse text-sm">
+                                <div className="data-table__wrap mt-4 rounded-xl border">
+                                    <table className="data-table">
                                         <thead>
                                             <tr>
-                                                <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Subject</th>
-                                                <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Class</th>
-                                                <th className="w-28 px-4 py-3 text-right text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Units</th>
+                                                <th scope="col" className="data-table__th w-56">Subject</th>
+                                                <th scope="col" className="data-table__th w-44">Class</th>
+                                                <th scope="col" className="data-table__th data-table__th--num w-20">Units</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {teacherSubjectsDetails.map((tsd) => (
-                                                <tr key={`${tsd.classId}-${tsd.subjectId}`}>
-                                                    <td className="px-4 py-3.5">
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="teachers__subject-icon inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg" aria-hidden="true">
-                                                                <FiBookOpen />
-                                                            </span>
-                                                            <div className="min-w-0">
-                                                                <p className="teachers__subject-name truncate text-[0.8125rem] font-bold">{tsd.subjectName}</p>
-                                                                <p className="teachers__subject-meta mt-0.5 font-mono text-[0.6875rem]">{tsd.subjectCode} · #{tsd.subjectId}</p>
-                                                            </div>
-                                                        </div>
+                                                <tr key={`${tsd.classId}-${tsd.subjectId}`} className="data-table__row">
+                                                    <td className="data-table__td">
+                                                        <span className="data-table__value">{tsd.subjectName}</span>
+                                                        <span className="data-table__sub">{tsd.subjectCode} · #{tsd.subjectId}</span>
                                                     </td>
-                                                    <td className="px-4 py-3.5">
-                                                        <p className="teachers__subject-class text-[0.8125rem] font-semibold">Grade {tsd.classGradeLevel} – {tsd.classSection}</p>
-                                                        <p className="teachers__subject-meta mt-0.5 font-mono text-[0.6875rem]">Class ID #{tsd.classId}</p>
+                                                    <td className="data-table__td">
+                                                        <span className="data-table__value">Grade {tsd.classGradeLevel} – {tsd.classSection}</span>
+                                                        <span className="data-table__sub">Class ID #{tsd.classId}</span>
                                                     </td>
-                                                    <td className="px-4 py-3.5 text-right">
+                                                    <td className="data-table__td data-table__td--num">
                                                         <span className="teachers__subject-unit inline-flex whitespace-nowrap rounded-full px-2.5 py-1 font-mono text-[0.6875rem] font-bold">
                                                             {tsd.subjectUnit} unit{tsd.subjectUnit > 1 ? "s" : ""}
                                                         </span>

@@ -27,7 +27,6 @@ import type { Teacher } from "../../constant/teachers.js";
 
 // Helper functions
 import { Validate } from "../../helper/validate.js";
-import { getInitials } from "../../helper/initials.js";
 
 import useClassroom from "../../hooks/useClassroom.js";
 
@@ -891,13 +890,13 @@ return (
                 
                 {/* classroom table  & page status view students*/}
                 {pageStatus === "view-students" && (
-                    <div className="classrooms__students-table-wrap mt-4 overflow-x-auto rounded-xl border">
+                    <div className="data-table__wrap mt-4 rounded-xl border">
                         {selectedClassroom.students && selectedClassroom.students.length > 0 ? (
                             
-                                <table className="classrooms__students-table w-full min-w-[52rem] border-collapse text-sm">
+                                <table className="data-table min-w-[64rem]">
                                     <thead>
                                         <tr>
-                                            <th className="classrooms__th-checkbox px-4 py-3">
+                                            <th scope="col" className="data-table__th w-10">
                                                 <input
                                                     type="checkbox"
                                                     className="classrooms__checkbox"
@@ -906,20 +905,20 @@ return (
                                                     aria-label="Select all students"
                                                 />
                                             </th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">LRN</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Student Name</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Sex</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Age</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Birthdate</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Email</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Enrollment ID</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Action</th>
+                                            <th scope="col" className="data-table__th w-32">LRN</th>
+                                            <th scope="col" className="data-table__th w-48">Student Name</th>
+                                            <th scope="col" className="data-table__th data-table__th--center w-16">Sex</th>
+                                            <th scope="col" className="data-table__th data-table__th--center w-16">Age</th>
+                                            <th scope="col" className="data-table__th w-28">Birthdate</th>
+                                            <th scope="col" className="data-table__th w-56">Email</th>
+                                            <th scope="col" className="data-table__th w-32">Enrollment ID</th>
+                                            <th scope="col" className="data-table__th w-20">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {selectedClassroom.students.map((student) => (
-                                            <tr key={student.enrollmentId} className={selectedStudentIds.includes(student.enrollmentId) ? "classrooms__row--selected" : ""}>
-                                                <td className="classrooms__td-checkbox px-4 py-3.5">
+                                            <tr key={student.enrollmentId} className={`data-table__row${selectedStudentIds.includes(student.enrollmentId) ? " classrooms__row--selected" : ""}`}>
+                                                <td className="data-table__td w-10">
                                                     <input
                                                         type="checkbox"
                                                         className="classrooms__checkbox"
@@ -928,38 +927,31 @@ return (
                                                         aria-label={`Select ${student.fullname}`}
                                                     />
                                                 </td>
-                                                <td className="classrooms__cell--lrn px-4 py-3.5 font-mono text-[0.8125rem]">
+                                                <td className="data-table__td data-table__td--mono">
                                                     {student.studentLrn}
                                                 </td>
-                                                <td className="classrooms__cell--name px-4 py-3.5">
-                                                    <div className="classrooms__student-cell flex items-center gap-3">
-                                                        <span className="classrooms__student-avatar inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[0.6875rem] font-bold uppercase" aria-hidden="true">
-                                                            {getInitials(student.fullname)}
-                                                        </span>
-                                                        <div className="min-w-0">
-                                                            <p className="classrooms__student-name truncate text-[0.8125rem] font-bold">{student.fullname}</p>
-                                                            <p className="classrooms__student-meta mt-0.5 font-mono text-[0.6875rem]">Student ID #{student.studentId}</p>
-                                                        </div>
-                                                    </div>
+                                                <td className="data-table__td">
+                                                    <span className="data-table__value">{student.fullname}</span>
+                                                    <span className="data-table__sub">Student ID #{student.studentId}</span>
                                                 </td>
-                                                <td className="px-4 py-3.5">
+                                                <td className="data-table__td data-table__td--center">
                                                     <span className={`classrooms__sex inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold capitalize classrooms__sex--${student.studentSex.toLowerCase()}`}>
                                                         {student.studentSex}
                                                     </span>
                                                 </td>
-                                                <td className="classrooms__cell--age px-4 py-3.5">
+                                                <td className="data-table__td data-table__td--center">
                                                     {student.studentAge}
                                                 </td>
-                                                <td className="classrooms__cell--date px-4 py-3.5">
+                                                <td className="data-table__td data-table__td--muted">
                                                     {student.studentBirthdate}
                                                 </td>
-                                                <td className="classrooms__cell--email px-4 py-3.5">
-                                                    {student.studentEmail}
+                                                <td className="data-table__td data-table__td--muted">
+                                                    <span className="data-table__truncate">{student.studentEmail}</span>
                                                 </td>
-                                                <td className="classrooms__cell--id px-4 py-3.5 font-mono text-[0.8125rem]">
+                                                <td className="data-table__td data-table__td--mono">
                                                     #{student.enrollmentId}
                                                 </td>
-                                                <td className="classrooms__cell--action px-4 py-3.5">
+                                                <td className="data-table__td">
                                                     <button
                                                         type="button"
                                                         className="classrooms__item-action classrooms__item-action--danger inline-flex h-8 w-8 items-center justify-center rounded-lg"
@@ -990,30 +982,23 @@ return (
                 {pageStatus === "view-subjects" && (
                     <section className="classrooms__subjects mt-4" aria-label="Classroom subjects">
                         {classroomTeachersWithSubject && classroomTeachersWithSubject.length > 0 ? (
-                            <div className="classrooms__subjects-table-wrap overflow-x-auto rounded-xl border">
-                                <table className="classrooms__subjects-table w-full min-w-[32rem] border-collapse text-sm">
+                            <div className="data-table__wrap rounded-xl border">
+                                <table className="data-table">
                                     <thead>
                                         <tr>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Teacher</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Subject</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Action</th>
+                                            <th scope="col" className="data-table__th w-48">Teacher</th>
+                                            <th scope="col" className="data-table__th w-48">Subject</th>
+                                            <th scope="col" className="data-table__th data-table__th--actions w-24">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {classroomTeachersWithSubject.map((item) => (
-                                            <tr key={`${item.teacherId}-${item.subjectId}`}>
-                                                <td className="px-4 py-3.5">
-                                                    <div className="classrooms__subjects-teacher inline-flex items-center gap-3">
-                                                        <span className="classrooms__subjects-avatar inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[0.6875rem] font-bold" aria-hidden="true">
-                                                            {getInitials(item.teacherFullname)}
-                                                        </span>
-                                                        <div className="min-w-0">
-                                                            <span className="classrooms__subjects-teacher-name block truncate text-[0.8125rem] font-bold">{item.teacherFullname}</span>
-                                                            <span className="classrooms__subjects-teacher-meta mt-0.5 block font-mono text-[0.6875rem]">{item.code} &middot; {item.unit} unit{item.unit > 1 ? "s" : ""}</span>
-                                                        </div>
-                                                    </div>
+                                            <tr key={`${item.teacherId}-${item.subjectId}`} className="data-table__row">
+                                                <td className="data-table__td">
+                                                    <span className="data-table__value">{item.teacherFullname}</span>
+                                                    <span className="data-table__sub">{item.code} &middot; {item.unit} unit{item.unit > 1 ? "s" : ""}</span>
                                                 </td>
-                                                <td className="px-4 py-3.5">
+                                                <td className="data-table__td">
                                                     <span className="classrooms__subjects-subject inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 font-semibold">
                                                         <span className="classrooms__subjects-subject-icon" aria-hidden="true">
                                                             <FiBookOpen />
@@ -1022,7 +1007,7 @@ return (
                                                     </span>
                                                 </td>
 
-                                                <td className="classrooms__subjects-actions px-4 py-3.5">
+                                                <td className="data-table__td data-table__td--actions">
                                                     <button className="classrooms__subjects-actions-icon inline-flex h-8 w-8 items-center justify-center rounded-lg"
                                                     onClick={() => 
                                                         handleChangeSubjectTeacherClickEvent(item.subjectId, selectedClassroom.id)
@@ -1168,9 +1153,6 @@ return (
                                                 checked={selectedSubjectIds.includes(st.subjectId)}
                                                 onChange={handleSubjectSelectionChangeEvent}
                                             />
-                                            <span className="classrooms-subject-picker__avatar inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold uppercase" aria-hidden="true">
-                                                {st.subjectName.trim().charAt(0) || "?"}
-                                            </span>
                                             <span className="classrooms-subject-picker__info flex min-w-0 flex-col">
                                                 <span className="classrooms-subject-picker__name truncate text-sm font-bold">{st.subjectName}</span>
                                                 <span className="classrooms-subject-picker__meta flex items-center gap-1.5 text-xs">
@@ -1206,9 +1188,6 @@ return (
                                                                     value={t.teacherId}
                                                                     onChange={(e) => handleNewClassroomSubjectAddedChangeEvent(e, st.subjectId)}
                                                                 />
-                                                                <span className="classrooms-subject-picker__avatar classrooms-subject-picker__avatar--sm inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold uppercase" aria-hidden="true">
-                                                                    {t.teacherFullname.trim().charAt(0) || "?"}
-                                                                </span>
                                                                 <span className="classrooms-subject-picker__info flex min-w-0 flex-col">
                                                                     <span className="classrooms-subject-picker__name truncate text-sm font-bold">{t.teacherFullname}</span>
                                                                 </span>
@@ -1263,7 +1242,6 @@ return (
                                             checked={adviserSelection === null}
                                             onChange={() => setAdviserSelection(null)}
                                         />
-                                        <span className="classrooms-subject-picker__avatar inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold uppercase classrooms-subject-picker__avatar--sm" aria-hidden="true">—</span>
                                         <span className="classrooms-subject-picker__info flex min-w-0 flex-col">
                                             <span className="classrooms-subject-picker__name truncate text-sm font-bold">No class adviser</span>
                                             <span className="classrooms-subject-picker__meta flex items-center gap-1.5 text-xs">
@@ -1292,9 +1270,6 @@ return (
                                                     checked={adviserSelection === teacher.id}
                                                     onChange={() => setAdviserSelection(teacher.id)}
                                                 />
-                                                <span className="classrooms-subject-picker__avatar inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold uppercase" aria-hidden="true">
-                                                    {teacher.fullname.trim().charAt(0) || "?"}
-                                                </span>
                                                 <span className="classrooms-subject-picker__info flex min-w-0 flex-col">
                                                     <span className="classrooms-subject-picker__name truncate text-sm font-bold">{teacher.fullname}</span>
                                                     <span className="classrooms-subject-picker__meta flex items-center gap-1.5 text-xs">
@@ -1357,9 +1332,6 @@ return (
                                                 handleEditSubjectTeacherChangeEvent(e, st.subjectId);
                                               }}
                                           />
-                                            <span className="classrooms-subject-picker__avatar inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold uppercase" aria-hidden="true">
-                                              {st.teacherFullname.trim().charAt(0) || "?"}
-                                            </span>
                                             <span className="classrooms-subject-picker__info flex min-w-0 flex-col">
                                                 <span className="classrooms-subject-picker__name truncate text-sm font-bold">
                                                   {st.teacherFullname}

@@ -1,0 +1,226 @@
+/* ============================================================
+   Data tables — the single table style the whole app uses.
+
+   Markup contract:
+     <div class="data-table__wrap">
+       <table class="data-table">
+         <thead>
+           <tr>
+             <th class="data-table__th">Label</th>
+             <th class="data-table__th data-table__th--num">Score</th>
+           </tr>
+         </thead>
+         <tbody>
+           <tr class="data-table__row data-table__row--clickable">
+             <td class="data-table__td data-table__td--primary">Name</td>
+             <td class="data-table__td data-table__td--muted">email@school.edu</td>
+             <td class="data-table__td data-table__td--num">90.5</td>
+             <td class="data-table__td data-table__td--actions">…buttons…</td>
+           </tr>
+         </tbody>
+       </table>
+     </div>
+
+   Cell intent (never restated per page):
+     --primary   the row's anchor value (a name, a title)
+     --muted     secondary text (email, section, dates)
+     --mono      ids and LRNs, so digits line up between rows
+     --num       right-aligned figures with tabular spacing
+     --center    centred figures for grade matrices and unit counts
+     --actions   right-aligned row buttons
+     --empty     one centred cell standing in for "no rows"
+   Plus __value / __sub for the common "anchor value over a quiet second
+   line" cell, both of which live in this file too.
+
+   Deliberately minimal: no column dividers, no zebra striping, no header
+   fill — a hairline under the head, a hairline between rows, and a hover
+   tint are the only chrome.
+
+   Layout is fixed: a column's width comes from its head cell (or a <col>
+   width), never from how long a value happens to be, so a long name or
+   email cannot stretch its column or push the next one sideways. Cells
+   clip instead of spilling, and ellipsize when the value is too long for
+   the space it was given. A cell that genuinely needs a second line opts
+   in with __td--wrap / __th--wrap.
+   ============================================================ */
+
+.data-table__wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  min-width: 40rem;
+  /* Columns are sized by the head/colgroup, not by cell content. */
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem;
+}
+
+/* ---------- Head ---------- */
+.data-table__th {
+  padding: 0.625rem 1rem;
+  text-align: left;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-muted);
+  background: var(--surface-white);
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.data-table__th--num,
+.data-table__th--actions {
+  text-align: right;
+}
+
+.data-table__th--center {
+  text-align: center;
+}
+
+/* ---------- Body ---------- */
+.data-table__td {
+  padding: 0.75rem 1rem;
+  color: var(--text-body);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--neutral-border);
+  /* One line per cell: overflow is clipped with an ellipsis rather than
+     wrapping (which would grow the row) or spilling into the neighbour. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-table__row {
+  transition: background var(--transition-fast);
+}
+
+.data-table__row:hover {
+  background: var(--accent-light);
+}
+
+.data-table__row--clickable {
+  cursor: pointer;
+}
+
+.data-table tbody tr:last-child .data-table__td {
+  border-bottom: none;
+}
+
+/* ---------- Cell intent ---------- */
+.data-table__td--primary {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.data-table__td--muted {
+  color: var(--text-muted);
+}
+
+.data-table__td--mono {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.data-table__td--num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table__td--center {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Two-line cell: the anchor value with a quieter second line under it
+   (subject + teacher, name + LRN, section + adviser). Each line is its own
+   clipped line, so a long value ellipsizes instead of wrapping the row. */
+.data-table__value {
+  display: block;
+  font-weight: 600;
+  color: var(--text-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-table__sub {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-table__td--actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Long single values (emails, titles) stay on one line and clip cleanly
+   instead of stretching or wrapping the row. The cell already clips; this
+   keeps the value a block so it can never sit on its own baseline offset. */
+.data-table__truncate {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Controlled wrapping (opt-in) ---------- */
+/* For the rare cell that must run onto more than one line — a long header
+   label. The column keeps its width; only the row grows taller. */
+.data-table__th--wrap,
+.data-table__td--wrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+}
+
+.data-table__td--wrap .data-table__value,
+.data-table__td--wrap .data-table__sub {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+}
+
+/* First column that stays put while the rest of the table scrolls sideways
+   (grade matrices). Opaque, or the scrolling rows would show through it. */
+.data-table__sticky {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--surface-white);
+}
+
+/* ---------- Empty state ---------- */
+/* A real row, so the header stays visible and the table never collapses. */
+.data-table__empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* ---------- Narrow screens ---------- */
+@media (max-width: 640px) {
+  .data-table__th,
+  .data-table__td {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .data-table__row {
+    transition: none;
+  }
+}

@@ -5,7 +5,6 @@ import { getAPICall, API } from "../../api/api";
 import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useUser } from "../../hooks/useUser";
-import { getInitials } from "../../helper/initials";
 
 import type { ClassroomResponseProps } from "../../constant/classrooms";
 
@@ -207,47 +206,38 @@ export default function TeacherReport() {
                     )}
                 </div>
 
-                <div className="teacher-classes__roster-table-wrap overflow-x-auto rounded-xl border">
+                <div className="data-table__wrap rounded-xl border">
                     {loadingRoster ? (
                         <div className="p-5">
                             <Skeleton count={5} lines={1} height="3.5rem" gap="0.75rem" />
                         </div>
                     ) : students.length > 0 ? (
-                        <table className="teacher-classes__roster-table w-full min-w-[40rem] border-collapse text-sm">
+                        <table className="data-table">
                             <thead>
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">#</th>
-                                    <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">LRN</th>
-                                    <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Student Name</th>
-                                    <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Sex</th>
-                                    <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Age</th>
-                                    <th className="px-4 py-3 text-right text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Action</th>
+                                    <th scope="col" className="data-table__th data-table__th--num w-12">#</th>
+                                    <th scope="col" className="data-table__th w-32">LRN</th>
+                                    <th scope="col" className="data-table__th w-48">Student Name</th>
+                                    <th scope="col" className="data-table__th data-table__th--center w-16">Sex</th>
+                                    <th scope="col" className="data-table__th data-table__th--center w-16">Age</th>
+                                    <th scope="col" className="data-table__th data-table__th--actions w-32">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {students.map((student, index) => (
-                                    <tr key={student.enrollmentId} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-4 py-3.5 text-gray-500">{index + 1}</td>
-                                        <td className="px-4 py-3.5">
-                                            <span className="teacher-classes__lrn-chip inline-flex items-center rounded-md px-2 py-1 font-mono text-[0.75rem]">
-                                                {student.studentLrn}
-                                            </span>
+                                    <tr key={student.enrollmentId} className="data-table__row">
+                                        <td className="data-table__td data-table__td--num data-table__td--muted">{index + 1}</td>
+                                        <td className="data-table__td data-table__td--mono">
+                                            {student.studentLrn}
                                         </td>
-                                        <td className="px-4 py-3.5">
-                                            <div className="teacher-classes__student-cell flex items-center gap-3">
-                                                <span className="teacher-classes__student-avatar inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[0.6875rem] font-bold uppercase" aria-hidden="true">
-                                                    {getInitials(student.fullname)}
-                                                </span>
-                                                <span className="text-[0.8125rem] font-bold">{student.fullname}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3.5">
+                                        <td className="data-table__td data-table__td--primary">{student.fullname}</td>
+                                        <td className="data-table__td data-table__td--center">
                                             <span className={`teacher-classes__sex inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold capitalize teacher-classes__sex--${student.studentSex.toLowerCase()}`}>
                                                 {student.studentSex}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3.5">{student.studentAge}</td>
-                                        <td className="px-4 py-3.5 text-right">
+                                        <td className="data-table__td data-table__td--center">{student.studentAge}</td>
+                                        <td className="data-table__td data-table__td--actions">
                                             <button
                                                 type="button"
                                                 className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-[0.75rem] font-bold text-blue-700 transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"

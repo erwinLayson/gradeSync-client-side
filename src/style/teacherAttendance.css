@@ -286,40 +286,6 @@
   white-space: nowrap;
 }
 
-.teacher-attendance__student-cell--link {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  border-radius: var(--radius-lg);
-  padding: 0.25rem 0.375rem;
-  margin: -0.25rem -0.375rem;
-  transition: background var(--transition-fast), box-shadow var(--transition-fast);
-  font-family: var(--font-sans);
-}
-
-.teacher-attendance__student-cell--link:hover {
-  background: var(--accent-light);
-  box-shadow: 0 0 0 1px var(--primary-light);
-}
-
-.teacher-attendance__student-cell--link:focus-visible {
-  outline: 2px solid var(--primary-light);
-  outline-offset: 2px;
-}
-
-.teacher-attendance__student-cell--link .teacher-attendance__student-name {
-  color: var(--primary-dark);
-}
-
-.teacher-attendance__student-cell--link:hover .teacher-attendance__student-name {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.teacher-attendance__student-cell--link .teacher-attendance__student-lrn svg {
-  flex-shrink: 0;
-}
-
 .teacher-attendance__student-avatar {
   color: var(--primary);
   background: var(--neutral-border);
@@ -332,26 +298,6 @@
 
 .teacher-attendance__student-lrn {
   color: var(--text-muted);
-}
-
-/* Status badges */
-.teacher-attendance__status {
-  white-space: nowrap;
-}
-
-.teacher-attendance__status--present {
-  color: #065f46;
-  background: #d1fae5;
-}
-
-.teacher-attendance__status--late {
-  color: #92400e;
-  background: #fef3c7;
-}
-
-.teacher-attendance__status--absent {
-  color: #b91c1c;
-  background: #fee2e2;
 }
 
 /* Time + remarks cells */
@@ -390,35 +336,8 @@
   flex-shrink: 0;
 }
 
-/* ---------- Attendance history view (in-page, replaces the sheet) ---------- */
-.teacher-attendance__history-filters {
-  background: var(--surface-bg);
-}
-
-.teacher-attendance__history-summary {
-  background: var(--surface-white);
-}
-
-/* History summary stats */
-.teacher-attendance__history-stat {
-  border-color: var(--neutral-border);
-  background: var(--surface-white);
-}
-
-.teacher-attendance__history-stat--pct {
-  border-color: var(--primary-light);
-  background: var(--accent-light);
-}
-
-.teacher-attendance__history-stat-value {
-  color: var(--primary-dark);
-}
-
-.teacher-attendance__history-stat-label {
-  color: var(--text-muted);
-}
-
-.teacher-attendance__history-empty {
+/* ---------- Empty-state icon ---------- */
+.teacher-attendance__empty-icon {
   color: var(--primary);
   background: var(--neutral-border);
 }

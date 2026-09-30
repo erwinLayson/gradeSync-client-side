@@ -413,9 +413,6 @@ export default function AdminEnrollments() {
                     checked={selectedStudent?.id === s.id}
                     onChange={() => setSelectedStudent(s)}
                   />
-                  <span className="enrollments__avatar inline-flex h-9 w-9 shrink-0 items-center justify-center text-xs">
-                    {s.fullname.charAt(0).toUpperCase()}
-                  </span>
                   <span className="enrollments__result-info flex min-w-0 flex-col gap-px">
                     <span className="enrollments__result-name text-[0.8125rem] font-semibold">
                       {s.fullname}
@@ -448,9 +445,6 @@ export default function AdminEnrollments() {
           {selectedStudent && (
             <div className="enrollments__profile mx-5 mb-5 p-4">
               <div className="enrollments__profile-head flex items-center gap-3">
-                <span className="enrollments__avatar enrollments__avatar--lg inline-flex h-12 w-12 shrink-0 items-center justify-center text-sm">
-                  {selectedStudent.fullname.charAt(0).toUpperCase()}
-                </span>
                 <div className="enrollments__profile-heading min-w-0">
                   <h4 className="enrollments__profile-name text-[0.9375rem] font-bold">
                     {selectedStudent.fullname}

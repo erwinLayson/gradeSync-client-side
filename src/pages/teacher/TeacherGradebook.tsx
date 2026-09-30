@@ -24,7 +24,6 @@ import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ModalDialog } from "../../components/ModalDialog";
 import Skeleton from "../../components/Skeleton";
-import { getInitials } from "../../helper/initials";
 import { toast } from "../../helper/toast";
 import { computeFlatQuarterGradePreview, isPassing } from "../../helper/grades";
 
@@ -760,25 +759,27 @@ export default function TeacherGradebook() {
                         </p>
                     </div>
                 ) : (
-                    <div className="teacher-gradebook__sheet-wrap overflow-x-auto">
-                        <table className="teacher-gradebook__sheet w-full min-w-[60rem] border-collapse text-sm">
+                    <div className="data-table__wrap">
+                        {/* One 10rem column per assessment keeps the sheet readable
+                            no matter how many assessments there are. */}
+                        <table
+                            className="data-table"
+                            style={{ minWidth: `${38 + assessments.length * 10}rem` }}
+                        >
                             <thead>
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                    <th scope="col" className="data-table__th w-48">
                                         Student
                                     </th>
 
                                     {assessments.map((assessment) => (
-                                        <th
-                                            key={assessment.id}
-                                            className="px-3 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]"
-                                        >
-                                            <div className="teacher-gradebook__assessment-cell flex min-w-[9rem] flex-col gap-1">
+                                        <th key={assessment.id} scope="col" className="data-table__th w-40">
+                                            <div className="teacher-gradebook__assessment-cell flex flex-col gap-1">
                                                 <span className="teacher-gradebook__assessment-title flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.06em]">
                                                     <span className="teacher-gradebook__assessment-type inline-flex items-center rounded px-1.5 py-0.5 text-[0.625rem] font-bold">
                                                         {ASSESSMENT_TYPE_META[assessment.type].short}
                                                     </span>
-                                                    <span className="truncate">{assessment.title}</span>
+                                                    <span className="min-w-0 truncate">{assessment.title}</span>
                                                 </span>
                                                 <span className="teacher-gradebook__assessment-meta font-mono text-[0.6875rem]">
                                                     {assessment.dateGiven ? `${assessment.dateGiven} · ` : ""}max{" "}
@@ -806,21 +807,19 @@ export default function TeacherGradebook() {
                                         </th>
                                     ))}
 
-                                    <th className="px-3 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                    <th scope="col" className="data-table__th data-table__th--center w-24">
                                         Total
                                     </th>
-                                    <th className="px-3 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
-                                        <div className="flex flex-col gap-1">
-                                            <span>Attendance</span>
-                                            <span className="teacher-gradebook__attendance-meta font-mono text-[0.6875rem]">
-                                                weight {attendanceWeight}%
-                                            </span>
-                                        </div>
+                                    <th scope="col" className="data-table__th data-table__th--center w-28">
+                                        <span className="block">Attendance</span>
+                                        <span className="teacher-gradebook__attendance-meta block font-mono">
+                                            weight {attendanceWeight}%
+                                        </span>
                                     </th>
-                                    <th className="px-3 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                    <th scope="col" className="data-table__th data-table__th--center w-28">
                                         Grade
                                     </th>
-                                    <th className="px-3 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                    <th scope="col" className="data-table__th data-table__th--center w-28">
                                         Remarks
                                     </th>
                                 </tr>
@@ -835,30 +834,20 @@ export default function TeacherGradebook() {
                                         remarks: null,
                                     };
                                     return (
-                                        <tr key={student.enrollmentId}>
-                                            <td className="teacher-gradebook__cell--student px-4 py-3.5">
-                                                <div className="teacher-gradebook__student-cell flex items-center gap-3">
-                                                    <span
-                                                        className="teacher-gradebook__student-avatar inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[0.6875rem] font-bold uppercase"
-                                                        aria-hidden="true"
-                                                    >
-                                                        {getInitials(student.fullname)}
-                                                    </span>
-                                                    <div className="min-w-0">
-                                                        <p className="teacher-gradebook__student-name truncate text-[0.8125rem] font-bold">
-                                                            {student.fullname}
-                                                        </p>
-                                                        <p className="teacher-gradebook__student-lrn mt-0.5 font-mono text-[0.6875rem]">
-                                                            LRN {student.studentLrn}
-                                                        </p>
-                                                    </div>
-                                                </div>
+                                        <tr key={student.enrollmentId} className="data-table__row">
+                                            <td className="data-table__td">
+                                                <span className="data-table__value">
+                                                    {student.fullname}
+                                                </span>
+                                                <span className="data-table__sub">
+                                                    LRN {student.studentLrn}
+                                                </span>
                                             </td>
 
                                             {assessments.map((assessment) => (
                                                 <td
                                                     key={assessment.id}
-                                                    className="teacher-gradebook__cell--score px-3 py-3.5 text-center"
+                                                    className="data-table__td data-table__td--center"
                                                 >
                                                     <input
                                                         type="number"
@@ -881,12 +870,12 @@ export default function TeacherGradebook() {
                                                 </td>
                                             ))}
 
-                                            <td className="teacher-gradebook__cell--total px-3 py-3.5 text-center font-mono text-[0.8125rem] font-bold">
+                                            <td className="data-table__td data-table__td--center data-table__td--mono font-mono text-[0.8125rem] font-bold">
                                                 {computed.totalMaxScore > 0
                                                     ? `${Math.round(computed.totalScore)}/${computed.totalMaxScore}`
                                                     : "—"}
                                             </td>
-                                            <td className="px-3 py-3.5 text-center">
+                                            <td className="data-table__td data-table__td--center">
                                                 {student.attendance && student.attendance.totalDays > 0 ? (
                                                     <span
                                                         className={`teacher-gradebook__attendance inline-flex flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1${
@@ -920,7 +909,7 @@ export default function TeacherGradebook() {
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="px-3 py-3.5 text-center">
+                                            <td className="data-table__td data-table__td--center">
                                                 {computed.quarterGrade !== null ? (
                                                     <div className="flex flex-col items-center gap-0.5">
                                                         <span
@@ -956,7 +945,7 @@ export default function TeacherGradebook() {
                                                     <span className="text-[0.8125rem] text-gray-400">—</span>
                                                 )}
                                             </td>
-                                            <td className="px-3 py-3.5 text-center">
+                                            <td className="data-table__td data-table__td--center">
                                                 {computed.remarks ? (
                                                     <span
                                                         className={`teacher-gradebook__remarks inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold${

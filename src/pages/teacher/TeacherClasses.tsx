@@ -5,7 +5,6 @@ import { FiBookOpen, FiClipboard, FiClock, FiHome, FiUsers } from "react-icons/f
 import { getAPICall } from "../../api/api";
 import Skeleton from "../../components/Skeleton";
 import { useUser } from "../../hooks/useUser";
-import { getInitials } from "../../helper/initials";
 
 import type { TeacherDetails, TeacherSubjectDetails } from "../../constant/teachers";
 import type { ClassroomResponseProps } from "../../constant/classrooms";
@@ -154,9 +153,6 @@ export default function TeacherClasses() {
             {/* Hero banner */}
             <div className="teacher-classes__hero flex flex-wrap items-center justify-between gap-4 p-6">
                 <div className="teacher-classes__hero-main flex min-w-0 items-center gap-4">
-                    <span className="teacher-classes__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-bold" aria-hidden="true">
-                        {getInitials(teacher.fullname)}
-                    </span>
                     <div className="teacher-classes__hero-heading min-w-0">
                         <span className="teacher-classes__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
                             Teacher

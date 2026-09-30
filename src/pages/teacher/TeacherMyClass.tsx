@@ -4,7 +4,6 @@ import { getAPICall } from "../../api/api";
 import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useUser } from "../../hooks/useUser";
-import { getInitials } from "../../helper/initials";
 import { isPassing } from "../../helper/grades";
 
 import type { ClassroomResponseProps, ClassroomTeachersWithSubjectProps } from "../../constant/classrooms";
@@ -320,39 +319,24 @@ export default function TeacherMyClass() {
                             )}
                         </div>
 
-                        <div className="teacher-classes__roster-table-wrap mt-4 overflow-x-auto rounded-xl border">
+                        <div className="data-table__wrap mt-4 rounded-xl border">
                             {teachersWithSubjects.length > 0 ? (
-                                <table className="teacher-classes__roster-table w-full min-w-[32rem] border-collapse text-sm">
+                                <table className="data-table">
                                     <thead>
                                         <tr>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Subject</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Code</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Teacher</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Units</th>
+                                            <th scope="col" className="data-table__th w-56">Subject</th>
+                                            <th scope="col" className="data-table__th w-24">Code</th>
+                                            <th scope="col" className="data-table__th w-48">Teacher</th>
+                                            <th scope="col" className="data-table__th data-table__th--num w-20">Units</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {teachersWithSubjects.map((ct) => (
-                                            <tr key={`${ct.teacherId}-${ct.subjectId}`}>
-                                                <td className="px-4 py-3.5">
-                                                    <span className="text-[0.8125rem] font-bold">{ct.subjectName}</span>
-                                                </td>
-                                                <td className="px-4 py-3.5">
-                                                    <span className="teacher-classes__lrn-chip inline-flex items-center rounded-md px-2 py-1 font-mono text-[0.75rem]">
-                                                        {ct.code}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3.5">
-                                                    <div className="teacher-classes__student-cell flex items-center gap-3">
-                                                        <span className="teacher-classes__student-avatar inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[0.6875rem] font-bold uppercase" aria-hidden="true">
-                                                            {getInitials(ct.teacherFullname)}
-                                                        </span>
-                                                        <span className="text-[0.8125rem] font-bold">{ct.teacherFullname}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-4 py-3.5">
-                                                    <span className="text-[0.8125rem]">{ct.unit}</span>
-                                                </td>
+                                            <tr key={`${ct.teacherId}-${ct.subjectId}`} className="data-table__row">
+                                                <td className="data-table__td data-table__td--primary">{ct.subjectName}</td>
+                                                <td className="data-table__td data-table__td--mono">{ct.code}</td>
+                                                <td className="data-table__td">{ct.teacherFullname}</td>
+                                                <td className="data-table__td data-table__td--num">{ct.unit}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -381,48 +365,41 @@ export default function TeacherMyClass() {
                             )}
                         </div>
 
-                        <div className="teacher-classes__roster-table-wrap mt-4 overflow-x-auto rounded-xl border">
+                        <div className="data-table__wrap mt-4 rounded-xl border">
                             {loadingRoster ? (
                                 <div className="p-5"><Skeleton count={4} lines={1} height="2.75rem" gap="0.75rem" /></div>
                             ) : students.length > 0 ? (
-                                <table className="teacher-classes__roster-table w-full min-w-[46rem] border-collapse text-sm">
+                                <table className="data-table min-w-[52rem]">
                                     <thead>
                                         <tr>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">LRN</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Student Name</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Sex</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Age</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Birthdate</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Email</th>
+                                            <th scope="col" className="data-table__th w-32">LRN</th>
+                                            <th scope="col" className="data-table__th w-48">Student Name</th>
+                                            <th scope="col" className="data-table__th data-table__th--center w-16">Sex</th>
+                                            <th scope="col" className="data-table__th data-table__th--center w-16">Age</th>
+                                            <th scope="col" className="data-table__th w-28">Birthdate</th>
+                                            <th scope="col" className="data-table__th w-56">Email</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {students.map((student) => (
-                                            <tr key={student.enrollmentId}>
-                                                <td className="px-4 py-3.5">
-                                                    <span className="teacher-classes__lrn-chip inline-flex items-center rounded-md px-2 py-1 font-mono text-[0.75rem]">
-                                                        {student.studentLrn}
-                                                    </span>
+                                            <tr key={student.enrollmentId} className="data-table__row">
+                                                <td className="data-table__td data-table__td--mono">
+                                                    {student.studentLrn}
                                                 </td>
-                                                <td className="px-4 py-3.5">
-                                                    <div className="teacher-classes__student-cell flex items-center gap-3">
-                                                        <span className="teacher-classes__student-avatar inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[0.6875rem] font-bold uppercase" aria-hidden="true">
-                                                            {getInitials(student.fullname)}
-                                                        </span>
-                                                        <div className="min-w-0">
-                                                            <p className="teacher-classes__student-name truncate text-[0.8125rem] font-bold">{student.fullname}</p>
-                                                            <p className="teacher-classes__student-meta mt-0.5 font-mono text-[0.6875rem]">Student ID #{student.studentId}</p>
-                                                        </div>
-                                                    </div>
+                                                <td className="data-table__td">
+                                                    <span className="data-table__value">{student.fullname}</span>
+                                                    <span className="data-table__sub">Student ID #{student.studentId}</span>
                                                 </td>
-                                                <td className="px-4 py-3.5">
+                                                <td className="data-table__td data-table__td--center">
                                                     <span className={`teacher-classes__sex inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold capitalize teacher-classes__sex--${student.studentSex.toLowerCase()}`}>
                                                         {student.studentSex}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-3.5">{student.studentAge}</td>
-                                                <td className="px-4 py-3.5">{student.studentBirthdate}</td>
-                                                <td className="px-4 py-3.5">{student.studentEmail}</td>
+                                                <td className="data-table__td data-table__td--center">{student.studentAge}</td>
+                                                <td className="data-table__td data-table__td--muted">{student.studentBirthdate}</td>
+                                                <td className="data-table__td data-table__td--muted">
+                                                    <span className="data-table__truncate">{student.studentEmail}</span>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -456,27 +433,33 @@ export default function TeacherMyClass() {
                         )}
                     </div>
 
-                    <div className="teacher-classes__roster-table-wrap mt-4 overflow-x-auto rounded-xl border">
+                    <div className="data-table__wrap mt-4 rounded-xl border">
                         {loadingGrades ? (
                             <div className="p-5"><Skeleton count={4} lines={1} height="2.75rem" gap="0.75rem" /></div>
                         ) : studentGrades.length > 0 ? (
-                            <table className="teacher-classes__roster-table w-full min-w-[50rem] border-collapse text-sm">
+                            // Quarter columns share the leftover width evenly, so the
+                            // table needs at least 4rem per cell to keep "Q1" and a
+                            // three-digit grade readable.
+                            <table
+                                className="data-table"
+                                style={{ minWidth: `${12 + teachersWithSubjects.length * quarters.length * 4}rem` }}
+                            >
                                 <thead>
                                     <tr>
-                                        <th rowSpan={2} className="sticky left-0 z-10 bg-gray-50 px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                        <th rowSpan={2} scope="col" className="data-table__th data-table__sticky w-48">
                                             Student
                                         </th>
                                         {teachersWithSubjects.map((s) => (
-                                            <th key={s.classSubjectId} colSpan={quarters.length} className="border-x px-2 py-2 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em] bg-gray-50">
-                                                <span className="block">{s.subjectName}</span>
-                                                <span className="block font-normal normal-case text-gray-500">{s.code}</span>
+                                            <th key={s.classSubjectId} colSpan={quarters.length} scope="colgroup" className="data-table__th border-x text-center">
+                                                <span className="data-table__value block">{s.subjectName}</span>
+                                                <span className="data-table__sub block font-mono">{s.code}</span>
                                             </th>
                                         ))}
                                     </tr>
                                     <tr>
                                         {teachersWithSubjects.map((s) => (
                                             quarters.map((q) => (
-                                                <th key={`${s.classSubjectId}-q${q}`} className="px-2 py-1.5 text-center text-[0.625rem] font-semibold text-gray-500">
+                                                <th key={`${s.classSubjectId}-q${q}`} scope="col" className="data-table__th data-table__th--center">
                                                     Q{q}
                                                 </th>
                                             ))
@@ -485,20 +468,15 @@ export default function TeacherMyClass() {
                                 </thead>
                                 <tbody>
                                     {studentGrades.map((sg) => (
-                                        <tr key={sg.enrollmentId} className="hover:bg-gray-50">
-                                            <td className="sticky left-0 z-10 bg-white px-4 py-3.5">
-                                                <div className="teacher-classes__student-cell flex items-center gap-3">
-                                                    <span className="teacher-classes__student-avatar inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[0.625rem] font-bold uppercase" aria-hidden="true">
-                                                        {getInitials(sg.fullname)}
-                                                    </span>
-                                                    <span className="truncate text-[0.8125rem] font-bold">{sg.fullname}</span>
-                                                </div>
+                                        <tr key={sg.enrollmentId} className="data-table__row">
+                                            <td className="data-table__td data-table__td--primary data-table__sticky">
+                                                {sg.fullname}
                                             </td>
                                             {teachersWithSubjects.flatMap((s) =>
                                                 quarters.map((q) => {
                                                     const grade = sg.grades[s.classSubjectId]?.[q]?.quarterGrade;
                                                     return (
-                                                        <td key={`${sg.enrollmentId}-${s.classSubjectId}-q${q}`} className="px-2 py-3.5 text-center">
+                                                        <td key={`${sg.enrollmentId}-${s.classSubjectId}-q${q}`} className="data-table__td data-table__td--center">
                                                             {grade != null ? (
                                                                 <span className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-md text-[0.75rem] font-bold ${
                                                                     isPassing(grade) ? "text-green-700"

@@ -414,60 +414,6 @@
   background: var(--neutral-border);
 }
 
-.subjects__teachers-table-wrap {
-  border-color: var(--neutral-border);
-}
-
-.subjects__teachers-table th {
-  text-align: left;
-  color: var(--text-muted);
-  background: var(--surface-bg);
-  border-bottom: 1px solid var(--neutral-border);
-  white-space: nowrap;
-}
-
-.subjects__teachers-table td {
-  color: var(--text-body);
-  border-bottom: 1px solid var(--neutral-border);
-  vertical-align: middle;
-}
-
-.subjects__teachers-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.subjects__teachers-table tbody tr:nth-child(even) {
-  background: var(--surface-bg);
-}
-
-.subjects__teachers-table tbody tr {
-  transition: background var(--transition-fast);
-}
-
-.subjects__teachers-table tbody tr:hover {
-  background: var(--accent-light);
-}
-
-/* Table cell variants */
-.subjects__cell--index {
-  color: var(--text-muted);
-}
-
-.subjects__cell--name {
-  color: var(--text-dark);
-  white-space: nowrap;
-}
-
-.subjects__teacher-avatar {
-  color: var(--primary);
-  background: var(--neutral-border);
-  box-shadow: var(--shadow-sm);
-}
-
-.subjects__teacher-name {
-  color: var(--text-dark);
-}
-
 .subjects__teacher-meta {
   color: var(--text-muted);
 }
@@ -604,11 +550,6 @@
   margin: 0;
   accent-color: var(--primary);
   cursor: pointer;
-}
-
-.unassign-teacher-form__avatar {
-  color: var(--primary-dark);
-  background: var(--neutral-border);
 }
 
 /* Loading state for the assign form */

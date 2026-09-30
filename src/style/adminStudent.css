@@ -174,18 +174,25 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 0;
   white-space: nowrap;
 }
 
 .students__name {
   font-weight: 600;
   color: var(--text-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Clickable student name (opens the student-details modal) */
 .students__name-link {
   display: inline-flex;
   align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
   border: none;
   padding: 0;
   background: transparent;
@@ -211,6 +218,7 @@
 .students__status-chip {
   display: inline-flex;
   align-items: center;
+  flex: none;
   padding: 0.125rem 0.5rem;
   border: 1px solid #fecaca;
   border-radius: 9999px;
@@ -273,62 +281,6 @@
   outline-offset: 2px;
 }
 
-/* ---------- Table ---------- */
-.students__table th {
-  text-align: left;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  background: var(--surface-bg);
-  border-bottom: 1px solid var(--neutral-border);
-  white-space: nowrap;
-}
-
-.students__table td {
-  color: var(--text-body);
-  border-bottom: 1px solid var(--neutral-border);
-  vertical-align: middle;
-}
-
-.students__table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.students__table tbody tr:nth-child(even) {
-  background: var(--surface-bg);
-}
-
-.students__table tbody tr {
-  transition: background var(--transition-fast);
-}
-
-.students__table tbody tr:hover {
-  background: var(--accent-light);
-}
-
-/* Cell variants */
-.students__cell--id {
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-}
-
-.students__cell--lrn {
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--primary-dark);
-}
-
-.students__cell--name {
-  font-weight: 600;
-  color: var(--text-dark);
-  white-space: nowrap;
-}
-
-.students__cell--email {
-  color: var(--text-muted);
-}
 
 
 
@@ -584,6 +536,7 @@ select.students-form__input {
   white-space: nowrap;
 }
 
+/* Remarks pill (the rounded shape comes from the element's utilities). */
 .students-detail__grade-pass {
   color: #065f46;
   background: #d1fae5;
@@ -594,16 +547,14 @@ select.students-form__input {
   background: #fee2e2;
 }
 
-.students-detail__table thead th {
-  color: var(--text-muted);
-  background: var(--surface-bg);
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
+/* A passing Final rating is text only — no pill behind a grade figure. */
+.students-detail__final--pass {
+  color: #065f46;
 }
 
-.students-detail__table tbody tr:hover {
+/* A composite subject's component sub-rows sit visually under their subject. */
+.students-detail__component-row,
+.students-detail__component-row:hover {
   background: var(--surface-bg);
 }
 

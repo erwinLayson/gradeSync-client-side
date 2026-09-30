@@ -17,7 +17,6 @@ import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { ModalDialog } from "../../components/ModalDialog";
 import { PageCard } from "../../components/PageCard";
 import Skeleton from "../../components/Skeleton";
-import { getInitials } from "../../helper/initials";
 import { toast } from "../../helper/toast";
 
 import type { ClassRecordsResponse, SubmissionSummaryRow } from "../../constant/studentRecord";
@@ -363,9 +362,6 @@ export default function AdminStudentRecords() {
                                             <td className="px-4 py-3.5">
                                                 {row.adviserFullname ? (
                                                     <div className="flex min-w-0 items-center gap-2.5">
-                                                        <span className="tracker__adviser-avatar inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[0.625rem] font-bold uppercase" aria-hidden="true">
-                                                            {getInitials(row.adviserFullname)}
-                                                        </span>
                                                         <span className="tracker__adviser-name truncate text-[0.8125rem] font-semibold">
                                                             {row.adviserFullname}
                                                         </span>
@@ -507,9 +503,6 @@ export default function AdminStudentRecords() {
                                                         <tr key={student.enrollmentId}>
                                                             <td className="tracker__cell--student px-4 py-2.5">
                                                                 <div className="flex min-w-0 items-center gap-2.5">
-                                                                    <span className="tracker__modal-avatar inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[0.625rem] font-bold uppercase" aria-hidden="true">
-                                                                        {getInitials(student.fullname)}
-                                                                    </span>
                                                                     <div className="min-w-0">
                                                                         <p className="truncate text-[0.8125rem] font-bold">
                                                                             {student.fullname}

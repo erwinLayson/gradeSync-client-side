@@ -282,11 +282,12 @@ export default function AdminStudents() {
 
     /* =================== Table columns =================== */
     const columns: TableColumns<StudentResponseProps>[] = [
-        { headers: "ID", accessor: "id" },
-        { headers: "LRN", accessor: "lrn" },
+        { headers: "ID", accessor: "id", width: "6rem" },
+        { headers: "LRN", accessor: "lrn", width: "9rem" },
         {
             headers: "Name",
             accessor: "fullname",
+            width: "13rem",
             renderCell: (student) => (
                 <div className="students__name-cell">
                     <button
@@ -307,10 +308,11 @@ export default function AdminStudents() {
                 </div>
             )
         },
-        { headers: "Email", accessor: "email" },
+        { headers: "Email", accessor: "email", width: "16rem" },
         {
             headers: "Actions",
             accessor: "id",
+            width: "6rem",
             renderCell: (student) => (
                 <div className="students__row-actions">
                     <button
@@ -539,39 +541,39 @@ export default function AdminStudents() {
                                                         No subjects assigned for this school year.
                                                     </p>
                                                 ) : (
-                                                    <div className="overflow-x-auto">
-                                                        <table className="students-detail__table w-full text-sm">
+                                                    <div className="data-table__wrap">
+                                                        <table className="data-table">
                                                             <thead>
                                                                 <tr>
-                                                                    <th className="px-5 py-3 text-left font-bold">Subject</th>
-                                                                    <th className="px-3 py-3 text-left font-bold">Code</th>
-                                                                    <th className="px-3 py-3 text-center font-bold">Units</th>
+                                                                    <th scope="col" className="data-table__th w-56">Subject</th>
+                                                                    <th scope="col" className="data-table__th w-24">Code</th>
+                                                                    <th scope="col" className="data-table__th data-table__th--center w-20">Units</th>
                                                                     {quarters.map((q) => (
-                                                                        <th key={q} className="px-3 py-3 text-center font-bold">Q{q}</th>
+                                                                        <th key={q} scope="col" className="data-table__th data-table__th--center w-20">Q{q}</th>
                                                                     ))}
-                                                                    <th className="px-3 py-3 text-center font-bold">Final</th>
-                                                                    <th className="px-5 py-3 text-left font-bold">Remarks</th>
+                                                                    <th scope="col" className="data-table__th data-table__th--center w-20">Final</th>
+                                                                    <th scope="col" className="data-table__th w-28">Remarks</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
                                                                 {cls.subjects.map((subject) => (
                                                                     <>
-                                                                    <tr key={subject.classSubjectId ?? subject.name} className="border-t border-neutral-100">
-                                                                        <td className="px-5 py-3">
-                                                                            <span className="block font-semibold text-neutral-900">{subject.name}</span>
-                                                                            <span className="block text-xs text-neutral-500">{subject.teacher ?? "—"}</span>
+                                                                    <tr key={subject.classSubjectId ?? subject.name} className="data-table__row">
+                                                                        <td className="data-table__td">
+                                                                            <span className="data-table__value">{subject.name}</span>
+                                                                            <span className="data-table__sub">{subject.teacher ?? "—"}</span>
                                                                         </td>
-                                                                        <td className="px-3 py-3 text-neutral-600">{subject.code}</td>
-                                                                        <td className="px-3 py-3 text-center text-neutral-700">{subject.unit ?? "—"}</td>
+                                                                        <td className="data-table__td data-table__td--muted">{subject.code}</td>
+                                                                        <td className="data-table__td data-table__td--center">{subject.unit ?? "—"}</td>
                                                                         {subject.quarters.map((quarter, index) => (
-                                                                            <td key={index} className="px-3 py-3 text-center text-neutral-700">
+                                                                            <td key={index} className="data-table__td data-table__td--center">
                                                                                 {quarter ?? "—"}
                                                                             </td>
                                                                         ))}
-                                                                        <td className={`px-3 py-3 text-center font-bold ${isPassing(subject.final) ? "text-emerald-700" : "text-neutral-800"}`}>
+                                                                        <td className={`data-table__td data-table__td--center data-table__td--primary${isPassing(subject.final) ? " students-detail__final--pass" : ""}`}>
                                                                             {subject.final ?? "—"}
                                                                         </td>
-                                                                        <td className="px-5 py-3">
+                                                                        <td className="data-table__td">
                                                                             <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
                                                                                 subject.remarks === null
                                                                                     ? "bg-neutral-100 text-neutral-400"
@@ -589,23 +591,23 @@ export default function AdminStudents() {
                                                                         re-averaged here, so the breakdown always matches the composite
                                                                         grade printed on the row above. */}
                                                                     {(subject.componentBreakdown ?? []).map((comp) => (
-                                                                        <tr key={`${subject.classSubjectId ?? subject.name}-${comp.componentId}`} className="bg-gray-50">
-                                                                            <td className="px-5 py-2 pl-10">
-                                                                                <span className="block text-xs font-medium text-neutral-600">└ {comp.name}</span>
+                                                                        <tr key={`${subject.classSubjectId ?? subject.name}-${comp.componentId}`} className="data-table__row students-detail__component-row">
+                                                                            <td className="data-table__td data-table__td--muted">
+                                                                                <span className="block pl-5 text-xs">└ {comp.name}</span>
                                                                             </td>
-                                                                            <td className="px-3 py-2 text-xs text-neutral-500">{comp.code}</td>
-                                                                            <td className="px-3 py-2 text-center text-xs text-neutral-500">
+                                                                            <td className="data-table__td data-table__td--muted text-xs">{comp.code}</td>
+                                                                            <td className="data-table__td data-table__td--center text-xs">
                                                                                 {comp.weight === null ? "—" : `${comp.weight}%`}
                                                                             </td>
                                                                             {quarters.map((_quarter, index) => (
-                                                                                <td key={index} className="px-3 py-2 text-center text-xs text-neutral-600">
+                                                                                <td key={index} className="data-table__td data-table__td--center data-table__td--muted text-xs">
                                                                                     {comp.grades[index] ?? "—"}
                                                                                 </td>
                                                                             ))}
-                                                                            <td className="px-3 py-2 text-center text-xs font-medium text-neutral-600">
+                                                                            <td className="data-table__td data-table__td--center data-table__td--muted text-xs">
                                                                                 {comp.final ?? "—"}
                                                                             </td>
-                                                                            <td className="px-5 py-2"></td>
+                                                                            <td className="data-table__td"></td>
                                                                         </tr>
                                                                     ))}
                                                                     </>

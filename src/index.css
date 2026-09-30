@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./style/components.css";
+@import "./style/dataTable.css";
 
 :root {
   /* ===== Brand colors (Abang-Suizo Integrated School) ===== */

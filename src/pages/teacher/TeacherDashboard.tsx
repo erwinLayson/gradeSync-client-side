@@ -12,7 +12,6 @@ import {
 
 import { useTeacherOverview } from "../../hooks/useTeacherOverview";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
-import { getInitials } from "../../helper/initials";
 import GenderPieChart from "../../components/GenderPieChart";
 
 import "../../style/teacherDashboard.css";
@@ -101,12 +100,6 @@ export default function TeacherDashboard() {
             {/* ==================== Hero banner ==================== */}
             <div className="teacher-dashboard__hero flex flex-wrap items-center justify-between gap-4 p-6">
                 <div className="teacher-dashboard__hero-main flex min-w-0 items-center gap-4">
-                    <span
-                        className="teacher-dashboard__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-bold"
-                        aria-hidden="true"
-                    >
-                        {getInitials(teacher.fullname)}
-                    </span>
                     <div className="teacher-dashboard__hero-heading min-w-0">
                         <span className="teacher-dashboard__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
                             Teacher Dashboard

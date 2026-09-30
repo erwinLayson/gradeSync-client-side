@@ -8,7 +8,6 @@ import "../../style/adminSubjects.css";
 
 // Helpers Functions
 import { Validate } from "../../helper/validate";
-import { getInitials } from "../../helper/initials";
 
 // Types
 import type { Subject, NewSubject, SubjectWithTeachers, ComponentCreateProps } from "../../constant/subjects";
@@ -539,23 +538,23 @@ return (
                                     Composite Subject
                                 </span>
                             </div>
-                            <div className="mt-3 overflow-x-auto rounded-xl border">
-                                <table className="w-full border-collapse text-sm">
+                            <div className="data-table__wrap mt-3 rounded-xl border">
+                                <table className="data-table">
                                     <thead>
                                         <tr>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">#</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Name</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Code</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Weight</th>
+                                            <th scope="col" className="data-table__th data-table__th--center w-12">#</th>
+                                            <th scope="col" className="data-table__th w-56">Name</th>
+                                            <th scope="col" className="data-table__th w-24">Code</th>
+                                            <th scope="col" className="data-table__th data-table__th--num w-24">Weight</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {selectedSubject.components.map((comp, index) => (
-                                            <tr key={comp.id} className="border-t border-neutral-100">
-                                                <td className="w-12 px-4 py-3.5 text-center font-mono text-[0.8125rem]">{index + 1}</td>
-                                                <td className="px-4 py-3.5 font-semibold">{comp.name}</td>
-                                                <td className="px-4 py-3.5 font-mono text-[0.8125rem]">{comp.code}</td>
-                                                <td className="px-4 py-3.5 font-bold">{comp.weight}%</td>
+                                            <tr key={comp.id} className="data-table__row">
+                                                <td className="data-table__td data-table__td--center data-table__td--mono w-12">{index + 1}</td>
+                                                <td className="data-table__td data-table__td--primary">{comp.name}</td>
+                                                <td className="data-table__td data-table__td--mono">{comp.code}</td>
+                                                <td className="data-table__td data-table__td--num">{comp.weight}%</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -586,31 +585,24 @@ return (
                         </div>
 
                         {selectedSubject.teachers && selectedSubject.teachers.length > 0 ? (
-                            <div className="subjects__teachers-table-wrap mt-4 overflow-x-auto rounded-xl border">
-                                <table className="subjects__teachers-table w-full min-w-[28rem] border-collapse text-sm">
+                            <div className="data-table__wrap mt-4 rounded-xl border">
+                                <table className="data-table">
                                     <thead>
                                         <tr>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">#</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Teacher Name</th>
-                                            <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">Action</th>
+                                            <th scope="col" className="data-table__th data-table__th--center w-12">#</th>
+                                            <th scope="col" className="data-table__th w-56">Teacher Name</th>
+                                            <th scope="col" className="data-table__th w-24">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {selectedSubject.teachers.map((teacher, index) => (
-                                            <tr key={`${teacher.id}-${index}`}>
-                                                <td className="subjects__cell--index w-12 px-4 py-3.5 text-center font-mono text-[0.8125rem]">{index + 1}</td>
-                                                <td className="subjects__cell--name px-4 py-3.5">
-                                                    <div className="subjects__teacher-cell flex items-center gap-3">
-                                                        <span className="subjects__teacher-avatar inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[0.6875rem] font-bold uppercase" aria-hidden="true">
-                                                            {getInitials(teacher.name)}
-                                                        </span>
-                                                        <div className="min-w-0">
-                                                            <p className="subjects__teacher-name truncate text-[0.8125rem] font-bold">{teacher.name}</p>
-                                                            <p className="subjects__teacher-meta mt-0.5 font-mono text-[0.6875rem]">Teacher ID #{teacher.id}</p>
-                                                        </div>
-                                                    </div>
+                                            <tr key={`${teacher.id}-${index}`} className="data-table__row">
+                                                <td className="data-table__td data-table__td--center data-table__td--mono w-12">{index + 1}</td>
+                                                <td className="data-table__td">
+                                                    <span className="data-table__value">{teacher.name}</span>
+                                                    <span className="data-table__sub">Teacher ID #{teacher.id}</span>
                                                 </td>
-                                                <td className="px-4 py-3.5">
+                                                <td className="data-table__td">
                                                     <button
                                                         type="button"
                                                         className="subjects__teachers-remove inline-flex h-8 w-8 items-center justify-center rounded-lg"
@@ -843,9 +835,6 @@ return (
                                                         value={teacher.id}
                                                         onChange={handleAssignTeacherChange}
                                                     />
-                                                    <span className="unassign-teacher-form__avatar inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[0.6875rem] font-bold uppercase" aria-hidden="true">
-                                                        {teacher.fullname.charAt(0) || "?"}
-                                                    </span>
                                                     {teacher.fullname}
                                                 </label>
                                             </div>

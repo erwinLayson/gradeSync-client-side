@@ -1,9 +1,6 @@
 import {
-    FiArrowLeft,
     FiCalendar,
     FiCheck,
-    FiCheckCircle,
-    FiClock,
     FiGrid,
     FiPlus,
     FiRefreshCw,
@@ -13,14 +10,13 @@ import {
     FiXCircle,
 } from "react-icons/fi";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 import { getAPICall, postAPICall } from "../../api/api";
 import { ModalDialog } from "../../components/ModalDialog";
 import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useUser } from "../../hooks/useUser";
-import { getInitials } from "../../helper/initials";
 import { toast } from "../../helper/toast";
 
 import type { TeacherDetails, TeacherSubjectDetails } from "../../constant/teachers";
@@ -36,25 +32,11 @@ import "../../style/teacherAttendance.css";
 
 // ================= Types =================
 
-/** The minimal student shape both the grid rows and the history view need. */
+/** The minimal student shape the grid rows and their cell writes need. */
 interface AttendanceStudentRef {
     enrollmentId: number;
     fullname: string;
     studentLrn: string;
-}
-
-/** One student's full attendance history for a subject (optionally filtered). */
-interface AttendanceHistory {
-    classSubjectId: number;
-    enrollmentId: number;
-    presentDays: number;
-    totalDays: number;
-    percentage: number | null;
-    records: {
-        enrollmentId: number;
-        status: AttendanceStatus | null;
-        date: string;
-    }[];
 }
 
 /** A school year filter value: a specific year id, or "all". */
@@ -162,7 +144,6 @@ function toPositiveInt(value: string | null): number | null {
 }
 
 export default function TeacherAttendance() {
-    const navigate = useNavigate();
     const { user, loading: userLoading } = useUser();
     const { quarters, currentQuarter, loading: settingsLoading } = useAcademicSettings();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -226,17 +207,6 @@ export default function TeacherAttendance() {
     const [pendingDays, setPendingDays] = useState<Record<string, string[]>>({});
     // The button that opened the dialog; ModalDialog returns focus to it.
     const createTriggerRef = useRef<HTMLButtonElement>(null);
-
-    // ==================== Per-student history view ====================
-    // While set, the main content is replaced by this student's attendance
-    // history (table view) instead of the class grid.
-    const [viewingStudent, setViewingStudent] = useState<AttendanceStudentRef | null>(null);
-    const [history, setHistory] = useState<AttendanceHistory | null>(null);
-    const [historyLoading, setHistoryLoading] = useState(false);
-    const [historyQuarter, setHistoryQuarter] = useState<QuarterFilter>(ALL_QUARTERS);
-    const [historySchoolYearId, setHistorySchoolYearId] = useState<SchoolYearFilter>(ALL_SCHOOL_YEARS);
-    // Guards against stale responses when switching filters/students quickly.
-    const historyRequestRef = useRef(0);
 
     // ==================== Load teacher + subject assignments + school years ====================
     useEffect(() => {
@@ -401,12 +371,16 @@ export default function TeacherAttendance() {
     // The columns the grid actually shows: every recorded day, plus any day the
     // teacher just opened from "Create Attendance" that has no record yet. This
     // is the only place a not-yet-recorded day can come from.
+    //
+    // Newest day first, so the day being recorded is the first column instead of
+    // being pushed off the right edge of the grid. The API still returns the days
+    // oldest first; only the display order changes, which keeps the cells, the
+    // header and the pending-day merge in the same order as each other.
     const pendingForKey = pendingDays[requestedKey] ?? NO_PENDING_DATES;
     const gridDates = useMemo(() => {
-        if (pendingForKey.length === 0) return dates;
         const merged = new Set(dates);
         for (const date of pendingForKey) merged.add(date);
-        return [...merged].sort();
+        return [...merged].sort().reverse();
     }, [dates, pendingForKey]);
 
     const matrixLoading = selectedSubjectId !== null && !rangeInvalid && loadedKey !== requestedKey;
@@ -648,77 +622,6 @@ export default function TeacherAttendance() {
         setDateTo("");
     }
 
-    // ==================== History view handlers ====================
-    function openHistory(student: AttendanceStudentRef) {
-        // Carry the grid's filters into the history view so the drill-down shows
-        // the same slice the teacher was just looking at.
-        setViewingStudent(student);
-        setHistory(null);
-        setHistoryQuarter(quarterFilter);
-        setHistorySchoolYearId(schoolYearFilter);
-    }
-
-    function closeHistory() {
-        historyRequestRef.current++;
-        setViewingStudent(null);
-        setHistory(null);
-    }
-
-    // Escape returns to the attendance grid while viewing a student's history.
-    useEffect(() => {
-        if (!viewingStudent) return;
-
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key !== "Escape") return;
-            closeHistory();
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [viewingStudent]);
-
-    // Fetch the student's history whenever the view opens or the filters change.
-    useEffect(() => {
-        if (!viewingStudent || !selectedSubjectId) return;
-        const requestId = ++historyRequestRef.current;
-        setHistory(null);
-        setHistoryLoading(true);
-
-        const params = new URLSearchParams({ classSubjectId: String(selectedSubjectId) });
-        if (historyQuarter !== ALL_QUARTERS) params.set("quarter", String(historyQuarter));
-        if (historySchoolYearId !== ALL_SCHOOL_YEARS) params.set("schoolYearId", String(historySchoolYearId));
-
-        getAPICall<AttendanceHistory>(
-            `/attendance/${viewingStudent.enrollmentId}/history?${params.toString()}`,
-            { toast: false },
-        )
-            .then((response) => {
-                if (historyRequestRef.current !== requestId) return;
-                setHistory(response.data ?? null);
-            })
-            .catch(() => {
-                // Error toast is handled by the API interceptor
-            })
-            .finally(() => {
-                if (historyRequestRef.current === requestId) {
-                    setHistoryLoading(false);
-                }
-            });
-    }, [viewingStudent, selectedSubjectId, historyQuarter, historySchoolYearId]);
-
-    // Human label for the active history filter, e.g. "Quarter 1 · SY 2024-2025".
-    const historyFilterLabel = useMemo(() => {
-        const parts: string[] = [];
-        parts.push(historyQuarter === ALL_QUARTERS ? "All quarters" : `Quarter ${historyQuarter}`);
-        const sy = schoolYears.find((s) => s.id === historySchoolYearId);
-        parts.push(
-            historySchoolYearId === ALL_SCHOOL_YEARS || !sy
-                ? "All school years"
-                : `SY ${sy.startYear}-${sy.endYear}`,
-        );
-        return parts.join(" · ");
-    }, [historyQuarter, historySchoolYearId, schoolYears]);
-
     // Human label for the grid's own filter state, used in the card subtitle.
     const gridFilterLabel = useMemo(() => {
         const parts: string[] = [];
@@ -740,25 +643,17 @@ export default function TeacherAttendance() {
     }, [schoolYearFilter, quarterFilter, dateFrom, dateTo, schoolYears]);
 
     // ==================== Hero banner content ====================
-    const heroEyebrow = viewingStudent
-        ? selectedSubject
-            ? `Grade ${selectedSubject.classGradeLevel} &middot; ${selectedSubject.classSection} &middot; ${selectedSubject.subjectName}`
-            : "Attendance history"
-        : selectedSubject
-          ? `Grade ${selectedSubject.classGradeLevel} &middot; ${selectedSubject.classSection}`
-          : "Class Attendance";
+    const heroEyebrow = selectedSubject
+        ? `Grade ${selectedSubject.classGradeLevel} &middot; ${selectedSubject.classSection}`
+        : "Class Attendance";
 
-    const heroName = viewingStudent
-        ? viewingStudent.fullname
-        : selectedSubject
-          ? `${selectedSubject.subjectName} Attendance`
-          : "Class Attendance";
+    const heroName = selectedSubject
+        ? `${selectedSubject.subjectName} Attendance`
+        : "Class Attendance";
 
-    const heroRole = viewingStudent
-        ? `LRN ${viewingStudent.studentLrn} &middot; Attendance history`
-        : selectedSubject
-          ? `${selectedSubject.subjectCode} &middot; Classroom #${selectedSubject.classId}`
-          : "Select a subject to record attendance";
+    const heroRole = selectedSubject
+        ? `${selectedSubject.subjectCode} &middot; Classroom #${selectedSubject.classId}`
+        : "Select a subject to record attendance";
 
     // ==================== Loading ====================
     if (userLoading || loading) {
@@ -804,17 +699,6 @@ export default function TeacherAttendance() {
 
     return (
         <section className="teacher-attendance flex flex-col gap-5">
-            {/* ==================== Back button ==================== */}
-            <button
-                type="button"
-                className="teacher-attendance__foot-btn inline-flex cursor-pointer items-center gap-2 self-start rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
-                onClick={() => navigate("/teacher/dashboard")}
-                aria-label="Back to dashboard"
-            >
-                <FiArrowLeft aria-hidden="true" />
-                <span className="text-sm font-bold">Back to Dashboard</span>
-            </button>
-
             {/* ==================== Hero banner ==================== */}
             <div className="teacher-attendance__hero flex flex-wrap items-center justify-between gap-4 p-6">
                 <div className="teacher-attendance__hero-main flex min-w-0 items-center gap-4">
@@ -822,7 +706,7 @@ export default function TeacherAttendance() {
                         className="teacher-attendance__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-xl"
                         aria-hidden="true"
                     >
-                        {viewingStudent ? getInitials(viewingStudent.fullname) : <FiUsers />}
+                        <FiUsers />
                     </span>
                     <div className="teacher-attendance__hero-heading min-w-0">
                         <span className="teacher-attendance__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
@@ -836,206 +720,16 @@ export default function TeacherAttendance() {
                         </p>
                     </div>
                 </div>
-                {viewingStudent ? (
-                    <div className="teacher-attendance__hero-badge flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border px-3.5 py-2.5">
-                        <span className="teacher-attendance__hero-badge-count text-[1.375rem] font-bold leading-none">
-                            {history && history.percentage !== null ? `${history.percentage}%` : "—"}
-                        </span>
-                        <span className="teacher-attendance__hero-badge-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                            Present Rate
-                        </span>
-                    </div>
-                ) : (
-                    <div className="teacher-attendance__hero-badge flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border px-3.5 py-2.5">
-                        <span className="teacher-attendance__hero-badge-count text-[1.375rem] font-bold leading-none">
-                            {matrixLoading ? "…" : gridDates.length}
-                        </span>
-                        <span className="teacher-attendance__hero-badge-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                            Days Recorded
-                        </span>
-                    </div>
-                )}
+                <div className="teacher-attendance__hero-badge flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border px-3.5 py-2.5">
+                    <span className="teacher-attendance__hero-badge-count text-[1.375rem] font-bold leading-none">
+                        {matrixLoading ? "…" : gridDates.length}
+                    </span>
+                    <span className="teacher-attendance__hero-badge-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
+                        Days Recorded
+                    </span>
+                </div>
             </div>
 
-            {viewingStudent ? (
-                /* ==================== Student attendance history (table view) ==================== */
-                <div className="teacher-attendance__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                    <div className="teacher-attendance__card-head flex flex-wrap items-center justify-between gap-4 p-5">
-                        <div className="teacher-attendance__card-heading flex min-w-0 items-center gap-3">
-                            <span
-                                className="teacher-attendance__student-avatar inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[0.75rem] font-bold uppercase"
-                                aria-hidden="true"
-                            >
-                                {getInitials(viewingStudent.fullname)}
-                            </span>
-                            <div className="min-w-0">
-                                <h3 className="teacher-attendance__card-title text-base font-bold">Attendance History</h3>
-                                <p className="teacher-attendance__card-subtitle mt-1 text-[0.8125rem]">
-                                    LRN {viewingStudent.studentLrn}
-                                    {selectedSubject
-                                        ? ` &middot; ${selectedSubject.subjectName} &middot; Grade ${selectedSubject.classGradeLevel} ${selectedSubject.classSection}`
-                                        : ""}
-                                    &middot; {historyFilterLabel}
-                                </p>
-                            </div>
-                        </div>
-                        <button
-                            type="button"
-                            className="teacher-attendance__foot-btn inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
-                            onClick={closeHistory}
-                            aria-label="Back to attendance grid"
-                        >
-                            <FiArrowLeft aria-hidden="true" />
-                            <span className="text-sm font-bold">Back to Grid</span>
-                        </button>
-                    </div>
-
-                    {/* Quarter + school year filters */}
-                    <div className="teacher-attendance__history-filters flex flex-wrap items-center gap-2 border-b px-6 py-4">
-                        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter attendance history by quarter">
-                            <button
-                                type="button"
-                                className={`teacher-attendance__day inline-flex cursor-pointer rounded-lg border px-3.5 py-1.5 text-[0.6875rem] font-bold${
-                                    historyQuarter === ALL_QUARTERS ? " teacher-attendance__day--active" : ""
-                                }`}
-                                onClick={() => setHistoryQuarter(ALL_QUARTERS)}
-                                aria-pressed={historyQuarter === ALL_QUARTERS}
-                            >
-                                All
-                            </button>
-                            {quarters.map((quarter) => (
-                                <button
-                                    key={quarter}
-                                    type="button"
-                                    className={`teacher-attendance__day inline-flex cursor-pointer rounded-lg border px-3.5 py-1.5 text-[0.6875rem] font-bold${
-                                        historyQuarter === quarter ? " teacher-attendance__day--active" : ""
-                                    }`}
-                                    onClick={() => setHistoryQuarter(quarter)}
-                                    aria-pressed={historyQuarter === quarter}
-                                >
-                                    Q{quarter}
-                                </button>
-                            ))}
-                        </div>
-
-                        <label className="sr-only" htmlFor="history-school-year">School year</label>
-                        <select
-                            id="history-school-year"
-                            className="teacher-attendance__day ml-auto inline-flex cursor-pointer rounded-lg border px-3.5 py-1.5 text-[0.6875rem] font-bold"
-                            value={historySchoolYearId}
-                            onChange={(event) =>
-                                setHistorySchoolYearId(
-                                    event.target.value === "all" ? ALL_SCHOOL_YEARS : Number(event.target.value),
-                                )
-                            }
-                        >
-                            <option value="all">All School Years</option>
-                            {schoolYears.map((sy) => (
-                                <option key={sy.id} value={sy.id}>
-                                    SY {sy.startYear}-{sy.endYear}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Summary (scoped to the active filters) */}
-                    <div className="teacher-attendance__history-summary grid grid-cols-1 gap-3 px-6 pt-5 sm:grid-cols-3">
-                        <div className="teacher-attendance__history-stat teacher-attendance__history-stat--pct flex flex-col items-center justify-center gap-1 rounded-xl border p-4">
-                            <span className="teacher-attendance__history-stat-value font-mono text-[1.5rem] font-bold leading-none">
-                                {history && history.percentage !== null ? `${history.percentage}%` : "—"}
-                            </span>
-                            <span className="teacher-attendance__history-stat-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                                Present Rate
-                            </span>
-                        </div>
-                        <div className="teacher-attendance__history-stat flex flex-col items-center justify-center gap-1 rounded-xl border p-4">
-                            <span className="teacher-attendance__history-stat-value font-mono text-[1.5rem] font-bold leading-none">
-                                {history?.presentDays ?? "—"}
-                            </span>
-                            <span className="teacher-attendance__history-stat-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                                Present Days
-                            </span>
-                        </div>
-                        <div className="teacher-attendance__history-stat flex flex-col items-center justify-center gap-1 rounded-xl border p-4">
-                            <span className="teacher-attendance__history-stat-value font-mono text-[1.5rem] font-bold leading-none">
-                                {history?.totalDays ?? "—"}
-                            </span>
-                            <span className="teacher-attendance__history-stat-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                                Total Days
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* History table */}
-                    <div className="teacher-attendance__sheet-wrap overflow-x-auto pb-2 pt-3">
-                        {historyLoading ? (
-                            <div className="flex flex-col gap-3 px-6" aria-busy="true">
-                                <div className="h-12 animate-pulse rounded-xl bg-gray-100" aria-hidden="true" />
-                                <div className="h-12 animate-pulse rounded-xl bg-gray-100" aria-hidden="true" />
-                                <div className="h-12 animate-pulse rounded-xl bg-gray-100" aria-hidden="true" />
-                            </div>
-                        ) : !history || history.records.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center px-6 py-10 text-center">
-                                <span
-                                    className="teacher-attendance__history-empty inline-flex h-11 w-11 items-center justify-center rounded-full"
-                                    aria-hidden="true"
-                                >
-                                    <FiClock />
-                                </span>
-                                <p className="mt-3 text-sm font-bold">No attendance recorded</p>
-                                <p className="mt-1 text-[0.8125rem] text-gray-500">
-                                    {historyQuarter !== ALL_QUARTERS || historySchoolYearId !== ALL_SCHOOL_YEARS
-                                        ? "No records match the current quarter / school year filter."
-                                        : "Record attendance for this subject to build up this student's history."}
-                                </p>
-                            </div>
-                        ) : (
-                            <table className="teacher-attendance__sheet w-full min-w-[40rem] border-collapse text-sm">
-                                <thead>
-                                    <tr>
-                                        <th scope="col" className="px-6 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
-                                            No.
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
-                                            Date
-                                        </th>
-                                        <th scope="col" className="teacher-attendance__sheet th--right px-6 py-3 text-right text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
-                                            Status
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {history.records.map((record, index) => (
-                                        <tr key={`${record.date}-${index}`}>
-                                            <td className="px-6 py-3.5 font-mono text-[0.75rem] font-semibold text-gray-400">
-                                                {String(index + 1).padStart(2, "0")}
-                                            </td>
-                                            <td className="px-6 py-3.5">
-                                                <span className="flex items-center gap-2.5 text-[0.8125rem] font-semibold">
-                                                    <FiCalendar className="text-gray-400" aria-hidden="true" />
-                                                    {formatLongDate(record.date)}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-3.5 text-right">
-                                                <span
-                                                    className={`teacher-attendance__status inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.6875rem] font-bold teacher-attendance__status--${record.status ?? "absent"}`}
-                                                >
-                                                    {record.status === "present" ? (
-                                                        <FiCheckCircle aria-hidden="true" />
-                                                    ) : (
-                                                        <FiXCircle aria-hidden="true" />
-                                                    )}
-                                                    {record.status === "present" ? "Present" : "Absent"}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                </div>
-            ) : (
                 <>
                     {/* ==================== Toolbar: subject + school year + quarter + date range ==================== */}
                     <div className="teacher-attendance__toolbar flex flex-wrap items-end justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm">
@@ -1227,7 +921,7 @@ export default function TeacherAttendance() {
                             <div className="teacher-attendance__card-heading min-w-0">
                                 <h3 className="teacher-attendance__card-title text-base font-bold">Attendance Record</h3>
                                 <p className="teacher-attendance__card-subtitle mt-1 text-[0.8125rem]">
-                                    {students.length} students &middot; {gridDates.length} days
+                                    {students.length} students &middot; {gridDates.length} days &middot; newest first
                                     {selectedSubject ? ` &middot; ${selectedSubject.subjectName}` : ""}
                                     &middot; {gridFilterLabel}
                                 </p>
@@ -1262,7 +956,7 @@ export default function TeacherAttendance() {
                         )}
                         {rangeInvalid ? (
                             <div className="teacher-attendance__sheet-wrap flex flex-col items-center justify-center px-6 py-14 text-center">
-                                <span className="teacher-attendance__history-empty inline-flex h-12 w-12 items-center justify-center rounded-full text-lg" aria-hidden="true">
+                                <span className="teacher-attendance__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full text-lg" aria-hidden="true">
                                     <FiCalendar />
                                 </span>
                                 <p className="teacher-attendance__empty-title mt-3 text-sm font-bold">Invalid date range</p>
@@ -1286,7 +980,7 @@ export default function TeacherAttendance() {
                             </div>
                         ) : gridDates.length === 0 ? (
                             <div className="teacher-attendance__sheet-wrap flex flex-col items-center justify-center px-6 py-14 text-center">
-                                <span className="teacher-attendance__history-empty inline-flex h-12 w-12 items-center justify-center rounded-full text-lg" aria-hidden="true">
+                                <span className="teacher-attendance__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full text-lg" aria-hidden="true">
                                     <FiCalendar />
                                 </span>
                                 <p className="teacher-attendance__empty-title mt-3 text-sm font-bold">No attendance recorded for these filters</p>
@@ -1368,16 +1062,7 @@ export default function TeacherAttendance() {
                                             return (
                                                 <tr key={student.enrollmentId}>
                                                     <th scope="row" className="teacher-attendance__grid-student-col px-4 py-1.5 text-left">
-                                                        <button
-                                                            type="button"
-                                                            className="teacher-attendance__student-cell teacher-attendance__student-cell--link flex items-center gap-2.5 text-left"
-                                                            onClick={() => openHistory(student)}
-                                                            title="View attendance history"
-                                                            aria-label={`View attendance history for ${student.fullname}`}
-                                                        >
-                                                            <span className="teacher-attendance__student-avatar inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[0.625rem] font-bold uppercase" aria-hidden="true">
-                                                                {getInitials(student.fullname)}
-                                                            </span>
+                                                        <span className="teacher-attendance__student-cell flex items-center gap-2.5 text-left">
                                                             <span className="min-w-0">
                                                                 <span className="teacher-attendance__student-name block truncate text-[0.8125rem] font-bold">
                                                                     {student.fullname}
@@ -1386,7 +1071,7 @@ export default function TeacherAttendance() {
                                                                     {student.studentLrn}
                                                                 </span>
                                                             </span>
-                                                        </button>
+                                                        </span>
                                                     </th>
 
                                                     {gridDates.map((date) => {
@@ -1598,7 +1283,6 @@ export default function TeacherAttendance() {
                         </form>
                     </ModalDialog>
                 </>
-            )}
         </section>
     );
 }

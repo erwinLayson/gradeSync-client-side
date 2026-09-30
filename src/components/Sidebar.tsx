@@ -66,7 +66,6 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
 
   const navGroups = user ? DASHBOARD_LINKS[user.role] : DASHBOARD_LINKS.admin;
   const roleLabel = user ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "";
-  const initials = user ? (user.email.charAt(0) || "?").toUpperCase() : "";
 
   return (
     <aside
@@ -153,7 +152,6 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
       <footer className="sidebar__footer">
         {user && (
           <div className="sidebar__user" title={effectiveCollapsed ? `${user.email} · ${roleLabel}` : undefined}>
-            <span className="sidebar__user-avatar">{initials}</span>
             <div className="sidebar__user-info">
               <span className="sidebar__user-email">{user.email}</span>
               <span className="sidebar__user-role">{roleLabel}</span>

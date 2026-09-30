@@ -17,7 +17,6 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ModalDialog } from "../../components/ModalDialog";
 import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
-import { getInitials } from "../../helper/initials";
 import { toast } from "../../helper/toast";
 
 import type {
@@ -362,32 +361,27 @@ export default function TeacherStudentRecords() {
                         </p>
                     </div>
                 ) : (
-                    <div className="teacher-records__table-wrap overflow-x-auto">
-                        <table className="teacher-records__table w-full min-w-[62rem] border-collapse text-sm">
+                    <div className="data-table__wrap">
+                        <table className="data-table min-w-[62rem]">
                             <thead>
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                    <th scope="col" className="data-table__th w-48">
                                         Student
                                     </th>
                                     {records.subjects.map((subject) => (
-                                        <th
-                                            key={subject.classSubjectId}
-                                            className="px-3 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]"
-                                        >
-                                            <div className="teacher-records__subject-cell flex min-w-[7rem] flex-col gap-1">
-                                                <span className="teacher-records__subject-name truncate text-[0.6875rem] font-bold uppercase tracking-[0.06em]">
-                                                    {subject.subjectName}
-                                                </span>
-                                                <span className="teacher-records__subject-code font-mono text-[0.625rem]">
-                                                    {subject.subjectCode}
-                                                </span>
-                                            </div>
+                                        <th key={subject.classSubjectId} scope="col" className="data-table__th">
+                                            <span className="data-table__value block truncate">
+                                                {subject.subjectName}
+                                            </span>
+                                            <span className="data-table__sub font-mono">
+                                                {subject.subjectCode}
+                                            </span>
                                         </th>
                                     ))}
-                                    <th className="px-3 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                    <th scope="col" className="data-table__th w-32">
                                         Status
                                     </th>
-                                    <th className="px-3 py-3 text-right text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                    <th scope="col" className="data-table__th data-table__th--actions w-36">
                                         Action
                                     </th>
                                 </tr>
@@ -397,21 +391,12 @@ export default function TeacherStudentRecords() {
                                     const isSubmitted = student.status === "submitted";
                                     const isBusy = submittingEnrollmentId === student.enrollmentId;
                                     return (
-                                        <tr key={student.enrollmentId}>
-                                            <td className="teacher-records__cell--student px-4 py-3.5">
-                                                <div className="teacher-records__student-cell flex items-center gap-3">
-                                                    <span className="teacher-records__student-avatar inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[0.6875rem] font-bold uppercase" aria-hidden="true">
-                                                        {getInitials(student.fullname)}
-                                                    </span>
-                                                    <div className="min-w-0">
-                                                        <p className="teacher-records__student-name truncate text-[0.8125rem] font-bold">
-                                                            {student.fullname}
-                                                        </p>
-                                                        <p className="teacher-records__student-meta mt-0.5 font-mono text-[0.6875rem]">
-                                                            LRN {student.studentLrn} &middot; {student.studentSex}
-                                                        </p>
-                                                    </div>
-                                                </div>
+                                        <tr key={student.enrollmentId} className="data-table__row">
+                                            <td className="data-table__td">
+                                                <span className="data-table__value">{student.fullname}</span>
+                                                <span className="data-table__sub">
+                                                    LRN {student.studentLrn} &middot; {student.studentSex}
+                                                </span>
                                             </td>
 
                                             {records.subjects.map((subject) => {
@@ -420,7 +405,7 @@ export default function TeacherStudentRecords() {
                                                 );
                                                 if (!subjectGrade || !subjectGrade.enrolled) {
                                                     return (
-                                                        <td key={subject.subjectId} className="px-3 py-3.5 text-center">
+                                                        <td key={subject.subjectId} className="data-table__td data-table__td--center">
                                                             <span
                                                                 className="teacher-records__grade teacher-records__grade--off"
                                                                 title="Not enrolled in this subject"
@@ -433,7 +418,7 @@ export default function TeacherStudentRecords() {
                                                 const isFrozen = subjectGrade.source === "frozen";
                                                 const hasGrade = subjectGrade.grade !== null;
                                                 return (
-                                                    <td key={subject.subjectId} className="px-3 py-3.5 text-center">
+                                                    <td key={subject.subjectId} className="data-table__td data-table__td--center">
                                                         <span
                                                             className={`teacher-records__grade teacher-records__grade--${isFrozen ? "frozen" : hasGrade ? "live" : "missing"}`}
                                                             title={
@@ -451,7 +436,7 @@ export default function TeacherStudentRecords() {
                                                 );
                                             })}
 
-                                            <td className="px-3 py-3.5">
+                                            <td className="data-table__td">
                                                 {isSubmitted ? (
                                                     <span className="teacher-records__status teacher-records__status--submitted inline-flex flex-col items-start gap-0.5">
                                                         <span className="inline-flex items-center gap-1 text-[0.6875rem] font-bold">
@@ -472,7 +457,7 @@ export default function TeacherStudentRecords() {
                                                 )}
                                             </td>
 
-                                            <td className="px-3 py-3.5 text-right">
+                                            <td className="data-table__td data-table__td--actions">
                                                 {isSubmitted ? (
                                                     <button
                                                         type="button"
@@ -553,17 +538,17 @@ export default function TeacherStudentRecords() {
                         </header>
 
                         <div className="p-6 pt-0">
-                            <div className="teacher-records__review-table-wrap overflow-x-auto rounded-xl border">
-                                <table className="teacher-records__review-table w-full border-collapse text-sm">
+                            <div className="data-table__wrap rounded-xl border">
+                                <table className="data-table min-w-0">
                                     <thead>
                                         <tr>
-                                            <th className="px-4 py-2.5 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                            <th scope="col" className="data-table__th w-56">
                                                 Subject
                                             </th>
-                                            <th className="px-4 py-2.5 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                            <th scope="col" className="data-table__th data-table__th--center w-20">
                                                 Grade
                                             </th>
-                                            <th className="px-4 py-2.5 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                            <th scope="col" className="data-table__th w-28">
                                                 Source
                                             </th>
                                         </tr>
@@ -576,11 +561,11 @@ export default function TeacherStudentRecords() {
                                             if (!subjectGrade || !subjectGrade.enrolled) return null;
                                             const isFrozen = subjectGrade.source === "frozen";
                                             return (
-                                                <tr key={subject.subjectId}>
-                                                    <td className="px-4 py-2.5 text-[0.8125rem] font-bold">
+                                                <tr key={subject.subjectId} className="data-table__row">
+                                                    <td className="data-table__td data-table__td--primary">
                                                         {subject.subjectName}
                                                     </td>
-                                                    <td className="px-4 py-2.5 text-center">
+                                                    <td className="data-table__td data-table__td--center">
                                                         <span
                                                             className={`teacher-records__review-grade inline-flex items-center justify-center rounded-lg px-2 py-1 font-mono text-[0.8125rem] font-bold${
                                                                 subjectGrade.grade === null
@@ -593,7 +578,7 @@ export default function TeacherStudentRecords() {
                                                             {formatGrade(subjectGrade.grade)}
                                                         </span>
                                                     </td>
-                                                    <td className="px-4 py-2.5 text-[0.6875rem]">
+                                                    <td className="data-table__td data-table__td--muted text-[0.6875rem]">
                                                         {isFrozen
                                                             ? "Frozen (submitted)"
                                                             : subjectGrade.grade === null
