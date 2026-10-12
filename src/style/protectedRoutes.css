@@ -34,8 +34,100 @@
   object-fit: cover;
 }
 
-/* ---------- Spinner ---------- */
+/* ---------- Loading loader ---------- */
+.protected-route__loader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--surface-white);
+  border: 1px solid var(--neutral-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.protected-route__loader::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--accent-light, var(--surface-white, #ffffff)) 0%,
+    var(--accent, var(--brand-accent, #0b5394)) 50%,
+    var(--accent-light, var(--surface-white, #ffffff)) 100%
+  );
+  background-size: 200% 100%;
+  animation: protected-route-shimmer 1.4s ease-in-out infinite;
+  z-index: 0;
+}
+
+.protected-route__bounce-dot {
+  position: absolute;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  background: var(--accent, var(--brand-accent, #0b5394));
+  z-index: 1;
+}
+
+.protected-route__bounce-dot:nth-child(1) {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: protected-route-bounce-dot 1.4s ease-in-out infinite;
+}
+
+.protected-route__bounce-dot:nth-child(2) {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: protected-route-bounce-dot 1.4s ease-in-out infinite -0.175s;
+}
+
+.protected-route__bounce-dot:nth-child(3) {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: protected-route-bounce-dot 1.4s ease-in-out infinite -0.35s;
+}
+
+@keyframes protected-route-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes protected-route-bounce-dot {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(0.7);
+    opacity: 0.6;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(0.85);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+/* ---------- Spinner (ring) ---------- */
 .protected-route__spin {
+  position: absolute;
+  inset: 0;
+  margin: auto;
   animation: protected-route-spin 0.9s linear infinite;
 }
 
@@ -54,7 +146,8 @@
 
 /* ---------- Reduce motion ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .protected-route__spin {
+  .protected-route__spin,
+  .protected-route__bounce-dot {
     animation: none;
   }
 }

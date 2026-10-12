@@ -21,6 +21,11 @@ function RouteLoadingSplash() {
             <div className="protected-route__logo" aria-hidden="true">
                 <img src={logo1} alt="" />
             </div>
+            <div className="protected-route__loader protected-route__bounce" aria-hidden="true">
+                <span className="protected-route__bounce-dot" />
+                <span className="protected-route__bounce-dot" />
+                <span className="protected-route__bounce-dot" />
+            </div>
             <FiLoader className="protected-route__spin" size={22} aria-hidden="true" />
             <p className="protected-route__status">Loading…</p>
         </div>
