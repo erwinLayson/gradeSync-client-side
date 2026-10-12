@@ -60,7 +60,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
     const success = await logout();
     setLoggingOut(false);
     if (success) {
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
     }
   }
 
