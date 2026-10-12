@@ -10,6 +10,7 @@ import {
   FiSearch,
   FiUserPlus,
   FiUsers,
+  FiFileText,
 } from "react-icons/fi";
 
 import "../../style/adminEnrollments.css";
@@ -23,6 +24,7 @@ import useSubjects from "../../hooks/useSubject.ts";
 
 // Components
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import StudentPastGradesModal from "./StudentPastGradesModal";
 
 // Types
 import type {
@@ -81,6 +83,9 @@ export default function AdminEnrollments() {
   const [creatingSchoolYear, setCreatingSchoolYear] = useState(false);
   const [confirmCreateOpen, setConfirmCreateOpen] = useState(false);
   const createTriggerRef = useRef<HTMLButtonElement>(null);
+
+  // ============ Past grades modal (selected student) ============
+  const [pastGradesModalOpen, setPastGradesModalOpen] = useState(false);
 
   // ================== debounce the search input (1s) ================
   useEffect(() => {
@@ -194,6 +199,7 @@ export default function AdminEnrollments() {
   }
 
   const closeCreateConfirm = useCallback(() => setConfirmCreateOpen(false), []);
+  const closePastGradesModal = useCallback(() => setPastGradesModalOpen(false), []);
 
   // =================== handle creating a new school year ===================
   async function handleCreateSchoolYear() {
@@ -473,6 +479,16 @@ export default function AdminEnrollments() {
                   <dd className="text-xs">{selectedStudent.birthdate}</dd>
                 </div>
               </dl>
+
+              <button
+                type="button"
+                className="enrollments__profile-grades mt-4 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--neutral-border)] bg-white px-3 py-2 text-xs font-bold text-neutral-700 hover:bg-[var(--neutral-hover)]"
+                onClick={() => setPastGradesModalOpen(true)}
+                title="View the student's already-submitted past grades before enrolling"
+              >
+                <FiFileText aria-hidden="true" />
+                View past submitted grades
+              </button>
             </div>
           )}
         </aside>
@@ -892,6 +908,16 @@ export default function AdminEnrollments() {
         onClose={closeCreateConfirm}
         triggerRef={createTriggerRef}
       />
+
+      {/* ============ Past submitted grades for the selected student ============ */}
+      {selectedStudent && (
+        <StudentPastGradesModal
+          studentId={selectedStudent.id}
+          studentName={selectedStudent.fullname}
+          open={pastGradesModalOpen}
+          onClose={closePastGradesModal}
+        />
+      )}
     </section>
   );
 }
