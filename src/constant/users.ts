@@ -21,7 +21,11 @@ export const ROLES = {
     ADMIN: "admin",
     TEACHER: "teacher",
     STUDENT: "student",
-    DEVELOPER: "developer"
+    DEVELOPER: "developer",
+    // Registration/enrollment staff: enrolls students (existing or newly
+    // created) and prints SF10/Form-137 records. See
+    // docs/register-role-implementation-plan.md.
+    REGISTER: "register"
 } as const;export type UserRoles = (typeof ROLES)[keyof typeof ROLES];
 
 // ==================== developer account management ====================

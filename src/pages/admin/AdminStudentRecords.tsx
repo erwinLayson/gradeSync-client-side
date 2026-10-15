@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
     FiAlertTriangle,
     FiCalendar,
@@ -12,8 +12,11 @@ import {
 } from "react-icons/fi";
 
 import { getAPICall, patchAPICall } from "../../api/api";
+// invalidateAcademicSettingsCache notifies every useAcademicSettings() consumer
+// (this page included) that the stored quarter changed, so no mounted page keeps
+// showing the previous quarter.
+import { invalidateAcademicSettingsCache, useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { ModalDialog } from "../../components/ModalDialog";
 import { PageCard } from "../../components/PageCard";
 import Skeleton from "../../components/Skeleton";
@@ -65,6 +68,11 @@ function missingGradeCount(data: ClassRecordsResponse, enrollmentId: number): nu
 // ================= Component =================
 
 export default function AdminStudentRecords() {
+    // The quarter and its configured number of quarters come from the shared hook,
+    // which already listens to `academic-settings-updated` and re-fetches on
+    // login/logout. That keeps every mounted page — including the tracker — on the
+    // same source of truth after an advancement, without the tracker ever claiming
+    // eligibility for a stale quarter.
     const { numQuarters, quarters } = useAcademicSettings();
 
     // ================= State =================
@@ -141,6 +149,42 @@ export default function AdminStudentRecords() {
         };
     }, [selectedYearId]);
 
+    // Manual refetch of the matrix for the selected year (used after a
+    // successful quarter advance). The effect above owns the initial load.
+    const refetchSummary = useCallback(async () => {
+        if (!selectedYearId) return;
+        try {
+            const response = await getAPICall<SubmissionSummaryRow[]>(
+                `/student-records/summary?schoolYearId=${selectedYearId}`,
+                { toast: false },
+            );
+            setSummary(response.data ?? []);
+        } catch {
+            // Error toast is handled by the API interceptor
+        }
+    }, [selectedYearId]);
+
+    // The active school year can be changed from Admin Settings in another tab
+    // while this page is open. Re-read the year list whenever the window regains
+    // focus so the Advance button never reflects a stale active year. The server
+    // remains authoritative regardless — a stale request is rejected there.
+    useEffect(() => {
+        async function refreshYears() {
+            try {
+                const response = await getAPICall<SchoolYear[]>("/schoolYear", { toast: false });
+                if (response.data) setYears(response.data);
+            } catch {
+                // Error toast is handled by the API interceptor
+            }
+        }
+
+        const onFocus = () => {
+            void refreshYears();
+        };
+        window.addEventListener("focus", onFocus);
+        return () => window.removeEventListener("focus", onFocus);
+    }, []);
+
     function handleYearChange(yearId: string) {
         if (yearId === selectedYearId) return;
         setLoading(true);
@@ -150,17 +194,74 @@ export default function AdminStudentRecords() {
     const selectedYear = years.find((sy) => String(sy.id) === selectedYearId) ?? null;
 
     // ================= Advance quarter =================
-    const canAdvance = (() => {
-        if (currentQuarter === null || currentQuarter >= numQuarters) return false;
-        return summary.every((row) => {
-            if (!row.adviserId) return false;
-            if (row.totalStudents === 0) return true;
-            const submitted = row.submitted[currentQuarter] ?? 0;
-            return submitted >= row.totalStudents;
-        });
-    })();
+    // The quarter itself is a single global setting — `academic_settings` has no
+    // school-year column — and it is only advanceable when the server's active
+    // school year is complete. The UI therefore:
+    //   * shows the selected year's matrix (useful for follow-up work), but
+    //   * calculates eligibility only for the active year, so it never displays a
+    //     false "ready" state for a different year; and
+    //   * forces the selector to the active year when the button is pressed, so the
+    //     POST always validates against the year the server checks.
+    const activeYear = years.find((sy) => Boolean(sy.isActive)) ?? null;
+
+    // Eligibility uses the active year's matrix. Loading a different year only
+    // changes the displayed matrix; it never produces a misleading eligibility
+    // state for an operation the server would validate elsewhere.
+    const activeYearSummary =
+        activeYear && String(activeYear.id) === selectedYearId
+            ? summary
+            : years.find((sy) => String(sy.id) === selectedYearId && Boolean(sy.isActive))
+              ? summary
+              : [];
+
+    // Blockers inside the year the server will actually validate. A year with zero
+    // viewable classes is advanceable by definition — there is nothing to block.
+    const classesWithoutAdviser = activeYearSummary.filter((row) => !row.adviserId);
+    const incompleteClasses =
+        currentQuarter === null
+            ? []
+            : activeYearSummary.filter(
+                  (row) =>
+                      row.adviserId &&
+                      row.totalStudents > 0 &&
+                      (row.submitted[currentQuarter] ?? 0) < row.totalStudents,
+              );
+
+    // EMPTY-CLASS POLICY (explicit, mirrors the server): a year with no eligible
+    // classes has nothing blocking it, so it is advanceable. This is stated
+    // rather than relying on `[].every()` returning true.
+    const quarterComplete =
+        activeYearSummary.length === 0 ||
+        (classesWithoutAdviser.length === 0 && incompleteClasses.length === 0);
+
+    const advanceBlockedReason =
+        !activeYear
+            ? "No active school year — activate one in Admin Settings before advancing."
+            : currentQuarter === null
+                ? "Loading the current quarter…"
+                : currentQuarter >= numQuarters
+                    ? `Quarter ${numQuarters} is the final quarter`
+                    : !quarterComplete
+                        ? "Not all classes have completed submission for the current quarter"
+                        : null;
+
+    const canAdvance = advanceBlockedReason === null;
 
     async function handleAdvanceQuarter() {
+        // Force the selector to the active year so the POST body carries the year
+        // the server will validate against. Without this, opening the tracker on a
+        // different year and pressing Advance would submit a stale/incomplete
+        // matrix and surface a confusing 409.
+        if (activeYear && String(activeYear.id) !== selectedYearId) {
+            setSelectedYearId(String(activeYear.id));
+            // Wait for the matrix to refresh so the blockers above reflect the
+            // active year, not a stale one.
+            await new Promise<void>((resolve) => {
+                const timer = setTimeout(resolve, 0);
+                return () => clearTimeout(timer);
+            });
+        }
+
         if (currentQuarter === null || currentQuarter >= numQuarters || advancing) return;
         setAdvancing(true);
         try {
@@ -168,7 +269,19 @@ export default function AdminStudentRecords() {
             await patchAPICall("/academic-settings", {
                 currentQuarter: nextQuarter,
             });
+
+            // Only touched AFTER the server confirmed the transition, so a
+            // failure never leaves the page showing a quarter that was not saved.
             setCurrentQuarter(nextQuarter);
+            // Invalidates the shared hook cache AND re-fetches it for every
+            // consumer, so no mounted page keeps displaying the old quarter.
+            invalidateAcademicSettingsCache();
+            window.dispatchEvent(new Event("academic-settings-updated"));
+
+            // Re-read the summary: a newly active quarter can change which cells
+            // are complete, keeping the matrix consistent with the new quarter.
+            refetchSummary();
+
             toast.success(`Quarter advanced to Q${nextQuarter}`);
             setConfirmAdvance(false);
         } catch {
@@ -230,7 +343,10 @@ export default function AdminStudentRecords() {
             {/* ==================== Hero banner ==================== */}
             <div className="tracker__hero flex flex-wrap items-center justify-between gap-4 p-6">
                 <div className="tracker__hero-main flex min-w-0 items-center gap-4">
-                    <span className="tracker__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-xl" aria-hidden="true">
+                    <span
+                        className="tracker__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-xl"
+                        aria-hidden="true"
+                    >
                         <FiClipboard />
                     </span>
                     <div className="tracker__hero-heading min-w-0">
@@ -254,6 +370,25 @@ export default function AdminStudentRecords() {
                     </span>
                 </div>
             </div>
+
+            {/* Quarter advancement is validated against the ACTIVE school year, so
+                name that year whenever it is not the one being viewed. */}
+            {(!activeYear || !selectedYear || String(activeYear.id) !== String(selectedYear.id)) && (
+                <div
+                    className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+                    role="status"
+                >
+                    <FiAlertTriangle className="mt-0.5 shrink-0" aria-hidden="true" />
+                    <p>
+                        <strong className="font-bold">Quarter advancement is unavailable here.</strong>{" "}
+                        {activeYear
+                            ? `The quarter is advanced for the active school year (SY ${activeYear.startYear}–${activeYear.endYear}), but you are
+                          viewing ${selectedYear ? `SY ${selectedYear.startYear}–${selectedYear.endYear}` : "no school year"}.
+                          Select the active year to advance it.`
+                            : "No school year is active. Activate one in Admin Settings before advancing the quarter."}
+                    </p>
+                </div>
+            )}
 
             {/* ==================== Toolbar ==================== */}
             <div className="tracker__toolbar flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm">
@@ -285,7 +420,7 @@ export default function AdminStudentRecords() {
                         className="settings__btn inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold disabled:cursor-not-allowed disabled:opacity-50"
                         disabled={!canAdvance || advancing}
                         onClick={() => setConfirmAdvance(true)}
-                        title={!canAdvance ? (currentQuarter === null || currentQuarter >= numQuarters ? `Quarter ${numQuarters} is the final quarter` : "Not all classes have completed submission for the current quarter") : "Advance to the next quarter"}
+                        title={advanceBlockedReason ?? "Advance to the next quarter"}
                     >
                         {advancing ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiSkipForward aria-hidden="true" />}
                         {advancing ? "Advancing…" : `Advance to Q${(currentQuarter ?? 0) + 1}`}
@@ -294,12 +429,13 @@ export default function AdminStudentRecords() {
             </div>
 
             {/* ==================== Matrix ==================== */}
-            <PageCard
-        className="tracker__card"
-            >
+            <PageCard className="tracker__card">
                 {summary.length === 0 ? (
                     <div className="tracker__empty flex flex-col items-center justify-center px-6 py-20 text-center">
-                        <span className="tracker__empty-icon inline-flex h-14 w-14 items-center justify-center rounded-2xl text-2xl" aria-hidden="true">
+                        <span
+                            className="tracker__empty-icon inline-flex h-14 w-14 items-center justify-center rounded-2xl text-2xl"
+                            aria-hidden="true"
+                        >
                             <FiUsers />
                         </span>
                         <h3 className="tracker__empty-title mt-4 text-base font-bold">No classes yet</h3>
@@ -323,7 +459,10 @@ export default function AdminStudentRecords() {
                                         Students
                                     </th>
                                     {quarters.map((q) => (
-                                        <th key={q} className="px-3 py-3 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                        <th
+                                            key={q}
+                                            className="px-3 py-3 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em]"
+                                        >
                                             <span className="inline-flex items-center gap-1.5">
                                                 Q{q}
                                                 {currentQuarter === q && (
@@ -346,7 +485,10 @@ export default function AdminStudentRecords() {
                                         <tr key={row.classId}>
                                             <td className="tracker__cell--class px-4 py-3.5">
                                                 <div className="tracker__class-cell flex items-center gap-3">
-                                                    <span className="tracker__class-avatar inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[0.6875rem] font-bold" aria-hidden="true">
+                                                    <span
+                                                        className="tracker__class-avatar inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[0.6875rem] font-bold"
+                                                        aria-hidden="true"
+                                                    >
                                                         G{row.gradeLevel}
                                                     </span>
                                                     <div className="min-w-0">
@@ -385,19 +527,18 @@ export default function AdminStudentRecords() {
                                                     <td key={q} className="px-3 py-3.5 text-center">
                                                         <button
                                                             type="button"
-                                                            className={`tracker__quarter inline-flex cursor-pointer items-center justify-center gap-1 rounded-lg px-2.5 py-1.5 font-mono text-[0.75rem] font-bold${
-                                                                complete
-                                                                    ? " tracker__quarter--complete"
-                                                                    : hasAny
-                                                                      ? " tracker__quarter--partial"
-                                                                      : " tracker__quarter--none"
+                                                            className={`tracker__quarter inline-flex cursor-pointer items-center justify-center gap-1 rounded-lg px-2.5 py-1.5 font-mono text-[0.75rem] font-bold${complete
+                                                                ? " tracker__quarter--complete"
+                                                                : hasAny
+                                                                  ? " tracker__quarter--partial"
+                                                                  : " tracker__quarter--none"
                                                             }`}
                                                             title={
                                                                 complete
                                                                     ? `All ${row.totalStudents} students submitted for Q${q}`
                                                                     : hasAny
-                                                                      ? `${count} of ${row.totalStudents} submitted for Q${q} — click to view`
-                                                                      : `No submissions for Q${q} — click to view`
+                                                                        ? `${count} of ${row.totalStudents} submitted for Q${q} — click to view`
+                                                                        : `No submissions for Q${q} — click to view`
                                                             }
                                                             onClick={() => openDrilldown(row, q)}
                                                         >
@@ -409,7 +550,9 @@ export default function AdminStudentRecords() {
                                             })}
 
                                             <td className="px-3 py-3.5">
-                                                <span className={`tracker__status tracker__status--${status.tone} inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.6875rem] font-bold`}>
+                                                <span
+                                                    className={`tracker__status tracker__status--${status.tone} inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.6875rem] font-bold`}
+                                                >
                                                     {status.tone === "ok" ? (
                                                         <FiCheckCircle aria-hidden="true" />
                                                     ) : status.tone === "blocked" ? (
@@ -515,7 +658,9 @@ export default function AdminStudentRecords() {
                                                             </td>
                                                             <td className="px-4 py-2.5">
                                                                 {isSubmitted ? (
-                                                                    <span className="tracker__modal-status tracker__modal-status--submitted inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-bold">
+                                                                    <span
+                                                                        className="tracker__modal-status tracker__modal-status--submitted inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-bold"
+                                                                    >
                                                                         <FiCheckCircle aria-hidden="true" />
                                                                         Submitted
                                                                     </span>
@@ -531,10 +676,10 @@ export default function AdminStudentRecords() {
                                                             </td>
                                                             <td className="px-4 py-2.5 text-[0.75rem]">
                                                                 {isSubmitted
-                                                                    ? (formatSubmittedAt(student.submittedAt) ?? "—")
+                                                                    ? formatSubmittedAt(student.submittedAt) ?? "—"
                                                                     : missing > 0
-                                                                      ? `${missing} subject(s) ungraded`
-                                                                      : "—"}
+                                                                        ? `${missing} subject(s) ungraded`
+                                                                        : "—"}
                                                             </td>
                                                         </tr>
                                                     );
@@ -556,8 +701,7 @@ export default function AdminStudentRecords() {
             {/* ==================== Advance quarter confirm ==================== */}
             <ConfirmDialog
                 open={confirmAdvance}
-                title={`Advance to Quarter ${(currentQuarter ?? 0) + 1}?`
-                }
+                title={`Advance to Quarter ${(currentQuarter ?? 0) + 1}?`}
                 description={`This will change the active quarter from Q${currentQuarter} to Q${(currentQuarter ?? 0) + 1}. Teachers will then be able to submit records for the new quarter. This action cannot be undone from this page.`}
                 confirmLabel={advancing ? "Advancing…" : "Advance Quarter"}
                 confirmIcon={advancing ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiSkipForward aria-hidden="true" />}

@@ -375,8 +375,13 @@ export default function AdminSettings() {
     const [academicLoading, setAcademicLoading] = useState(true);
     const [academicSaving, setAcademicSaving] = useState(false);
     const [academicError, setAcademicError] = useState<string | null>(null);
+    // NOTE: the form deliberately does NOT carry `currentQuarter`. This panel
+    // has no quarter field — advancement belongs to the Submission Tracker — and
+    // echoing a loaded quarter back on every unrelated save would silently
+    // rewind the quarter if it had been advanced in another tab in the meantime.
+    const settingsRowIdRef = useRef<number | null>(null);
+
     const [academicForm, setAcademicForm] = useState({
-        currentQuarter: "1",
         enrollmentOpen: true,
         submissionsLocked: false
     });
@@ -402,7 +407,6 @@ export default function AdminSettings() {
                 const settings = settingsResponse.data;
                 if (settings) {
                     setAcademicForm({
-                        currentQuarter: String(settings.currentQuarter),
                         enrollmentOpen: Boolean(settings.enrollmentOpen),
                         submissionsLocked: Boolean(settings.submissionsLocked)
                     });
@@ -441,8 +445,9 @@ export default function AdminSettings() {
         setAcademicError(null);
         setAcademicSaving(true);
         try {
+            // Only the settings this panel actually edits. `currentQuarter` is
+            // intentionally omitted so this save can never move the quarter.
             await patchAPICall("/academic-settings", {
-                currentQuarter: Number(academicForm.currentQuarter),
                 enrollmentOpen: academicForm.enrollmentOpen ? 1 : 0,
                 submissionsLocked: academicForm.submissionsLocked ? 1 : 0
             });
