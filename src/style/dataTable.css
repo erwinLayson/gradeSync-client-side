@@ -84,6 +84,60 @@
   text-align: center;
 }
 
+/* ---------- Sortable head ---------- */
+/* A sortable column's whole head is a button so it is keyboard-operable; the
+   hit area fills the cell and inherits the head's muted, uppercase look. */
+.data-table__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.data-table__th--sortable.data-table__th--num .data-table__sort,
+.data-table__th--sortable.data-table__th--actions .data-table__sort {
+  justify-content: flex-end;
+}
+
+.data-table__sort-icon {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.55;
+  font-size: 0.8125rem;
+}
+
+.data-table__sort:hover .data-table__sort-icon,
+.data-table__sort:focus-visible .data-table__sort-icon {
+  opacity: 1;
+}
+
+.data-table__sort:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+[aria-sort="ascending"] .data-table__sort,
+[aria-sort="descending"] .data-table__sort {
+  color: var(--text-dark);
+}
+
+[aria-sort="ascending"] .data-table__sort-icon,
+[aria-sort="descending"] .data-table__sort-icon {
+  opacity: 1;
+  color: var(--primary);
+}
+
 /* ---------- Body ---------- */
 .data-table__td {
   padding: 0.75rem 1rem;

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
 /** Right-alignment intent for a column: "num" for figures, "actions" for row buttons. */
 export type TableColumnAlign = "left" | "num" | "actions";
@@ -12,7 +13,12 @@ export type TableColumns<T> = {
         column from resizing with its content. */
     width?: string,
     /** Optional custom cell renderer (e.g. action buttons). Defaults to the raw cell value. */
-    renderCell?: (row: T) => ReactNode
+    renderCell?: (row: T) => ReactNode,
+    /** When true and the table is given `onSortChange`, the head becomes a
+        sort button. Defaults to the column's accessor as the sort key. */
+    sortable?: boolean,
+    /** Sort key reported to `onSortChange`; defaults to `String(accessor)`. */
+    sortKey?: string
 };
 
 
@@ -25,6 +31,11 @@ type TableColumnsProps<T> = {
     onRowClick?: (row: T) => void;
     /** When given, an empty `data` renders this as a single centred row. */
     emptyMessage?: string;
+    /** Active sort key and direction, used to mark the matching head. */
+    sortKey?: string;
+    sortDir?: "asc" | "desc";
+    /** When given, sortable heads call this with the chosen column's key. */
+    onSortChange?: (key: string) => void;
 };
 
 // Cell intent per accessor: ids and LRNs are monospaced so their digits line up
@@ -37,7 +48,16 @@ const CELL_VARIANTS: Record<string, string> = {
     email: "data-table__td--muted"
 };
 
-export default function Table<T>({ columns, data, rowKey, onRowClick, emptyMessage }: TableColumnsProps<T>) {
+export default function Table<T>({
+    columns,
+    data,
+    rowKey,
+    onRowClick,
+    emptyMessage,
+    sortKey,
+    sortDir = "asc",
+    onSortChange
+}: TableColumnsProps<T>) {
     return (
         <div className="data-table__wrap">
             <table className="data-table">
@@ -51,15 +71,43 @@ export default function Table<T>({ columns, data, rowKey, onRowClick, emptyMessa
                 </colgroup>
                 <thead>
                     <tr>
-                        {columns.map((column, columnIndex) => (
-                            <th
-                                key={`${String(column.accessor)}-${columnIndex}`}
-                                scope="col"
-                                className={`data-table__th${column.align ? ` data-table__th--${column.align}` : ""}`}
-                            >
-                                {column.headers}
-                            </th>
-                        ))}
+                        {columns.map((column, columnIndex) => {
+                            const key = column.sortKey ?? String(column.accessor);
+                            const isSortable = column.sortable && onSortChange;
+                            const isActive = sortKey === key;
+                            return (
+                                <th
+                                    key={`${String(column.accessor)}-${columnIndex}`}
+                                    scope="col"
+                                    aria-sort={
+                                        isSortable
+                                            ? isActive
+                                                ? sortDir === "asc"
+                                                    ? "ascending"
+                                                    : "descending"
+                                                : "none"
+                                            : undefined
+                                    }
+                                    className={`data-table__th${column.align ? ` data-table__th--${column.align}` : ""}${isSortable ? " data-table__th--sortable" : ""}`}
+                                >
+                                    {isSortable ? (
+                                        <button
+                                            type="button"
+                                            className="data-table__sort"
+                                            onClick={() => onSortChange?.(key)}
+                                            title={`Sort by ${column.headers}`}
+                                        >
+                                            <span>{column.headers}</span>
+                                            <span className="data-table__sort-icon" aria-hidden="true">
+                                                {isActive && sortDir === "desc" ? <FiChevronDown /> : <FiChevronUp />}
+                                            </span>
+                                        </button>
+                                    ) : (
+                                        column.headers
+                                    )}
+                                </th>
+                            );
+                        })}
                     </tr>
                 </thead>
                 <tbody>

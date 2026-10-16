@@ -78,6 +78,7 @@ function App() {
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/enrollments" element={<AdminEnrollments />} />
               <Route path="/admin/students" element={<AdminStudents />} />
+              <Route path="/admin/students/:studentId" element={<AdminStudents />} />
               <Route path="/admin/classrooms" element={<AdminClassrooms />} />
               <Route path="/admin/subjects" element={<AdminSubjects />} />
               <Route path="/admin/faculties" element={<AdminFaculties />} />
@@ -137,6 +138,7 @@ function App() {
             >
               <Route path="/register/dashboard" element={<RegisterDashboard />} />
               <Route path="/register/students" element={<RegisterStudents />} />
+              <Route path="/register/students/:studentId" element={<RegisterStudents />} />
               <Route path="/register/enrollments" element={<RegisterEnrollments />} />
               <Route path="/register/settings" element={<RegisterSettings />} />
             </Route>

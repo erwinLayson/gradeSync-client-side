@@ -26,3 +26,18 @@ export interface NewStudentProps {
     birthdate: string,
     sex: string
 }
+
+export type StudentStatusFilter = "active" | "inactive" | "all";
+export type StudentSortKey = "name" | "lrn" | "email" | "id";
+export type SortDirection = "asc" | "desc";
+
+/**
+ * One page of the server-paginated student registry (GET /students). The table
+ * renders `students` and derives its pager from `total`.
+ */
+export interface StudentListResponse {
+    students: StudentResponseProps[];
+    total: number;
+    page: number;
+    pageSize: number;
+}

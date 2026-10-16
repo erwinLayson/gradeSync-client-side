@@ -9,5 +9,5 @@ import StudentManagement from "../../components/StudentManagement";
  * See docs/register-role-implementation-plan.md.
  */
 export default function AdminStudents() {
-  return <StudentManagement />;
+  return <StudentManagement basePath="/admin/students" />;
 }

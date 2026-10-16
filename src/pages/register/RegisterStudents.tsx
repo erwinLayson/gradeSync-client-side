@@ -12,5 +12,5 @@ import StudentManagement from "../../components/StudentManagement";
  * Admin enrollment workspace, not this page.
  */
 export default function RegisterStudents() {
-  return <StudentManagement />;
+  return <StudentManagement basePath="/register/students" />;
 }
