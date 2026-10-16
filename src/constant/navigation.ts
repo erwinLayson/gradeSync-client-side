@@ -19,7 +19,9 @@ import {
 
 export const DASHBOARD_PATH = {
   admin: '/admin/dashboard',
-  teacher: '/teacher/dashboard',
+  // Keyed by the *user role* (ROLES.TEACHER = "teacher"); the value is the
+  // faculty workspace path (docs/faculty-role-implementation-plan.md §3.1).
+  teacher: '/faculty/dashboard',
   student: '/student/dashboard',
   developer: '/developer/dashboard',
   // Registration/enrollment staff (docs/register-role-implementation-plan.md).
@@ -49,7 +51,7 @@ export const DASHBOARD_LINKS = {
     {
       title: "Faculty",
       sections: [
-        { label: "Teachers", path: "/admin/teachers", icon: FaChalkboardTeacher },
+        { label: "Faculty", path: "/admin/faculties", icon: FaChalkboardTeacher },
       ]
     },
     {
@@ -67,22 +69,23 @@ export const DASHBOARD_LINKS = {
     }
   ],
 
+  // Keyed by the *user role* (ROLES.TEACHER = "teacher"), not by entity name.
   teacher: [
     {
       title: "Main",
       sections: [
-        { label: "Dashboard", path: "/teacher/dashboard",icon: FaHome,},
-        { label: "Attendance",path: "/teacher/attendance",icon: FaClipboardCheck},
-        { label: "My Class",  path: "/teacher/my-class", icon: FaSchool},
-        { label: "Gradebook",  path: "/teacher/classes", icon: FaClipboardCheck},
-        { label: "Student Records", path: "/teacher/student-records", icon: FaClipboardList},
-        { label: "Reports", path: "/teacher/reports", icon: FaChartLine}
+        { label: "Dashboard", path: "/faculty/dashboard",icon: FaHome,},
+        { label: "Attendance",path: "/faculty/attendance",icon: FaClipboardCheck},
+        { label: "My Class",  path: "/faculty/my-class", icon: FaSchool},
+        { label: "Gradebook",  path: "/faculty/classes", icon: FaClipboardCheck},
+        { label: "Student Records", path: "/faculty/student-records", icon: FaClipboardList},
+        { label: "Reports", path: "/faculty/reports", icon: FaChartLine}
       ] 
     },
     {
       title: "Configuration",
       sections: [
-        { label: "Settings", path: "/teacher/settings", icon: FaCog }
+        { label: "Settings", path: "/faculty/settings", icon: FaCog }
       ]
     }
   ],

@@ -145,12 +145,12 @@ export default function StudentClassroom() {
                     </div>
                 </div>
 
-                {/* Subjects & teachers */}
+                {/* Subjects & faculties */}
                 <section className="student-classes__subjects overflow-hidden rounded-2xl" aria-label="Class subjects">
                     <div className="border-b px-5 py-4">
-                        <h4 className="text-[0.9375rem] font-bold text-neutral-900">Subjects &amp; Teachers</h4>
+                        <h4 className="text-[0.9375rem] font-bold text-neutral-900">Subjects &amp; Faculties</h4>
                         <p className="mt-1 text-[0.8125rem] text-neutral-500">
-                            Your teachers for {selectedClass.section}.
+                            Your faculties for {selectedClass.section}.
                         </p>
                     </div>
                     <div className="flex flex-col">
@@ -167,9 +167,9 @@ export default function StudentClassroom() {
                                         </p>
                                     </div>
                                 </div>
-                                <p className="student-classes__subjects-teacher flex items-center gap-1.5 text-[0.8125rem]">
+                                <p className="student-classes__subjects-faculty flex items-center gap-1.5 text-[0.8125rem]">
                                     <FiUser className="shrink-0" aria-hidden="true" />
-                                    {subject.teacher ?? "—"}
+                                    {subject.faculty ?? "—"}
                                 </p>
                             </div>
                         ))}
@@ -345,7 +345,7 @@ export default function StudentClassroom() {
                                     </span>
                                     <p className="mt-3 text-sm font-bold text-neutral-800">No activities yet</p>
                                     <p className="mt-1 text-[0.8125rem] text-neutral-500">
-                                        Your teachers have not recorded activities for Quarter {activeQuarter}.
+                                        Your faculties have not recorded activities for Quarter {activeQuarter}.
                                     </p>
                                 </div>
                             </section>
@@ -370,7 +370,7 @@ export default function StudentClassroom() {
                                                         {subject.name}
                                                     </h4>
                                                     <p className="student-classes__subjects-subject-code mt-0.5 truncate text-xs">
-                                                        {subject.code} &middot; {subject.teacher ?? "—"}
+                                                        {subject.code} &middot; {subject.faculty ?? "—"}
                                                     </p>
                                                 </div>
                                             </div>
@@ -489,7 +489,7 @@ export default function StudentClassroom() {
                                                 <div className="min-w-0">
                                                     <p className="truncate text-sm font-bold text-neutral-900">{subject.name}</p>
                                                     <p className="student-classes__subjects-subject-code mt-0.5 truncate text-xs">
-                                                        {subject.code} &middot; {subject.teacher ?? "—"}
+                                                        {subject.code} &middot; {subject.faculty ?? "—"}
                                                     </p>
                                                 </div>
                                             </div>
@@ -566,7 +566,7 @@ export default function StudentClassroom() {
                 {/* Footer note */}
                 <p className="flex items-center gap-2 text-[0.8125rem] text-neutral-500">
                     <FiCalendar className="shrink-0" aria-hidden="true" />
-                    Scores and attendance shown are the records entered by your teachers.
+                    Scores and attendance shown are the records entered by your faculties.
                 </p>
             </PageShell>
         );

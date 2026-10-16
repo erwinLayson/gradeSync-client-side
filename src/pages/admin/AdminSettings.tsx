@@ -40,6 +40,9 @@ interface SchoolYear {
     startYear: string;
     endYear: string;
     isActive?: boolean | number;
+    // Authoritative completion marker — only 'completed' unlocks faculty role
+    // changes (plan §7).
+    status?: "ongoing" | "completed" | string;
 }
 
 // ==================== Bulk Enrollment Management ====================
@@ -415,6 +418,36 @@ export default function AdminSettings() {
 
     const selectedSchoolYear = schoolYears.find((sy) => String(sy.id) === selectedSchoolYearId) ?? null;
 
+    // ============ School-year completion (gates faculty role changes) ============
+    // PATCH /schoolYear/:id/status is the OFFICIAL completion switch (plan §7).
+    // While the governing year is not 'completed' every faculty role change is
+    // refused server-side with 409; this control is what an admin uses to let
+    // the school year roll over.
+    const [schoolYearStatusSaving, setSchoolYearStatusSaving] = useState(false);
+
+    async function handleToggleSchoolYearStatus(target: SchoolYear) {
+        if (schoolYearStatusSaving || !target) return;
+        const nextStatus = target.status === "completed" ? "ongoing" : "completed";
+        setSchoolYearStatusSaving(true);
+        try {
+            const response = await patchAPICall<{ status: string }, SchoolYear[]>(
+                `/schoolYear/${target.id}/status`,
+                { status: nextStatus },
+                { toast: true }
+            );
+            const refreshed = response.data;
+            if (refreshed) {
+                setSchoolYears(refreshed);
+            }
+        } catch {
+            // Error toast is handled by the axios interceptor in api.ts
+        } finally {
+            setSchoolYearStatusSaving(false);
+        }
+    }
+
+    const selectedYearCompleted = selectedSchoolYear?.status === "completed";
+
     function handleAcademicChange(event: React.ChangeEvent<HTMLSelectElement>) {
         const { name, value } = event.currentTarget;
         if (name === "enrollmentOpen") {
@@ -788,6 +821,37 @@ export default function AdminSettings() {
                         </select>
                     </div>
                     <div className="settings__field flex flex-col gap-1.5">
+                        <span className="settings__field-label text-[0.6875rem] font-bold uppercase tracking-[0.08em]">School Year Status</span>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span
+                                className={`settings__status ${selectedYearCompleted ? "settings__status--closed" : "settings__status--open"}`}
+                            >
+                                <span
+                                    className={`settings__status-dot ${selectedYearCompleted ? "settings__status-dot--closed" : ""}`}
+                                    aria-hidden="true"
+                                />
+                                {selectedSchoolYear
+                                    ? (selectedYearCompleted ? "Completed" : "Ongoing")
+                                    : "—"}
+                            </span>
+                            <button
+                                type="button"
+                                className="rounded-lg border px-3 py-2 text-[0.75rem] font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+                                onClick={() => selectedSchoolYear && handleToggleSchoolYearStatus(selectedSchoolYear)}
+                                disabled={schoolYearStatusSaving || academicLoading || !selectedSchoolYear}
+                            >
+                                {schoolYearStatusSaving
+                                    ? "Saving…"
+                                    : selectedYearCompleted
+                                        ? "Reopen school year"
+                                        : "Complete school year"}
+                            </button>
+                        </div>
+                        <p className="text-[0.75rem] leading-relaxed text-[var(--neutral-text-muted, #6b7280)]">
+                            Faculty roles can only be changed after the current school year has been officially completed.
+                        </p>
+                    </div>
+                    <div className="settings__field flex flex-col gap-1.5">
                         <label htmlFor="settings-submissions-lock" className="settings__field-label text-[0.6875rem] font-bold uppercase tracking-[0.08em]">Grade Submissions</label>
                         <div
                             className={`settings__status ${academicForm.submissionsLocked ? "settings__status--closed" : "settings__status--open"}`}
@@ -805,7 +869,7 @@ export default function AdminSettings() {
                                 disabled={academicLoading}
                                 aria-label="Grade submissions status"
                             >
-                                <option value="unlocked">Open — Teachers can submit</option>
+                                <option value="unlocked">Open — Faculties can submit</option>
                                 <option value="locked">Locked — Submissions blocked</option>
                             </select>
                             <FiChevronDown className="settings__status-chevron" aria-hidden="true" />
@@ -846,7 +910,7 @@ export default function AdminSettings() {
                             ) : (
                                 <p className="settings__note flex items-center gap-2 text-[0.8125rem]">
                             <FiInfo className="settings__note-icon" aria-hidden="true" />
-                            Closing enrollment blocks new enrollments on the Enrollments page. Locking grade submissions prevents teachers from submitting quarterly student records.
+                            Closing enrollment blocks new enrollments on the Enrollments page. Locking grade submissions prevents faculties from submitting quarterly student records.
                                 </p>
                             )}
                         </div>
@@ -1002,7 +1066,7 @@ export default function AdminSettings() {
                             ) : (
                                 <p className="settings__note flex items-center gap-2 text-[0.8125rem]">
                                     <FiInfo className="settings__note-icon" aria-hidden="true" />
-                                    Defaults apply to class subjects that haven't customized their weights; teachers can override per subject in their gradebook. Weights must total exactly 100.
+                                    Defaults apply to class subjects that haven't customized their weights; faculties can override per subject in their gradebook. Weights must total exactly 100.
                                 </p>
                             )}
                         </div>

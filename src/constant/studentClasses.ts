@@ -43,14 +43,14 @@ export interface ComponentBreakdown {
 
 export interface SubjectGrade {
     // null for frozen record rows (from student_academic_record_subjects) — those
-    // have no live class-subject id, teacher, or unit; they carry the official
+    // have no live class-subject id, faculty, or unit; they carry the official
     // snapshot grades instead. Live gradebook rows always have a real id.
     classSubjectId: number | null;
     subjectId: number | null;
     name: string;
     code: string;
     unit: number | null;
-    teacher: string | null;
+    faculty: string | null;
     quarters: (number | null)[];
     final: number | null;
     remarks: string | null;

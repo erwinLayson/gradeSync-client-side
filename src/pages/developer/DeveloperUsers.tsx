@@ -9,7 +9,6 @@ import {
     FiServer,
     FiShield,
     FiUserCheck,
-    FiUserPlus,
     FiUserX,
     FiUsers,
 } from "react-icons/fi";
@@ -43,21 +42,27 @@ import "../../style/developerDashboard.css";
 const ROLE_FILTERS: Array<{ label: string; value: UserRoles | "all" }> = [
     { label: "All", value: "all" },
     { label: "Admins", value: ROLES.ADMIN },
-    { label: "Teachers", value: ROLES.TEACHER },
+    { label: "Faculties", value: ROLES.TEACHER },
     { label: "Students", value: ROLES.STUDENT },
-    { label: "Registrars", value: ROLES.REGISTER },
     { label: "Developers", value: ROLES.DEVELOPER },
 ];
 
 const ROLE_META: Record<UserRoles, { label: string; icon: typeof FiShield }> = {
     [ROLES.ADMIN]: { label: "Admin", icon: FiShield },
-    [ROLES.TEACHER]: { label: "Teacher", icon: FiBookOpen },
+    [ROLES.TEACHER]: { label: "Faculty", icon: FiBookOpen },
     [ROLES.STUDENT]: { label: "Student", icon: FiUsers },
-    [ROLES.REGISTER]: { label: "Register", icon: FiUserPlus },
     [ROLES.DEVELOPER]: { label: "Developer", icon: FiServer },
 };
 
+// Legacy rows can still carry a role that is no longer a valid user role
+// (e.g. the retired `register`). Fall back instead of crashing the page.
+function roleMeta(role: string): { label: string; icon: typeof FiShield } {
+    return ROLE_META[role as UserRoles] ?? { label: role, icon: FiUserX };
+}
+
 const LOGIN_SWITCHES: Array<{ key: string; role: UserRoles }> = [
+    // Deprecated user-level roles are not login switches; they are a
+    // faculty-role mapping on the server.
     { key: "login_admin", role: ROLES.ADMIN },
     { key: "login_teacher", role: ROLES.TEACHER },
     { key: "login_student", role: ROLES.STUDENT },
@@ -435,7 +440,7 @@ export default function DeveloperUsers() {
                                 const active = account.status === "active";
                                 const busy = pendingId === account.id;
                                 const isSelf = me?.id === account.id;
-                                const RoleIcon = ROLE_META[account.role].icon;
+                                const RoleIcon = roleMeta(account.role).icon;
                                 return (
                                     <li
                                         key={account.id}
@@ -459,7 +464,7 @@ export default function DeveloperUsers() {
                                                 )}
                                             </div>
                                             <p className="mt-1 text-[0.8125rem] leading-relaxed text-neutral-500">
-                                                {ROLE_META[account.role].label} account
+                                                {roleMeta(account.role).label} account
                                             </p>
                                         </div>
 
@@ -472,6 +477,11 @@ export default function DeveloperUsers() {
                                                 onChange={(event) => handleRolePick(account, event.target.value as UserRoles)}
                                                 className="developer-input rounded-lg border px-2.5 py-1.5 text-xs font-semibold"
                                             >
+                                                {!ROLE_META[account.role] && (
+                                                    <option value={account.role}>
+                                                        {roleMeta(account.role).label}
+                                                    </option>
+                                                )}
                                                 {Object.values(ROLES).map((role) => (
                                                     <option key={role} value={role}>
                                                         {ROLE_META[role].label}

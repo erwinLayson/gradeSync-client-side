@@ -173,12 +173,12 @@
    ============================================================ */
 
 /* Legacy hero banners: flat white surface, hairline border, no glow. */
-.teacher-classes__hero,
-.teacher-classes__hero-main,
-.teacher-attendance__hero,
-.teacher-dashboard__hero,
-.teacher-gradebook__hero,
-.teacher-records__hero,
+.faculty-classes__hero,
+.faculty-classes__hero-main,
+.faculty-attendance__hero,
+.faculty-dashboard__hero,
+.faculty-gradebook__hero,
+.faculty-records__hero,
 .student-dashboard__hero,
 .student-classes__hero,
 .student-classes__details-hero,
@@ -186,17 +186,17 @@
 .tracker__hero,
 .dashboard__hero,
 .settings__hero,
-.teacher-settings__hero {
+.faculty-settings__hero {
   background: var(--surface-white) !important;
   background-image: none !important;
   box-shadow: none !important;
 }
 
-.teacher-classes__hero,
-.teacher-attendance__hero,
-.teacher-dashboard__hero,
-.teacher-gradebook__hero,
-.teacher-records__hero,
+.faculty-classes__hero,
+.faculty-attendance__hero,
+.faculty-dashboard__hero,
+.faculty-gradebook__hero,
+.faculty-records__hero,
 .student-dashboard__hero,
 .student-classes__hero,
 .student-classes__details-hero,
@@ -204,7 +204,7 @@
 .tracker__hero,
 .dashboard__hero,
 .settings__hero,
-.teacher-settings__hero {
+.faculty-settings__hero {
   border: 1px solid var(--neutral-border) !important;
   border-radius: var(--radius-lg) !important;
 }
@@ -226,13 +226,13 @@
 .register-dashboard__action,
 .tracker__toolbar,
 .tracker__card,
-.teacher-settings__card,
-.teacher-classes__card,
-.teacher-attendance__card,
-.teacher-dashboard__card,
-.teacher-gradebook__card,
-.teacher-records__loading,
-.teacher-records__empty {
+.faculty-settings__card,
+.faculty-classes__card,
+.faculty-attendance__card,
+.faculty-dashboard__card,
+.faculty-gradebook__card,
+.faculty-records__loading,
+.faculty-records__empty {
   box-shadow: none !important;
 }
 
@@ -243,12 +243,12 @@
 .register-dashboard__hero-badge,
 .settings__badge,
 .settings__hero-badge,
-.teacher-classes__count,
-.teacher-classes__hero-badge,
-.teacher-attendance__hero-badge,
-.teacher-dashboard__hero-badge,
-.teacher-gradebook__hero-badge,
-.teacher-records__hero-badge,
+.faculty-classes__count,
+.faculty-classes__hero-badge,
+.faculty-attendance__hero-badge,
+.faculty-dashboard__hero-badge,
+.faculty-gradebook__hero-badge,
+.faculty-records__hero-badge,
 .student-dashboard__hero-badge,
 .student-classes__hero-badge,
 .student-prospectus__hero-badge,
@@ -262,9 +262,9 @@
 }
 
 /* Decorative icon tints collapse to one neutral accent. */
-.teacher-classes__stat-icon,
-.teacher-attendance__stat-icon,
-.teacher-dashboard__stat-icon,
+.faculty-classes__stat-icon,
+.faculty-attendance__stat-icon,
+.faculty-dashboard__stat-icon,
 .student-dashboard__stat-icon,
 .student-classes__stat-icon,
 .student-prospectus__stat-icon,

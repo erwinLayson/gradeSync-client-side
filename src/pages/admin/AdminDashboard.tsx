@@ -31,7 +31,7 @@ import "../../style/adminDashboard.css";
 
 const QUICK_ACTIONS = [
     { label: "Enroll Student", path: "/admin/enrollments", icon: FiUserPlus, accent: false },
-    { label: "Add Teacher", path: "/admin/teachers", icon: FiUserCheck, accent: false },
+    { label: "Add Faculty", path: "/admin/faculties", icon: FiUserCheck, accent: false },
     { label: "Gradebook", path: "/admin/student-records", icon: FiClipboard, accent: false },
     { label: "Reports", path: "/admin/reports", icon: FiFileText, accent: true },
 ] as const;
@@ -111,8 +111,8 @@ export default function AdminDashboard() {
         },
         {
             label: "Teaching Staff",
-            value: summary != null ? summary.teachers.toLocaleString() : "—",
-            subtitle: summary != null ? `${summary.teachers} active` : "",
+            value: summary != null ? summary.faculties.toLocaleString() : "—",
+            subtitle: summary != null ? `${summary.faculties} active` : "",
             icon: FiBookOpen,
             trend: summary != null ? ("flat" as KpiTrend) : ("flat" as KpiTrend),
             trendText: summary != null ? "Active" : "—",

@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 interface EmptyStateProps {
   /** Decorative icon; rendered with aria-hidden inside a circular chip. */
   icon: ReactNode;
-  /** Short one-line summary, e.g. "No teachers found". */
+  /** Short one-line summary, e.g. "No faculties found". */
   title: ReactNode;
-  /** Supporting sentence, e.g. "Teacher records will appear here once staff are registered." */
+  /** Supporting sentence, e.g. "Faculty records will appear here once staff are registered." */
   description: ReactNode;
   /** Optional slot below the text (e.g. a create action button). */
   action?: ReactNode;

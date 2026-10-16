@@ -20,7 +20,7 @@ import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useUser } from "../../hooks/useUser";
 import { toast } from "../../helper/toast";
 
-import type { TeacherDetails, TeacherSubjectDetails } from "../../constant/teachers";
+import type { FacultyDetails, FacultySubjectDetails } from "../../constant/faculties";
 import type {
     AttendanceMatrix,
     AttendanceSavePayload,
@@ -29,7 +29,7 @@ import type {
     SchoolYearOption,
 } from "../../constant/attendance";
 
-import "../../style/teacherAttendance.css";
+import "../../style/facultyAttendance.css";
 
 // ================= Types =================
 
@@ -144,14 +144,14 @@ function toPositiveInt(value: string | null): number | null {
     return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 }
 
-export default function TeacherAttendance() {
+export default function FacultyAttendance() {
     const { user, loading: userLoading } = useUser();
     const { quarters, currentQuarter, loading: settingsLoading } = useAcademicSettings();
     const [searchParams, setSearchParams] = useSearchParams();
 
     // ==================== State ====================
-    const [teacher, setTeacher] = useState<TeacherDetails | null>(null);
-    const [subjectDetails, setSubjectDetails] = useState<TeacherSubjectDetails[] | null>(null);
+    const [faculty, setFaculty] = useState<FacultyDetails | null>(null);
+    const [subjectDetails, setSubjectDetails] = useState<FacultySubjectDetails[] | null>(null);
     const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(() =>
         toPositiveInt(searchParams.get("subject")),
     );
@@ -190,7 +190,7 @@ export default function TeacherAttendance() {
     // ---- "Create Attendance" dialog ----
     // The server only returns dates that already have a record, so a day with
     // no records has no column and therefore no cell to mark. This dialog opens
-    // one: the teacher picks the subject, the date and the quarter, and the day
+    // one: the faculty picks the subject, the date and the quarter, and the day
     // is added as an (empty) column of that grid. Nothing is written until a
     // cell is marked, exactly like any other day.
     const [createOpen, setCreateOpen] = useState(false);
@@ -209,27 +209,27 @@ export default function TeacherAttendance() {
     // The button that opened the dialog; ModalDialog returns focus to it.
     const createTriggerRef = useRef<HTMLButtonElement>(null);
 
-    // ==================== Load teacher + subject assignments + school years ====================
+    // ==================== Load faculty + subject assignments + school years ====================
     useEffect(() => {
         if (userLoading) return;
         let cancelled = false;
 
-        async function loadTeacher() {
+        async function loadFaculty() {
             if (!user) return;
             try {
-                const teacherRes = await getAPICall<TeacherDetails>(`/teachers/by-user/${user.id}`, {
+                const facultyRes = await getAPICall<FacultyDetails>(`/faculties/by-user/${user.id}`, {
                     toast: false,
                 });
                 if (cancelled) return;
-                const teacherData = teacherRes.data ?? null;
-                setTeacher(teacherData);
-                if (!teacherData) {
+                const facultyData = facultyRes.data ?? null;
+                setFaculty(facultyData);
+                if (!facultyData) {
                     setLoading(false);
                     return;
                 }
 
                 const [subjectsRes, schoolYearsRes] = await Promise.all([
-                    getAPICall<TeacherSubjectDetails[]>(`/teachers/${teacherData.id}/subjects`, {
+                    getAPICall<FacultySubjectDetails[]>(`/faculties/${facultyData.id}/subjects`, {
                         toast: false,
                     }),
                     getAPICall<SchoolYearOption[]>("/schoolYear", { toast: false }),
@@ -249,7 +249,7 @@ export default function TeacherAttendance() {
                 }
 
                 if (subjects.length > 0) {
-                    // Keep a subject from the URL when it is still one the teacher
+                    // Keep a subject from the URL when it is still one the faculty
                     // teaches; otherwise fall back to the first one.
                     setSelectedSubjectId((prev) =>
                         prev !== null && subjects.some((s) => s.classSubjectId === prev)
@@ -264,14 +264,14 @@ export default function TeacherAttendance() {
             }
         }
 
-        loadTeacher();
+        loadFaculty();
         return () => {
             cancelled = true;
         };
     }, [user, userLoading]);
 
     // ==================== Derived: subjects taught (flat, sorted by class) ====================
-    const subjects = useMemo<TeacherSubjectDetails[]>(() => {
+    const subjects = useMemo<FacultySubjectDetails[]>(() => {
         if (!subjectDetails) return [];
         return [...subjectDetails].sort((a, b) => {
             if (a.classId !== b.classId) return a.classId - b.classId;
@@ -370,7 +370,7 @@ export default function TeacherAttendance() {
     const dates = effectiveMatrix?.dates ?? NO_DATES;
 
     // The columns the grid actually shows: every recorded day, plus any day the
-    // teacher just opened from "Create Attendance" that has no record yet. This
+    // faculty just opened from "Create Attendance" that has no record yet. This
     // is the only place a not-yet-recorded day can come from.
     //
     // Newest day first, so the day being recorded is the first column instead of
@@ -387,7 +387,7 @@ export default function TeacherAttendance() {
     const matrixLoading = selectedSubjectId !== null && !rangeInvalid && loadedKey !== requestedKey;
 
     // A specific quarter must be selected to write: every attendance row stores
-    // the teacher-chosen quarter, so "All quarters" is a read-only view.
+    // the faculty-chosen quarter, so "All quarters" is a read-only view.
     const canEdit = quarterFilter !== ALL_QUARTERS;
     const busy = savingCell !== null || savingColumn !== null;
 
@@ -659,8 +659,8 @@ export default function TeacherAttendance() {
     // ==================== Loading ====================
     if (userLoading || loading) {
         return (
-            <PageShell className="teacher-attendance" busy label="Loading attendance">
-                <PageSection className="teacher-attendance__card" flush>
+            <PageShell className="faculty-attendance" busy label="Loading attendance">
+                <PageSection className="faculty-attendance__card" flush>
                     <div className="p-5">
                         <Skeleton lines={6} gap="1rem" />
                     </div>
@@ -670,25 +670,25 @@ export default function TeacherAttendance() {
     }
 
     // ==================== Empty states ====================
-    if (!teacher || subjects.length === 0) {
+    if (!faculty || subjects.length === 0) {
         return (
-            <PageShell className="teacher-attendance">
+            <PageShell className="faculty-attendance">
                 <PageSection
-                    className="teacher-attendance__card"
+                    className="faculty-attendance__card"
                     title="Class Attendance"
-                    description={teacher ? "No subjects assigned yet" : "Teacher profile not found"}
+                    description={faculty ? "No subjects assigned yet" : "Faculty profile not found"}
                 >
-                    <div className="teacher-attendance__sheet-wrap flex flex-col items-center justify-center py-10 text-center">
-                        <span className="teacher-attendance__stat-icon inline-flex h-12 w-12 items-center justify-center rounded-full text-lg" aria-hidden="true">
+                    <div className="faculty-attendance__sheet-wrap flex flex-col items-center justify-center py-10 text-center">
+                        <span className="faculty-attendance__stat-icon inline-flex h-12 w-12 items-center justify-center rounded-full text-lg" aria-hidden="true">
                             <FiUsers />
                         </span>
-                        <p className="teacher-attendance__empty-title mt-3 text-sm font-bold">
-                            {teacher ? "No subjects assigned" : "No teacher profile found"}
+                        <p className="faculty-attendance__empty-title mt-3 text-sm font-bold">
+                            {faculty ? "No subjects assigned" : "No faculty profile found"}
                         </p>
-                        <p className="teacher-attendance__empty-text mt-1 text-[0.8125rem] text-gray-500">
-                            {teacher
+                        <p className="faculty-attendance__empty-text mt-1 text-[0.8125rem] text-gray-500">
+                            {faculty
                                 ? "Subjects you teach will appear here once you are assigned to a class and subject."
-                                : "Your account is not linked to a teacher record yet. Contact the administrator."}
+                                : "Your account is not linked to a faculty record yet. Contact the administrator."}
                         </p>
                     </div>
                 </PageSection>
@@ -697,7 +697,7 @@ export default function TeacherAttendance() {
     }
 
     return (
-        <PageShell className="teacher-attendance">
+        <PageShell className="faculty-attendance">
             {/* ==================== Header ==================== */}
             <PageHeader
                 title={heroName}
@@ -707,15 +707,15 @@ export default function TeacherAttendance() {
 
                 <>
                     {/* ==================== Toolbar: subject + school year + quarter + date range ==================== */}
-                    <div className="teacher-attendance__toolbar flex flex-wrap items-end justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm">
-                        <div className="teacher-attendance__filters flex flex-wrap items-end gap-3">
+                    <div className="faculty-attendance__toolbar flex flex-wrap items-end justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm">
+                        <div className="faculty-attendance__filters flex flex-wrap items-end gap-3">
                             <div className="flex flex-col gap-1">
-                                <label className="teacher-attendance__filter-label text-[0.625rem] font-bold uppercase tracking-[0.08em]" htmlFor="attendance-subject">
+                                <label className="faculty-attendance__filter-label text-[0.625rem] font-bold uppercase tracking-[0.08em]" htmlFor="attendance-subject">
                                     Subject
                                 </label>
                                 <select
                                     id="attendance-subject"
-                                    className="teacher-attendance__day inline-flex cursor-pointer rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
+                                    className="faculty-attendance__day inline-flex cursor-pointer rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
                                     value={selectedSubjectId ?? ""}
                                     onChange={(event) => setSelectedSubjectId(Number(event.target.value))}
                                 >
@@ -728,12 +728,12 @@ export default function TeacherAttendance() {
                             </div>
 
                             <div className="flex flex-col gap-1">
-                                <label className="teacher-attendance__filter-label text-[0.625rem] font-bold uppercase tracking-[0.08em]" htmlFor="attendance-school-year">
+                                <label className="faculty-attendance__filter-label text-[0.625rem] font-bold uppercase tracking-[0.08em]" htmlFor="attendance-school-year">
                                     School Year
                                 </label>
                                 <select
                                     id="attendance-school-year"
-                                    className="teacher-attendance__day inline-flex cursor-pointer rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
+                                    className="faculty-attendance__day inline-flex cursor-pointer rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
                                     value={schoolYearFilter}
                                     onChange={(event) =>
                                         setSchoolYearFilter(
@@ -752,14 +752,14 @@ export default function TeacherAttendance() {
                             </div>
 
                             <div className="flex flex-col gap-1">
-                                <span className="teacher-attendance__filter-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
+                                <span className="faculty-attendance__filter-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
                                     Quarter
                                 </span>
                                 <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by quarter">
                                     <button
                                         type="button"
-                                        className={`teacher-attendance__day inline-flex cursor-pointer rounded-lg border px-3.5 py-2 text-[0.6875rem] font-bold${
-                                            quarterFilter === ALL_QUARTERS ? " teacher-attendance__day--active" : ""
+                                        className={`faculty-attendance__day inline-flex cursor-pointer rounded-lg border px-3.5 py-2 text-[0.6875rem] font-bold${
+                                            quarterFilter === ALL_QUARTERS ? " faculty-attendance__day--active" : ""
                                         }`}
                                         onClick={() => setQuarterFilter(ALL_QUARTERS)}
                                         aria-pressed={quarterFilter === ALL_QUARTERS}
@@ -770,8 +770,8 @@ export default function TeacherAttendance() {
                                         <button
                                             key={quarter}
                                             type="button"
-                                            className={`teacher-attendance__day inline-flex cursor-pointer rounded-lg border px-3.5 py-2 text-[0.6875rem] font-bold${
-                                                quarterFilter === quarter ? " teacher-attendance__day--active" : ""
+                                            className={`faculty-attendance__day inline-flex cursor-pointer rounded-lg border px-3.5 py-2 text-[0.6875rem] font-bold${
+                                                quarterFilter === quarter ? " faculty-attendance__day--active" : ""
                                             }`}
                                             onClick={() => setQuarterFilter(quarter)}
                                             aria-pressed={quarterFilter === quarter}
@@ -783,10 +783,10 @@ export default function TeacherAttendance() {
                             </div>
 
                             <div className="flex flex-col gap-1">
-                                <label className="teacher-attendance__filter-label text-[0.625rem] font-bold uppercase tracking-[0.08em]" htmlFor="attendance-from">
+                                <label className="faculty-attendance__filter-label text-[0.625rem] font-bold uppercase tracking-[0.08em]" htmlFor="attendance-from">
                                     From
                                 </label>
-                                <div className="teacher-attendance__today inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[0.6875rem] font-bold">
+                                <div className="faculty-attendance__today inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[0.6875rem] font-bold">
                                     <FiCalendar aria-hidden="true" />
                                     <input
                                         id="attendance-from"
@@ -800,10 +800,10 @@ export default function TeacherAttendance() {
                             </div>
 
                             <div className="flex flex-col gap-1">
-                                <label className="teacher-attendance__filter-label text-[0.625rem] font-bold uppercase tracking-[0.08em]" htmlFor="attendance-to">
+                                <label className="faculty-attendance__filter-label text-[0.625rem] font-bold uppercase tracking-[0.08em]" htmlFor="attendance-to">
                                     To
                                 </label>
-                                <div className="teacher-attendance__today inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[0.6875rem] font-bold">
+                                <div className="faculty-attendance__today inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[0.6875rem] font-bold">
                                     <FiCalendar aria-hidden="true" />
                                     <input
                                         id="attendance-to"
@@ -822,7 +822,7 @@ export default function TeacherAttendance() {
                             <button
                                 type="button"
                                 ref={createTriggerRef}
-                                className="teacher-attendance__save teacher-attendance__save--primary inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
+                                className="faculty-attendance__save faculty-attendance__save--primary inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
                                 onClick={openCreateDialog}
                                 disabled={subjects.length === 0}
                             >
@@ -831,7 +831,7 @@ export default function TeacherAttendance() {
                             </button>
                             <button
                                 type="button"
-                                className="teacher-attendance__save inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
+                                className="faculty-attendance__save inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
                                 onClick={applyThisMonth}
                             >
                                 <FiCalendar aria-hidden="true" />
@@ -839,7 +839,7 @@ export default function TeacherAttendance() {
                             </button>
                             <button
                                 type="button"
-                                className="teacher-attendance__foot-btn inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
+                                className="faculty-attendance__foot-btn inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
                                 onClick={resetFilters}
                             >
                                 <FiRefreshCw aria-hidden="true" />
@@ -849,41 +849,41 @@ export default function TeacherAttendance() {
                     </div>
 
                     {/* ==================== Quick stats (scoped to the filters) ==================== */}
-                    <div className="teacher-attendance__stats grid grid-cols-2 gap-3 lg:grid-cols-4">
-                        <div className="teacher-attendance__stat flex items-center gap-3 rounded-xl border p-4">
-                            <span className="teacher-attendance__stat-icon teacher-attendance__stat-icon--total inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
+                    <div className="faculty-attendance__stats grid grid-cols-2 gap-3 lg:grid-cols-4">
+                        <div className="faculty-attendance__stat flex items-center gap-3 rounded-xl border p-4">
+                            <span className="faculty-attendance__stat-icon faculty-attendance__stat-icon--total inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
                                 <FiUsers />
                             </span>
                             <div className="min-w-0">
-                                <span className="teacher-attendance__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Students</span>
-                                <span className="teacher-attendance__stat-value mt-0.5 block text-[1.125rem] font-bold">{students.length}</span>
+                                <span className="faculty-attendance__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Students</span>
+                                <span className="faculty-attendance__stat-value mt-0.5 block text-[1.125rem] font-bold">{students.length}</span>
                             </div>
                         </div>
-                        <div className="teacher-attendance__stat flex items-center gap-3 rounded-xl border p-4">
-                            <span className="teacher-attendance__stat-icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
+                        <div className="faculty-attendance__stat flex items-center gap-3 rounded-xl border p-4">
+                            <span className="faculty-attendance__stat-icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
                                 <FiGrid />
                             </span>
                             <div className="min-w-0">
-                                <span className="teacher-attendance__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Days Recorded</span>
-                                <span className="teacher-attendance__stat-value mt-0.5 block text-[1.125rem] font-bold">{gridDates.length}</span>
+                                <span className="faculty-attendance__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Days Recorded</span>
+                                <span className="faculty-attendance__stat-value mt-0.5 block text-[1.125rem] font-bold">{gridDates.length}</span>
                             </div>
                         </div>
-                        <div className="teacher-attendance__stat flex items-center gap-3 rounded-xl border p-4">
-                            <span className="teacher-attendance__stat-icon teacher-attendance__stat-icon--absent inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
+                        <div className="faculty-attendance__stat flex items-center gap-3 rounded-xl border p-4">
+                            <span className="faculty-attendance__stat-icon faculty-attendance__stat-icon--absent inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
                                 <FiXCircle />
                             </span>
                             <div className="min-w-0">
-                                <span className="teacher-attendance__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Absences</span>
-                                <span className="teacher-attendance__stat-value mt-0.5 block text-[1.125rem] font-bold">{totals.absent}</span>
+                                <span className="faculty-attendance__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Absences</span>
+                                <span className="faculty-attendance__stat-value mt-0.5 block text-[1.125rem] font-bold">{totals.absent}</span>
                             </div>
                         </div>
-                        <div className="teacher-attendance__stat flex items-center gap-3 rounded-xl border p-4">
-                            <span className="teacher-attendance__stat-icon teacher-attendance__stat-icon--present inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
+                        <div className="faculty-attendance__stat flex items-center gap-3 rounded-xl border p-4">
+                            <span className="faculty-attendance__stat-icon faculty-attendance__stat-icon--present inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
                                 <FiUserCheck />
                             </span>
                             <div className="min-w-0">
-                                <span className="teacher-attendance__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Present Rate</span>
-                                <span className="teacher-attendance__stat-value mt-0.5 block text-[1.125rem] font-bold">
+                                <span className="faculty-attendance__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Present Rate</span>
+                                <span className="faculty-attendance__stat-value mt-0.5 block text-[1.125rem] font-bold">
                                     {totals.rate === null ? "—" : `${totals.rate}%`}
                                 </span>
                             </div>
@@ -891,31 +891,31 @@ export default function TeacherAttendance() {
                     </div>
 
                     {/* ==================== Spreadsheet grid ==================== */}
-                    <div className="teacher-attendance__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                        <div className="teacher-attendance__card-head flex flex-wrap items-center justify-between gap-4 p-5">
-                            <div className="teacher-attendance__card-heading min-w-0">
-                                <h3 className="teacher-attendance__card-title text-base font-bold">Attendance Record</h3>
-                                <p className="teacher-attendance__card-subtitle mt-1 text-[0.8125rem]">
+                    <div className="faculty-attendance__card overflow-hidden rounded-2xl bg-white shadow-sm">
+                        <div className="faculty-attendance__card-head flex flex-wrap items-center justify-between gap-4 p-5">
+                            <div className="faculty-attendance__card-heading min-w-0">
+                                <h3 className="faculty-attendance__card-title text-base font-bold">Attendance Record</h3>
+                                <p className="faculty-attendance__card-subtitle mt-1 text-[0.8125rem]">
                                     {students.length} students &middot; {gridDates.length} days &middot; newest first
                                     {selectedSubject ? ` &middot; ${selectedSubject.subjectName}` : ""}
                                     &middot; {gridFilterLabel}
                                 </p>
                             </div>
-                            <div className="teacher-attendance__legend flex flex-wrap items-center gap-3 text-[0.6875rem] font-bold">
-                                <span className="teacher-attendance__legend-item inline-flex items-center gap-1.5">
-                                    <span className="teacher-attendance__legend-swatch teacher-attendance__legend-swatch--present inline-flex items-center justify-center" aria-hidden="true">
+                            <div className="faculty-attendance__legend flex flex-wrap items-center gap-3 text-[0.6875rem] font-bold">
+                                <span className="faculty-attendance__legend-item inline-flex items-center gap-1.5">
+                                    <span className="faculty-attendance__legend-swatch faculty-attendance__legend-swatch--present inline-flex items-center justify-center" aria-hidden="true">
                                         <FiCheck />
                                     </span>
                                     Present
                                 </span>
-                                <span className="teacher-attendance__legend-item inline-flex items-center gap-1.5">
-                                    <span className="teacher-attendance__legend-swatch teacher-attendance__legend-swatch--absent inline-flex items-center justify-center" aria-hidden="true">
+                                <span className="faculty-attendance__legend-item inline-flex items-center gap-1.5">
+                                    <span className="faculty-attendance__legend-swatch faculty-attendance__legend-swatch--absent inline-flex items-center justify-center" aria-hidden="true">
                                         <FiX />
                                     </span>
                                     Absent
                                 </span>
-                                <span className="teacher-attendance__legend-item inline-flex items-center gap-1.5">
-                                    <span className="teacher-attendance__legend-swatch teacher-attendance__legend-swatch--none inline-flex items-center justify-center" aria-hidden="true">
+                                <span className="faculty-attendance__legend-item inline-flex items-center gap-1.5">
+                                    <span className="faculty-attendance__legend-swatch faculty-attendance__legend-swatch--none inline-flex items-center justify-center" aria-hidden="true">
                                         ·
                                     </span>
                                     Not recorded
@@ -925,46 +925,46 @@ export default function TeacherAttendance() {
 
                         {/* Why the grid is read-only / why nothing is shown. */}
                         {!canEdit && (
-                            <p className="teacher-attendance__hint border-b px-5 py-3 text-[0.8125rem]">
+                            <p className="faculty-attendance__hint border-b px-5 py-3 text-[0.8125rem]">
                                 Showing every quarter — pick a specific quarter (or use Create Attendance) to record or change attendance.
                             </p>
                         )}
                         {rangeInvalid ? (
-                            <div className="teacher-attendance__sheet-wrap flex flex-col items-center justify-center px-6 py-14 text-center">
-                                <span className="teacher-attendance__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full text-lg" aria-hidden="true">
+                            <div className="faculty-attendance__sheet-wrap flex flex-col items-center justify-center px-6 py-14 text-center">
+                                <span className="faculty-attendance__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full text-lg" aria-hidden="true">
                                     <FiCalendar />
                                 </span>
-                                <p className="teacher-attendance__empty-title mt-3 text-sm font-bold">Invalid date range</p>
-                                <p className="teacher-attendance__empty-text mt-1 text-[0.8125rem] text-gray-500">
+                                <p className="faculty-attendance__empty-title mt-3 text-sm font-bold">Invalid date range</p>
+                                <p className="faculty-attendance__empty-text mt-1 text-[0.8125rem] text-gray-500">
                                     The “From” date is after the “To” date, so there is nothing to show. Adjust the range.
                                 </p>
                             </div>
                         ) : matrixLoading ? (
-                            <div className="teacher-attendance__sheet-wrap p-6" aria-busy="true">
+                            <div className="faculty-attendance__sheet-wrap p-6" aria-busy="true">
                                 <div className="h-40 animate-pulse rounded-xl bg-gray-100" aria-hidden="true" />
                             </div>
                         ) : students.length === 0 ? (
-                            <div className="teacher-attendance__sheet-wrap flex flex-col items-center justify-center px-6 py-14 text-center">
-                                <span className="teacher-attendance__stat-icon inline-flex h-12 w-12 items-center justify-center rounded-full text-lg" aria-hidden="true">
+                            <div className="faculty-attendance__sheet-wrap flex flex-col items-center justify-center px-6 py-14 text-center">
+                                <span className="faculty-attendance__stat-icon inline-flex h-12 w-12 items-center justify-center rounded-full text-lg" aria-hidden="true">
                                     <FiUsers />
                                 </span>
-                                <p className="teacher-attendance__empty-title mt-3 text-sm font-bold">No students enrolled</p>
-                                <p className="teacher-attendance__empty-text mt-1 text-[0.8125rem] text-gray-500">
+                                <p className="faculty-attendance__empty-title mt-3 text-sm font-bold">No students enrolled</p>
+                                <p className="faculty-attendance__empty-text mt-1 text-[0.8125rem] text-gray-500">
                                     No students are enrolled in this class for the selected school year.
                                 </p>
                             </div>
                         ) : gridDates.length === 0 ? (
-                            <div className="teacher-attendance__sheet-wrap flex flex-col items-center justify-center px-6 py-14 text-center">
-                                <span className="teacher-attendance__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full text-lg" aria-hidden="true">
+                            <div className="faculty-attendance__sheet-wrap flex flex-col items-center justify-center px-6 py-14 text-center">
+                                <span className="faculty-attendance__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full text-lg" aria-hidden="true">
                                     <FiCalendar />
                                 </span>
-                                <p className="teacher-attendance__empty-title mt-3 text-sm font-bold">No attendance recorded for these filters</p>
-                                <p className="teacher-attendance__empty-text mt-1 text-[0.8125rem] text-gray-500">
+                                <p className="faculty-attendance__empty-title mt-3 text-sm font-bold">No attendance recorded for these filters</p>
+                                <p className="faculty-attendance__empty-text mt-1 text-[0.8125rem] text-gray-500">
                                     Days only appear once they have a record, so open a day to start recording — or try another school year, quarter or date range.
                                 </p>
                                 <button
                                     type="button"
-                                    className="teacher-attendance__save teacher-attendance__save--primary mt-4 inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
+                                    className="faculty-attendance__save faculty-attendance__save--primary mt-4 inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
                                     onClick={openCreateDialog}
                                     disabled={subjects.length === 0}
                                 >
@@ -973,13 +973,13 @@ export default function TeacherAttendance() {
                                 </button>
                             </div>
                         ) : (
-                            <div className="teacher-attendance__grid-wrap overflow-x-auto">
-                                <table className="teacher-attendance__grid border-collapse text-sm">
+                            <div className="faculty-attendance__grid-wrap overflow-x-auto">
+                                <table className="faculty-attendance__grid border-collapse text-sm">
                                     <thead>
                                         <tr>
                                             <th
                                                 scope="col"
-                                                className="teacher-attendance__grid-student-col px-4 py-2 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]"
+                                                className="faculty-attendance__grid-student-col px-4 py-2 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]"
                                             >
                                                 Student
                                             </th>
@@ -987,28 +987,28 @@ export default function TeacherAttendance() {
                                                 <th
                                                     key={date}
                                                     scope="col"
-                                                    className="teacher-attendance__grid-th px-1 py-2 text-center text-[0.6875rem] font-semibold"
+                                                    className="faculty-attendance__grid-th px-1 py-2 text-center text-[0.6875rem] font-semibold"
                                                     title={
                                                         pendingForKey.includes(date)
                                                             ? `${formatLongDate(date)} — new day, not recorded yet`
                                                             : formatLongDate(date)
                                                     }
                                                 >
-                                                    <span className="teacher-attendance__grid-date block whitespace-nowrap">
+                                                    <span className="faculty-attendance__grid-date block whitespace-nowrap">
                                                         {formatShortDate(date)}
                                                     </span>
-                                                    <span className="teacher-attendance__grid-weekday block text-[0.5625rem] font-normal uppercase">
+                                                    <span className="faculty-attendance__grid-weekday block text-[0.5625rem] font-normal uppercase">
                                                         {formatWeekday(date)}
                                                     </span>
                                                     {pendingForKey.includes(date) && (
-                                                        <span className="teacher-attendance__grid-new block text-[0.5rem] font-bold uppercase">
+                                                        <span className="faculty-attendance__grid-new block text-[0.5rem] font-bold uppercase">
                                                             New
                                                         </span>
                                                     )}
                                                     {canEdit && (
                                                         <button
                                                             type="button"
-                                                            className="teacher-attendance__grid-all inline-flex cursor-pointer items-center justify-center rounded"
+                                                            className="faculty-attendance__grid-all inline-flex cursor-pointer items-center justify-center rounded"
                                                             onClick={() => handleMarkDatePresent(date)}
                                                             disabled={busy}
                                                             aria-label={`Mark all students present on ${formatLongDate(date)}`}
@@ -1021,7 +1021,7 @@ export default function TeacherAttendance() {
                                             ))}
                                             <th
                                                 scope="col"
-                                                className="teacher-attendance__grid-th px-3 py-2 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em]"
+                                                className="faculty-attendance__grid-th px-3 py-2 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em]"
                                             >
                                                 Present
                                             </th>
@@ -1036,13 +1036,13 @@ export default function TeacherAttendance() {
                                                     : null;
                                             return (
                                                 <tr key={student.enrollmentId}>
-                                                    <th scope="row" className="teacher-attendance__grid-student-col px-4 py-1.5 text-left">
-                                                        <span className="teacher-attendance__student-cell flex items-center gap-2.5 text-left">
+                                                    <th scope="row" className="faculty-attendance__grid-student-col px-4 py-1.5 text-left">
+                                                        <span className="faculty-attendance__student-cell flex items-center gap-2.5 text-left">
                                                             <span className="min-w-0">
-                                                                <span className="teacher-attendance__student-name block truncate text-[0.8125rem] font-bold">
+                                                                <span className="faculty-attendance__student-name block truncate text-[0.8125rem] font-bold">
                                                                     {student.fullname}
                                                                 </span>
-                                                                <span className="teacher-attendance__student-lrn mt-0.5 block font-mono text-[0.625rem]">
+                                                                <span className="faculty-attendance__student-lrn mt-0.5 block font-mono text-[0.625rem]">
                                                                     {student.studentLrn}
                                                                 </span>
                                                             </span>
@@ -1055,11 +1055,11 @@ export default function TeacherAttendance() {
                                                         const isSaving = savingCell === key || savingColumn === date;
                                                         const label = status === "present" ? "Present" : status === "absent" ? "Absent" : "Not recorded";
                                                         return (
-                                                            <td key={date} className="teacher-attendance__grid-cell px-1 py-1.5 text-center">
+                                                            <td key={date} className="faculty-attendance__grid-cell px-1 py-1.5 text-center">
                                                                 <button
                                                                     type="button"
-                                                                    className={`teacher-attendance__cell teacher-attendance__cell--${status ?? "none"}${
-                                                                        isSaving ? " teacher-attendance__cell--saving" : ""
+                                                                    className={`faculty-attendance__cell faculty-attendance__cell--${status ?? "none"}${
+                                                                        isSaving ? " faculty-attendance__cell--saving" : ""
                                                                     }`}
                                                                     onClick={() => handleToggleCell(student, date)}
                                                                     disabled={!canEdit || busy}
@@ -1082,7 +1082,7 @@ export default function TeacherAttendance() {
                                                         );
                                                     })}
 
-                                                    <td className="teacher-attendance__grid-cell teacher-attendance__grid-cell--summary px-3 py-1.5 text-center">
+                                                    <td className="faculty-attendance__grid-cell faculty-attendance__grid-cell--summary px-3 py-1.5 text-center">
                                                         {stats.recorded === 0 ? (
                                                             <span className="text-gray-400">—</span>
                                                         ) : (
@@ -1106,13 +1106,13 @@ export default function TeacherAttendance() {
                         )}
 
                         {/* ==================== Grid footer ==================== */}
-                        <div className="teacher-attendance__card-foot flex flex-wrap items-center justify-between gap-3 p-5">
-                            <p className="teacher-attendance__foot-note flex items-center gap-2 text-[0.8125rem]">
+                        <div className="faculty-attendance__card-foot flex flex-wrap items-center justify-between gap-3 p-5">
+                            <p className="faculty-attendance__foot-note flex items-center gap-2 text-[0.8125rem]">
                                 <FiUserCheck aria-hidden="true" />
                                 Range present rate: <strong>{totals.present} of {totals.recorded}</strong> recorded days
                                 {totals.rate !== null ? ` · ${totals.rate}%` : ""}
                             </p>
-                            <p className="teacher-attendance__foot-note flex items-center gap-2 text-[0.8125rem]">
+                            <p className="faculty-attendance__foot-note flex items-center gap-2 text-[0.8125rem]">
                                 <FiCalendar aria-hidden="true" />
                                 {canEdit
                                     ? "Tap a cell to toggle Present / Absent, or the header tick to fill a day."
@@ -1128,25 +1128,25 @@ export default function TeacherAttendance() {
                     <ModalDialog
                         open={createOpen}
                         onClose={closeCreateDialog}
-                        labelledById="teacher-attendance-create-title"
-                        className="teacher-attendance__modal-panel w-full max-w-[30rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+                        labelledById="faculty-attendance-create-title"
+                        className="faculty-attendance__modal-panel w-full max-w-[30rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
                         restoreFocusRef={createTriggerRef}
                     >
-                        <header className="teacher-attendance__modal-header flex items-start justify-between gap-4 p-6 pb-5">
+                        <header className="faculty-attendance__modal-header flex items-start justify-between gap-4 p-6 pb-5">
                             <div className="min-w-0">
-                                <span className="teacher-attendance__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
+                                <span className="faculty-attendance__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
                                     New record
                                 </span>
-                                <h3 id="teacher-attendance-create-title" className="teacher-attendance__modal-title mt-0.5 text-xl font-bold">
+                                <h3 id="faculty-attendance-create-title" className="faculty-attendance__modal-title mt-0.5 text-xl font-bold">
                                     Create Attendance
                                 </h3>
-                                <p className="teacher-attendance__modal-subtitle mt-1 text-[0.8125rem]">
+                                <p className="faculty-attendance__modal-subtitle mt-1 text-[0.8125rem]">
                                     Open a day for a subject, then mark each student present or absent.
                                 </p>
                             </div>
                             <button
                                 type="button"
-                                className="teacher-attendance__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg"
+                                className="faculty-attendance__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg"
                                 onClick={closeCreateDialog}
                                 aria-label="Close dialog"
                             >
@@ -1154,17 +1154,17 @@ export default function TeacherAttendance() {
                             </button>
                         </header>
 
-                        <form className="teacher-attendance__form p-6" onSubmit={handleCreateAttendance} noValidate>
+                        <form className="faculty-attendance__form p-6" onSubmit={handleCreateAttendance} noValidate>
                             <div className="flex flex-col gap-1.5">
                                 <label
                                     htmlFor="attendance-create-subject"
-                                    className="teacher-attendance__form-label text-[0.8125rem] font-semibold"
+                                    className="faculty-attendance__form-label text-[0.8125rem] font-semibold"
                                 >
                                     Subject
                                 </label>
                                 <select
                                     id="attendance-create-subject"
-                                    className="teacher-attendance__form-input w-full cursor-pointer rounded-lg border px-3 py-2.5 text-sm"
+                                    className="faculty-attendance__form-input w-full cursor-pointer rounded-lg border px-3 py-2.5 text-sm"
                                     autoFocus
                                     value={createForm.classSubjectId ?? ""}
                                     onChange={(event) =>
@@ -1187,14 +1187,14 @@ export default function TeacherAttendance() {
                                 <div className="flex flex-col gap-1.5">
                                     <label
                                         htmlFor="attendance-create-date"
-                                        className="teacher-attendance__form-label text-[0.8125rem] font-semibold"
+                                        className="faculty-attendance__form-label text-[0.8125rem] font-semibold"
                                     >
                                         Date
                                     </label>
                                     <input
                                         id="attendance-create-date"
                                         type="date"
-                                        className="teacher-attendance__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                        className="faculty-attendance__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
                                         value={createForm.date}
                                         max={toDateInputValue(new Date())}
                                         onChange={(event) =>
@@ -1206,13 +1206,13 @@ export default function TeacherAttendance() {
                                 <div className="flex flex-col gap-1.5">
                                     <label
                                         htmlFor="attendance-create-quarter"
-                                        className="teacher-attendance__form-label text-[0.8125rem] font-semibold"
+                                        className="faculty-attendance__form-label text-[0.8125rem] font-semibold"
                                     >
                                         Quarter
                                     </label>
                                     <select
                                         id="attendance-create-quarter"
-                                        className="teacher-attendance__form-input w-full cursor-pointer rounded-lg border px-3 py-2.5 text-sm"
+                                        className="faculty-attendance__form-input w-full cursor-pointer rounded-lg border px-3 py-2.5 text-sm"
                                         value={createForm.quarter}
                                         onChange={(event) =>
                                             setCreateForm((prev) => ({ ...prev, quarter: Number(event.target.value) }))
@@ -1228,27 +1228,27 @@ export default function TeacherAttendance() {
                             </div>
 
                             {createError && (
-                                <p className="teacher-attendance__form-error mt-3 text-[0.8125rem]" role="alert">
+                                <p className="faculty-attendance__form-error mt-3 text-[0.8125rem]" role="alert">
                                     {createError}
                                 </p>
                             )}
 
-                            <p className="teacher-attendance__form-note mt-4 text-[0.8125rem]">
+                            <p className="faculty-attendance__form-note mt-4 text-[0.8125rem]">
                                 Nothing is saved yet: the day is added as a new column. Mark students there — or use
                                 the ✓ in its header to mark the whole class present at once.
                             </p>
 
-                            <div className="teacher-attendance__form-footer mt-5 flex items-center justify-end gap-2 border-t pt-4">
+                            <div className="faculty-attendance__form-footer mt-5 flex items-center justify-end gap-2 border-t pt-4">
                                 <button
                                     type="button"
-                                    className="teacher-attendance__form-cancel inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
+                                    className="faculty-attendance__form-cancel inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
                                     onClick={closeCreateDialog}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="teacher-attendance__form-submit inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
+                                    className="faculty-attendance__form-submit inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
                                     disabled={subjects.length === 0 || createChecking}
                                 >
                                     <FiPlus aria-hidden="true" />

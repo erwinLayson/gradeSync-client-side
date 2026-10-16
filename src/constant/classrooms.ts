@@ -23,17 +23,17 @@ students: {
 }[]
 }
 
-export interface ClassroomTeachersWithSubjectProps  {
+export interface ClassroomFacultiesWithSubjectProps  {
     classSubjectId: number;
-    teacherId: number;
-    teacherFullname: string;
+    facultyId: number;
+    facultyFullname: string;
     unit: number,
     code: string;
     subjectId: number;
     subjectName: string;
 }
 
-export interface subjectTeachersProps extends ClassroomTeachersWithSubjectProps {
+export interface subjectFacultiesProps extends ClassroomFacultiesWithSubjectProps {
     subjectUnit: number;
     subjectCode: string
 }
@@ -43,14 +43,14 @@ export interface subjectNotInClassProps {
     subjectName: string;
     subjectCode: string;
     subjectUnit: number;
-    teachers: {
-        teacherId: number;
-        teacherFullname: string;
+    faculties: {
+        facultyId: number;
+        facultyFullname: string;
     }[]
 }
 
-export interface EditSubjectTeacherProps {
+export interface EditSubjectFacultyProps {
     subjectId: number,
-    teacherId: number
+    facultyId: number
     
 }

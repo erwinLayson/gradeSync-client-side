@@ -1,21 +1,21 @@
 /* ============================================================
-   TeacherAttendance — component stylesheet (hybrid approach)
+   FacultyAttendance — component stylesheet (hybrid approach)
 
    Holds the "complex" layer only (colors, gradients, shadows,
    animations, transitions, state styles). Basic layout lives
-   as Tailwind utilities directly in TeacherAttendance.tsx.
+   as Tailwind utilities directly in FacultyAttendance.tsx.
    ============================================================ */
 
 /* ---------- Hero banner ---------- */
-.teacher-attendance__hero {
+.faculty-attendance__hero {
   background: var(--gradient-brand);
   color: var(--text-on-dark);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
-  animation: teacher-attendance-in var(--transition-slow) ease-out forwards;
+  animation: faculty-attendance-in var(--transition-slow) ease-out forwards;
 }
 
-@keyframes teacher-attendance-in {
+@keyframes faculty-attendance-in {
   from {
     opacity: 0;
     transform: translateY(0.5rem);
@@ -26,7 +26,7 @@
   }
 }
 
-.teacher-attendance__hero-avatar {
+.faculty-attendance__hero-avatar {
   color: var(--text-on-dark);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
   border: 1px solid var(--border-on-dark);
@@ -35,156 +35,156 @@
   -webkit-backdrop-filter: blur(6px);
 }
 
-.teacher-attendance__hero-eyebrow {
+.faculty-attendance__hero-eyebrow {
   color: var(--text-on-dark-muted);
 }
 
-.teacher-attendance__hero-name {
+.faculty-attendance__hero-name {
   letter-spacing: -0.01em;
   color: var(--text-on-dark);
 }
 
-.teacher-attendance__hero-role {
+.faculty-attendance__hero-role {
   color: var(--text-on-dark-soft);
 }
 
-.teacher-attendance__hero-badge {
+.faculty-attendance__hero-badge {
   border-color: var(--border-on-dark);
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
 
-.teacher-attendance__hero-badge-count {
+.faculty-attendance__hero-badge-count {
   color: var(--text-on-dark);
 }
 
-.teacher-attendance__hero-badge-label {
+.faculty-attendance__hero-badge-label {
   color: var(--text-on-dark-muted);
 }
 
 /* ---------- Toolbar + week strip ---------- */
-.teacher-attendance__toolbar {
+.faculty-attendance__toolbar {
   border-color: var(--neutral-border);
   background: var(--surface-white);
 }
 
-.teacher-attendance__day {
+.faculty-attendance__day {
   border: 1px solid var(--neutral-border);
   color: var(--text-muted);
   background: var(--surface-bg);
   transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
 }
 
-.teacher-attendance__day:hover {
+.faculty-attendance__day:hover {
   border-color: var(--primary);
   color: var(--primary-dark);
   transform: translateY(-1px);
 }
 
-.teacher-attendance__day--active {
+.faculty-attendance__day--active {
   border-color: var(--primary);
   color: var(--text-on-dark);
   background: var(--gradient-brand);
   box-shadow: var(--shadow-sm);
 }
 
-.teacher-attendance__day--active .teacher-attendance__day-name {
+.faculty-attendance__day--active .faculty-attendance__day-name {
   color: var(--text-on-dark-muted);
 }
 
-.teacher-attendance__day--active .teacher-attendance__day-date {
+.faculty-attendance__day--active .faculty-attendance__day-date {
   color: var(--text-on-dark);
 }
 
-.teacher-attendance__today {
+.faculty-attendance__today {
   border: 1px dashed var(--primary-light);
   color: var(--primary-dark);
   background: var(--accent-light);
 }
 
-.teacher-attendance__mark-all {
+.faculty-attendance__mark-all {
   color: var(--text-on-dark);
   background: var(--gradient-brand);
   box-shadow: var(--shadow-sm);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
 }
 
-.teacher-attendance__mark-all:hover {
+.faculty-attendance__mark-all:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
   filter: brightness(1.05);
 }
 
-.teacher-attendance__mark-all:focus-visible {
+.faculty-attendance__mark-all:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
 /* ---------- Quick stats ---------- */
-.teacher-attendance__stat {
+.faculty-attendance__stat {
   border-color: var(--neutral-border);
   background: var(--surface-white);
   box-shadow: var(--shadow-sm);
   transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
-.teacher-attendance__stat:hover {
+.faculty-attendance__stat:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
   border-color: var(--primary);
 }
 
-.teacher-attendance__stat-icon {
+.faculty-attendance__stat-icon {
   color: var(--primary-dark);
   background: var(--neutral-border);
   box-shadow: var(--shadow-sm);
 }
 
-.teacher-attendance__stat-icon--present {
+.faculty-attendance__stat-icon--present {
   color: #065f46;
   background: #d1fae5;
 }
 
-.teacher-attendance__stat-icon--late {
+.faculty-attendance__stat-icon--late {
   color: #92400e;
   background: #fef3c7;
 }
 
-.teacher-attendance__stat-icon--absent {
+.faculty-attendance__stat-icon--absent {
   color: #b91c1c;
   background: #fee2e2;
 }
 
-.teacher-attendance__stat-label {
+.faculty-attendance__stat-label {
   color: var(--text-muted);
 }
 
-.teacher-attendance__stat-value {
+.faculty-attendance__stat-value {
   color: var(--text-dark);
 }
 
 /* ---------- Card shell ---------- */
-.teacher-attendance__card {
+.faculty-attendance__card {
   border: 1px solid var(--neutral-border);
   border-radius: var(--radius-xl);
 }
 
-.teacher-attendance__card-head {
+.faculty-attendance__card-head {
   border-bottom: 1px solid var(--neutral-border);
 }
 
-.teacher-attendance__card-title {
+.faculty-attendance__card-title {
   letter-spacing: -0.01em;
   color: var(--text-dark);
 }
 
-.teacher-attendance__card-subtitle {
+.faculty-attendance__card-subtitle {
   color: var(--text-muted);
 }
 
 /* ---------- Action buttons ---------- */
-.teacher-attendance__save {
+.faculty-attendance__save {
   border: 1px solid var(--neutral-border);
   color: var(--primary-dark);
   background: var(--surface-white);
@@ -192,18 +192,18 @@
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
-.teacher-attendance__save:hover:not(:disabled) {
+.faculty-attendance__save:hover:not(:disabled) {
   border-color: var(--primary);
   background: var(--surface-bg);
   color: var(--primary)
 }
 
-.teacher-attendance__save:disabled {
+.faculty-attendance__save:disabled {
   cursor: default;
   opacity: 0.85;
 }
 
-.teacher-attendance__save--primary {
+.faculty-attendance__save--primary {
   border-color: transparent;
   color: var(--text-on-dark);
   background: var(--gradient-brand);
@@ -211,19 +211,19 @@
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
 }
 
-.teacher-attendance__save--primary:hover {
+.faculty-attendance__save--primary:hover {
   border-color: transparent;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
   filter: brightness(1.05);
 }
 
-.teacher-attendance__save--primary:focus-visible {
+.faculty-attendance__save--primary:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-.teacher-attendance__foot-btn {
+.faculty-attendance__foot-btn {
   border-color: var(--neutral-border);
   color: var(--text-muted);
   background: var(--surface-white);
@@ -231,23 +231,23 @@
   transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
 }
 
-.teacher-attendance__foot-btn:hover {
+.faculty-attendance__foot-btn:hover {
   border-color: var(--primary);
   color: var(--primary-dark);
   background: var(--surface-bg);
 }
 
-.teacher-attendance__foot-btn:focus-visible {
+.faculty-attendance__foot-btn:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
 /* ---------- Attendance sheet ---------- */
-.teacher-attendance__sheet-wrap {
+.faculty-attendance__sheet-wrap {
   background: var(--surface-white);
 }
 
-.teacher-attendance__sheet th {
+.faculty-attendance__sheet th {
   text-align: left;
   color: var(--text-muted);
   background: var(--surface-bg);
@@ -255,112 +255,112 @@
   white-space: nowrap;
 }
 
-.teacher-attendance__sheet th--right {
+.faculty-attendance__sheet th--right {
   text-align: right;
 }
 
-.teacher-attendance__sheet td {
+.faculty-attendance__sheet td {
   color: var(--text-body);
   border-bottom: 1px solid var(--neutral-border);
   vertical-align: middle;
 }
 
-.teacher-attendance__sheet tbody tr:last-child td {
+.faculty-attendance__sheet tbody tr:last-child td {
   border-bottom: none;
 }
 
-.teacher-attendance__sheet tbody tr:nth-child(even) {
+.faculty-attendance__sheet tbody tr:nth-child(even) {
   background: var(--surface-bg);
 }
 
-.teacher-attendance__sheet tbody tr {
+.faculty-attendance__sheet tbody tr {
   transition: background var(--transition-fast);
 }
 
-.teacher-attendance__sheet tbody tr:hover {
+.faculty-attendance__sheet tbody tr:hover {
   background: var(--accent-light);
 }
 
 /* Student cell */
-.teacher-attendance__cell--student {
+.faculty-attendance__cell--student {
   white-space: nowrap;
 }
 
-.teacher-attendance__student-avatar {
+.faculty-attendance__student-avatar {
   color: var(--primary);
   background: var(--neutral-border);
   box-shadow: var(--shadow-sm);
 }
 
-.teacher-attendance__student-name {
+.faculty-attendance__student-name {
   color: var(--text-dark);
 }
 
-.teacher-attendance__student-lrn {
+.faculty-attendance__student-lrn {
   color: var(--text-muted);
 }
 
 /* Time + remarks cells */
-.teacher-attendance__cell--time {
+.faculty-attendance__cell--time {
   color: var(--text-body);
   white-space: nowrap;
 }
 
-.teacher-attendance__cell--remarks {
+.faculty-attendance__cell--remarks {
   color: var(--text-muted);
 }
 
-.teacher-attendance__remark {
+.faculty-attendance__remark {
   color: var(--text-placeholder);
 }
 
-.teacher-attendance__remark svg {
+.faculty-attendance__remark svg {
   flex-shrink: 0;
 }
 
 /* ---------- Sheet footer ---------- */
-.teacher-attendance__card-foot {
+.faculty-attendance__card-foot {
   border-top: 1px solid var(--neutral-border);
 }
 
-.teacher-attendance__foot-note {
+.faculty-attendance__foot-note {
   color: var(--text-muted);
 }
 
-.teacher-attendance__foot-note strong {
+.faculty-attendance__foot-note strong {
   color: var(--primary-dark);
 }
 
-.teacher-attendance__foot-note svg {
+.faculty-attendance__foot-note svg {
   color: var(--primary);
   flex-shrink: 0;
 }
 
 /* ---------- Empty-state icon ---------- */
-.teacher-attendance__empty-icon {
+.faculty-attendance__empty-icon {
   color: var(--primary);
   background: var(--neutral-border);
 }
 
 /* ---------- Filter toolbar ---------- */
-.teacher-attendance__filter-label {
+.faculty-attendance__filter-label {
   color: var(--text-muted);
 }
 
-.teacher-attendance__hint {
+.faculty-attendance__hint {
   color: var(--primary-dark);
   background: var(--accent-light);
 }
 
-.teacher-attendance__hint--warn {
+.faculty-attendance__hint--warn {
   color: #92400e;
   background: #fef3c7;
 }
 
 /* ---------- Spreadsheet grid ---------- */
 /* The grid is its own scroll container so the header row and the student column
-   both stay put while the teacher scrolls through dates and students. */
-.teacher-attendance__grid-wrap {
+   both stay put while the faculty scrolls through dates and students. */
+.faculty-attendance__grid-wrap {
   max-height: 70vh;
   overflow: auto;
   background: var(--surface-white);
@@ -368,13 +368,13 @@
 
 /* border-collapse: separate is deliberate — sticky cells lose their borders
    under border-collapse: collapse in several engines. */
-.teacher-attendance__grid {
+.faculty-attendance__grid {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
 }
 
-.teacher-attendance__grid thead th {
+.faculty-attendance__grid thead th {
   position: sticky;
   top: 0;
   z-index: 2;
@@ -385,7 +385,7 @@
 
 /* Sticky first column: keeps the student name + LRN visible while the date
    columns scroll horizontally. */
-.teacher-attendance__grid-student-col {
+.faculty-attendance__grid-student-col {
   position: sticky;
   left: 0;
   z-index: 3;
@@ -395,27 +395,27 @@
   white-space: nowrap;
 }
 
-.teacher-attendance__grid thead .teacher-attendance__grid-student-col {
+.faculty-attendance__grid thead .faculty-attendance__grid-student-col {
   z-index: 4;
   background: var(--surface-bg);
 }
 
-.teacher-attendance__grid-th {
+.faculty-attendance__grid-th {
   min-width: 3.25rem;
   color: var(--text-muted);
 }
 
-.teacher-attendance__grid-date {
+.faculty-attendance__grid-date {
   color: var(--text-dark);
 }
 
-.teacher-attendance__grid-weekday {
+.faculty-attendance__grid-weekday {
   color: var(--text-placeholder);
   letter-spacing: 0.04em;
 }
 
 /* "Mark all present" tick in a date header. */
-.teacher-attendance__grid-all {
+.faculty-attendance__grid-all {
   margin-top: 0.125rem;
   width: 1.125rem;
   height: 1.125rem;
@@ -426,40 +426,40 @@
   transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
 }
 
-.teacher-attendance__grid-all:hover:not(:disabled) {
+.faculty-attendance__grid-all:hover:not(:disabled) {
   border-color: var(--primary);
   background: var(--accent-light);
   color: var(--primary-dark);
 }
 
-.teacher-attendance__grid-all:disabled {
+.faculty-attendance__grid-all:disabled {
   cursor: default;
   opacity: 0.5;
 }
 
-.teacher-attendance__grid-all:focus-visible {
+.faculty-attendance__grid-all:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 1px;
 }
 
-.teacher-attendance__grid-cell {
+.faculty-attendance__grid-cell {
   border-bottom: 1px solid var(--neutral-border);
   transition: background var(--transition-fast);
 }
 
-.teacher-attendance__grid-cell--summary {
+.faculty-attendance__grid-cell--summary {
   border-left: 1px solid var(--neutral-border);
   color: var(--text-muted);
   white-space: nowrap;
 }
 
-.teacher-attendance__grid tbody tr:hover .teacher-attendance__grid-cell,
-.teacher-attendance__grid tbody tr:hover .teacher-attendance__grid-student-col {
+.faculty-attendance__grid tbody tr:hover .faculty-attendance__grid-cell,
+.faculty-attendance__grid tbody tr:hover .faculty-attendance__grid-student-col {
   background: var(--accent-light);
 }
 
 /* One status square. Present / Absent / not yet recorded. */
-.teacher-attendance__cell {
+.faculty-attendance__cell {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -473,74 +473,74 @@
     background var(--transition-fast), color var(--transition-fast);
 }
 
-.teacher-attendance__cell:not(:disabled) {
+.faculty-attendance__cell:not(:disabled) {
   cursor: pointer;
 }
 
-.teacher-attendance__cell:not(:disabled):hover {
+.faculty-attendance__cell:not(:disabled):hover {
   transform: translateY(-1px);
   border-color: var(--primary);
 }
 
-.teacher-attendance__cell:disabled {
+.faculty-attendance__cell:disabled {
   cursor: default;
 }
 
-.teacher-attendance__cell:focus-visible {
+.faculty-attendance__cell:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 1px;
 }
 
-.teacher-attendance__cell--present {
+.faculty-attendance__cell--present {
   color: #065f46;
   background: #d1fae5;
 }
 
-.teacher-attendance__cell--absent {
+.faculty-attendance__cell--absent {
   color: #b91c1c;
   background: #fee2e2;
 }
 
-.teacher-attendance__cell--none {
+.faculty-attendance__cell--none {
   color: var(--text-placeholder);
   background: var(--surface-bg);
   border: 1px dashed var(--neutral-border);
 }
 
-.teacher-attendance__cell--saving {
+.faculty-attendance__cell--saving {
   opacity: 0.55;
 }
 
 /* Marks a column opened from "Create Attendance" that has no record yet, so an
    otherwise empty day never looks like a glitch. */
-.teacher-attendance__grid-new {
+.faculty-attendance__grid-new {
   color: var(--primary);
   letter-spacing: 0.06em;
 }
 
 /* ---------- Legend ---------- */
-.teacher-attendance__legend-item {
+.faculty-attendance__legend-item {
   color: var(--text-muted);
 }
 
-.teacher-attendance__legend-swatch {
+.faculty-attendance__legend-swatch {
   width: 1.125rem;
   height: 1.125rem;
   border-radius: 0.375rem;
   font-size: 0.6875rem;
 }
 
-.teacher-attendance__legend-swatch--present {
+.faculty-attendance__legend-swatch--present {
   color: #065f46;
   background: #d1fae5;
 }
 
-.teacher-attendance__legend-swatch--absent {
+.faculty-attendance__legend-swatch--absent {
   color: #b91c1c;
   background: #fee2e2;
 }
 
-.teacher-attendance__legend-swatch--none {
+.faculty-attendance__legend-swatch--none {
   color: var(--text-placeholder);
   background: var(--surface-bg);
   border: 1px dashed var(--neutral-border);
@@ -549,45 +549,45 @@
 /* ---------- Create-attendance dialog ----------
    The overlay itself is styled by the shared ModalDialog primitive; only the
    panel and its form are page-specific. */
-.teacher-attendance__modal-panel {
+.faculty-attendance__modal-panel {
   border: 1px solid var(--neutral-border);
 }
 
-.teacher-attendance__modal-header {
+.faculty-attendance__modal-header {
   border-bottom: 1px solid var(--neutral-border);
 }
 
-.teacher-attendance__modal-eyebrow {
+.faculty-attendance__modal-eyebrow {
   color: var(--primary);
 }
 
-.teacher-attendance__modal-title {
+.faculty-attendance__modal-title {
   letter-spacing: -0.01em;
   color: var(--text-dark);
 }
 
-.teacher-attendance__modal-subtitle {
+.faculty-attendance__modal-subtitle {
   color: var(--text-muted);
 }
 
-.teacher-attendance__modal-close {
+.faculty-attendance__modal-close {
   color: var(--text-muted);
   background: var(--surface-bg);
   border: 1px solid transparent;
   transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
 }
 
-.teacher-attendance__modal-close:hover {
+.faculty-attendance__modal-close:hover {
   color: var(--primary-dark);
   border-color: var(--primary);
   background: var(--accent-light);
 }
 
-.teacher-attendance__form-label {
+.faculty-attendance__form-label {
   color: var(--text-dark);
 }
 
-.teacher-attendance__form-input {
+.faculty-attendance__form-input {
   border-color: var(--neutral-border);
   color: var(--text-input);
   background: var(--surface-white);
@@ -596,44 +596,44 @@
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.teacher-attendance__form-input::placeholder {
+.faculty-attendance__form-input::placeholder {
   color: var(--text-muted);
 }
 
-.teacher-attendance__form-input:hover {
+.faculty-attendance__form-input:hover {
   border-color: var(--primary-light);
 }
 
-.teacher-attendance__form-input:focus {
+.faculty-attendance__form-input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-light);
 }
 
-.teacher-attendance__form-error {
+.faculty-attendance__form-error {
   color: #b91c1c;
 }
 
-.teacher-attendance__form-note {
+.faculty-attendance__form-note {
   color: var(--text-muted);
 }
 
-.teacher-attendance__form-footer {
+.faculty-attendance__form-footer {
   border-color: var(--neutral-border);
 }
 
-.teacher-attendance__form-cancel {
+.faculty-attendance__form-cancel {
   border-color: var(--neutral-border);
   color: var(--primary-dark);
   background: var(--surface-white);
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
-.teacher-attendance__form-cancel:hover {
+.faculty-attendance__form-cancel:hover {
   border-color: var(--primary);
   background: var(--surface-bg);
 }
 
-.teacher-attendance__form-submit {
+.faculty-attendance__form-submit {
   border: 1px solid transparent;
   color: var(--text-on-dark);
   background: var(--gradient-brand);
@@ -641,47 +641,47 @@
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
 }
 
-.teacher-attendance__form-submit:hover:not(:disabled) {
+.faculty-attendance__form-submit:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
   filter: brightness(1.05);
 }
 
-.teacher-attendance__form-submit:focus-visible {
+.faculty-attendance__form-submit:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-.teacher-attendance__form-submit:disabled {
+.faculty-attendance__form-submit:disabled {
   cursor: default;
   opacity: 0.7;
 }
 
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .teacher-attendance__hero {
+  .faculty-attendance__hero {
     animation: none;
   }
 
-  .teacher-attendance__day,
-  .teacher-attendance__stat,
-  .teacher-attendance__mark-all,
-  .teacher-attendance__save--primary,
-  .teacher-attendance__cell,
-  .teacher-attendance__grid-cell,
-  .teacher-attendance__grid-all,
-  .teacher-attendance__modal-close,
-  .teacher-attendance__form-cancel,
-  .teacher-attendance__form-submit,
-  .teacher-attendance__form-input {
+  .faculty-attendance__day,
+  .faculty-attendance__stat,
+  .faculty-attendance__mark-all,
+  .faculty-attendance__save--primary,
+  .faculty-attendance__cell,
+  .faculty-attendance__grid-cell,
+  .faculty-attendance__grid-all,
+  .faculty-attendance__modal-close,
+  .faculty-attendance__form-cancel,
+  .faculty-attendance__form-submit,
+  .faculty-attendance__form-input {
     transition: none;
   }
 
-  .teacher-attendance__form-submit:hover:not(:disabled) {
+  .faculty-attendance__form-submit:hover:not(:disabled) {
     transform: none;
   }
 
-  .teacher-attendance__cell:not(:disabled):hover {
+  .faculty-attendance__cell:not(:disabled):hover {
     transform: none;
   }
 }

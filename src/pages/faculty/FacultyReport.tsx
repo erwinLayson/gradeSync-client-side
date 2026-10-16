@@ -9,11 +9,11 @@ import { useUser } from "../../hooks/useUser";
 
 import type { ClassroomResponseProps } from "../../constant/classrooms";
 
-import "../../style/teacherClasses.css";
+import "../../style/facultyClasses.css";
 
 interface AdvisedClassData {
     classroom: ClassroomResponseProps | null;
-    teachersWithSubjects: { classSubjectId: number; subjectName: string }[];
+    facultiesWithSubjects: { classSubjectId: number; subjectName: string }[];
 }
 
 interface Student {
@@ -31,7 +31,7 @@ interface ClassroomWithStudents extends ClassroomResponseProps {
 
 type Quarter = number;
 
-export default function TeacherReport() {
+export default function FacultyReport() {
     const { user, loading: userLoading } = useUser();
     const { quarters } = useAcademicSettings();
 
@@ -90,8 +90,8 @@ export default function TeacherReport() {
     // Loading
     if (userLoading || loading) {
         return (
-            <PageShell className="teacher-classes" busy>
-                <PageSection className="teacher-classes__card" title="Student Reports" description="Loading…" flush>
+            <PageShell className="faculty-classes" busy>
+                <PageSection className="faculty-classes__card" title="Student Reports" description="Loading…" flush>
                     <div className="p-6">
                         <Skeleton count={2} lines={1} height="10rem" radius="0.75rem" grid="repeat(2, 1fr)" />
                     </div>
@@ -103,18 +103,18 @@ export default function TeacherReport() {
     // Not an adviser
     if (!adviserClass || !adviserClass.classroom) {
         return (
-            <PageShell className="teacher-classes">
+            <PageShell className="faculty-classes">
                 <PageSection
-                    className="teacher-classes__card"
+                    className="faculty-classes__card"
                     title="Student Reports"
                     description="You are not assigned as a class adviser"
                 >
-                    <div className="teacher-classes__empty flex flex-col items-center justify-center py-10 text-center">
-                        <span className="teacher-classes__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
+                    <div className="faculty-classes__empty flex flex-col items-center justify-center py-10 text-center">
+                        <span className="faculty-classes__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
                             <FiFileText />
                         </span>
-                        <p className="teacher-classes__empty-title mt-3 text-sm font-bold">No access</p>
-                        <p className="teacher-classes__empty-text mt-1 text-[0.8125rem]">
+                        <p className="faculty-classes__empty-title mt-3 text-sm font-bold">No access</p>
+                        <p className="faculty-classes__empty-text mt-1 text-[0.8125rem]">
                             Only class advisers can generate student report cards.
                         </p>
                     </div>
@@ -127,7 +127,7 @@ export default function TeacherReport() {
     const students = roster?.students ?? [];
 
     return (
-        <PageShell className="teacher-classes">
+        <PageShell className="faculty-classes">
             {/* Header */}
             <PageHeader
                 title={`Grade ${classroom.gradeLevel} — ${classroom.section}`}
@@ -164,16 +164,16 @@ export default function TeacherReport() {
             </div>
 
             {/* Student list */}
-            <div className="teacher-classes__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                <div className="teacher-classes__card-head flex flex-wrap items-center justify-between gap-4 p-5">
-                    <div className="teacher-classes__card-heading min-w-0">
-                        <h3 className="teacher-classes__card-title text-base font-bold">Student Report Cards</h3>
-                        <p className="teacher-classes__card-subtitle mt-1 text-[0.8125rem]">
+            <div className="faculty-classes__card overflow-hidden rounded-2xl bg-white shadow-sm">
+                <div className="faculty-classes__card-head flex flex-wrap items-center justify-between gap-4 p-5">
+                    <div className="faculty-classes__card-heading min-w-0">
+                        <h3 className="faculty-classes__card-title text-base font-bold">Student Report Cards</h3>
+                        <p className="faculty-classes__card-subtitle mt-1 text-[0.8125rem]">
                             Click &quot;Download&quot; to generate a PDF report card for each student
                         </p>
                     </div>
                     {!loadingRoster && students.length > 0 && (
-                        <span className="teacher-classes__count inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
+                        <span className="faculty-classes__count inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
                             <FiUsers aria-hidden="true" />
                             {students.length} {students.length === 1 ? "student" : "students"}
                         </span>
@@ -206,7 +206,7 @@ export default function TeacherReport() {
                                         </td>
                                         <td className="data-table__td data-table__td--primary">{student.fullname}</td>
                                         <td className="data-table__td data-table__td--center">
-                                            <span className={`teacher-classes__sex inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold capitalize teacher-classes__sex--${student.studentSex.toLowerCase()}`}>
+                                            <span className={`faculty-classes__sex inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold capitalize faculty-classes__sex--${student.studentSex.toLowerCase()}`}>
                                                 {student.studentSex}
                                             </span>
                                         </td>
@@ -227,12 +227,12 @@ export default function TeacherReport() {
                             </tbody>
                         </table>
                     ) : (
-                        <div className="teacher-classes__roster-empty flex flex-col items-center justify-center px-6 py-14 text-center">
-                            <span className="teacher-classes__roster-empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
+                        <div className="faculty-classes__roster-empty flex flex-col items-center justify-center px-6 py-14 text-center">
+                            <span className="faculty-classes__roster-empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
                                 <FiUsers />
                             </span>
-                            <p className="teacher-classes__roster-empty-title mt-3 text-sm font-bold">No students enrolled</p>
-                            <p className="teacher-classes__roster-empty-text mt-1 text-[0.8125rem]">
+                            <p className="faculty-classes__roster-empty-title mt-3 text-sm font-bold">No students enrolled</p>
+                            <p className="faculty-classes__roster-empty-text mt-1 text-[0.8125rem]">
                                 Report cards will appear here once students are enrolled.
                             </p>
                         </div>

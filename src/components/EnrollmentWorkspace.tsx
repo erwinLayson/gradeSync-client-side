@@ -32,7 +32,7 @@ import StudentPastGradesModal from "../pages/admin/StudentPastGradesModal";
 // Types
 import type {
   ClassroomResponseProps,
-  ClassroomTeachersWithSubjectProps,
+  ClassroomFacultiesWithSubjectProps,
 } from "../constant/classrooms.ts";
 import type { StudentResponseProps } from "../constant/students";
 
@@ -40,6 +40,8 @@ interface SchoolYear {
   id: number;
   startYear: string;
   endYear: string;
+  // Authoritative completion marker — see plan §7.
+  status?: "ongoing" | "completed" | string;
 }
 
 interface AcademicSettingsData {
@@ -99,7 +101,7 @@ export default function EnrollmentWorkspace({
     subjects: classSubjects,
     subjectsLoading,
     fetchSubjects: fetchClassSubjects,
-  } = useSubjects<ClassroomTeachersWithSubjectProps[]>();
+  } = useSubjects<ClassroomFacultiesWithSubjectProps[]>();
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([]);
 
   // ============ School year ============
@@ -167,7 +169,7 @@ export default function EnrollmentWorkspace({
     setSelectedClassroom(classroom);
     setSelectedSubjectIds([]);
 
-    await fetchClassSubjects(`/classrooms/${classroom.id}/teachers-subject/`);
+    await fetchClassSubjects(`/classrooms/${classroom.id}/faculties-subject/`);
   }
 
   // ================== subject selection ================
@@ -711,8 +713,8 @@ export default function EnrollmentWorkspace({
                               <span className="enrollments__subject-name text-[0.8125rem]">
                                 {cs.subjectName}
                               </span>
-                              <span className="enrollments__subject-teacher text-[0.6875rem]">
-                                {cs.teacherFullname}
+                              <span className="enrollments__subject-faculty text-[0.6875rem]">
+                                {cs.facultyFullname}
                               </span>
                             </span>
                             <span className="enrollments__subject-code ml-auto shrink-0 px-2 py-0.5 text-[0.625rem]">

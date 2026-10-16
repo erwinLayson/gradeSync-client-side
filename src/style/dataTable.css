@@ -140,7 +140,7 @@
 }
 
 /* Two-line cell: the anchor value with a quieter second line under it
-   (subject + teacher, name + LRN, section + adviser). Each line is its own
+   (subject + faculty, name + LRN, section + adviser). Each line is its own
    clipped line, so a long value ellipsizes instead of wrapping the row. */
 .data-table__value {
   display: block;

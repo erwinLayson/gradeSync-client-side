@@ -1,5 +1,5 @@
 /* ============================================================
-   TeacherClasses — component stylesheet (hybrid approach)
+   FacultyClasses — component stylesheet (hybrid approach)
 
    This file holds the "complex" layer only:
    - colors / gradients / shadows / radii from the design tokens
@@ -7,19 +7,19 @@
      pseudo-elements, reduced-motion handling
 
    Basic layout (display, flex/grid, gap, padding, typography)
-   lives as Tailwind utilities directly in TeacherClasses.tsx.
+   lives as Tailwind utilities directly in FacultyClasses.tsx.
    ============================================================ */
 
 /* ---------- Hero banner ---------- */
-.teacher-classes__hero {
+.faculty-classes__hero {
   background: var(--gradient-brand);
   color: var(--text-on-dark);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
-  animation: teacher-classes-in var(--transition-slow) ease-out forwards;
+  animation: faculty-classes-in var(--transition-slow) ease-out forwards;
 }
 
-@keyframes teacher-classes-in {
+@keyframes faculty-classes-in {
   from {
     opacity: 0;
     transform: translateY(0.5rem);
@@ -31,7 +31,7 @@
 }
 
 /* Glassy avatar chip */
-.teacher-classes__hero-avatar {
+.faculty-classes__hero-avatar {
   color: var(--text-on-dark);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
   border: 1px solid var(--border-on-dark);
@@ -40,144 +40,144 @@
   -webkit-backdrop-filter: blur(6px);
 }
 
-.teacher-classes__hero-eyebrow {
+.faculty-classes__hero-eyebrow {
   color: var(--text-on-dark-muted);
 }
 
-.teacher-classes__hero-name {
+.faculty-classes__hero-name {
   letter-spacing: -0.01em;
   color: var(--text-on-dark);
 }
 
-.teacher-classes__hero-role {
+.faculty-classes__hero-role {
   color: var(--text-on-dark-soft);
 }
 
-.teacher-classes__hero-badge {
+.faculty-classes__hero-badge {
   border-color: var(--border-on-dark);
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
 
-.teacher-classes__hero-badge-count {
+.faculty-classes__hero-badge-count {
   color: var(--text-on-dark);
 }
 
-.teacher-classes__hero-badge-label {
+.faculty-classes__hero-badge-label {
   color: var(--text-on-dark-muted);
 }
 
 /* ---------- Quick stats ---------- */
-.teacher-classes__stat {
+.faculty-classes__stat {
   border-color: var(--neutral-border);
   background: var(--surface-white);
   box-shadow: var(--shadow-sm);
   transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
-.teacher-classes__stat:hover {
+.faculty-classes__stat:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
   border-color: var(--primary);
 }
 
-.teacher-classes__stat-icon {
+.faculty-classes__stat-icon {
   box-shadow: var(--shadow-sm);
 }
 
 /* Color-coded stat icons (matches attendance / dashboard pattern) */
-.teacher-classes__stat-icon--green {
+.faculty-classes__stat-icon--green {
   color: #065f46;
   background: #d1fae5;
 }
 
-.teacher-classes__stat-icon--blue {
+.faculty-classes__stat-icon--blue {
   color: #1d4ed8;
   background: #dbeafe;
 }
 
-.teacher-classes__stat-icon--amber {
+.faculty-classes__stat-icon--amber {
   color: #92400e;
   background: #fef3c7;
 }
 
-.teacher-classes__stat-icon--rose {
+.faculty-classes__stat-icon--rose {
   color: #be185d;
   background: #fce7f3;
 }
 
-.teacher-classes__stat-label {
+.faculty-classes__stat-label {
   color: var(--text-muted);
 }
 
-.teacher-classes__stat-value {
+.faculty-classes__stat-value {
   color: var(--text-dark);
 }
 
 /* ---------- Card shell ---------- */
-.teacher-classes__card {
+.faculty-classes__card {
   border: 1px solid var(--neutral-border);
   border-radius: var(--radius-xl);
 }
 
-.teacher-classes__card-head {
+.faculty-classes__card-head {
   border-bottom: 1px solid var(--neutral-border);
 }
 
-.teacher-classes__card-title {
+.faculty-classes__card-title {
   letter-spacing: -0.01em;
   color: var(--text-dark);
 }
 
-.teacher-classes__card-subtitle {
+.faculty-classes__card-subtitle {
   color: var(--text-muted);
 }
 
-.teacher-classes__count {
+.faculty-classes__count {
   border-radius: 9999px;
   color: var(--primary-dark);
   background: var(--neutral-border);
 }
 
 /* ---------- Class card ---------- */
-.teacher-classes__class {
+.faculty-classes__class {
   background: var(--surface-white);
   transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
-.teacher-classes__class:hover,
-.teacher-classes__class:focus-visible {
+.faculty-classes__class:hover,
+.faculty-classes__class:focus-visible {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
   border-color: var(--primary);
 }
 
-.teacher-classes__class:focus-visible {
+.faculty-classes__class:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-.teacher-classes__class-head {
+.faculty-classes__class-head {
   background: var(--gradient-brand);
   color: var(--text-on-dark);
 }
 
-.teacher-classes__class-eyebrow {
+.faculty-classes__class-eyebrow {
   color: var(--text-on-dark-muted);
 }
 
-.teacher-classes__class-name {
+.faculty-classes__class-name {
   letter-spacing: -0.01em;
   line-height: 1.25;
   color: var(--text-on-dark);
 }
 
-.teacher-classes__class-room {
+.faculty-classes__class-room {
   color: var(--text-on-dark-soft);
 }
 
-.teacher-classes__class-icon {
+.faculty-classes__class-icon {
   border-radius: var(--radius-sm);
   color: var(--text-on-dark);
   background: rgba(255, 255, 255, 0.12);
@@ -185,7 +185,7 @@
 }
 
 /* Subjects count pill inside the class head */
-.teacher-classes__class-subjects {
+.faculty-classes__class-subjects {
   color: var(--text-on-dark);
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid var(--border-on-dark);
@@ -194,44 +194,44 @@
 }
 
 /* Subject rows inside a class card */
-.teacher-classes__subject {
+.faculty-classes__subject {
   border-color: var(--neutral-border);
   background: var(--surface-bg);
   transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.teacher-classes__class:hover .teacher-classes__subject {
+.faculty-classes__class:hover .faculty-classes__subject {
   border-color: var(--primary-light);
 }
 
-.teacher-classes__subject:hover {
+.faculty-classes__subject:hover {
   background: var(--surface-white);
   border-color: var(--primary);
   transform: translateX(2px);
   box-shadow: var(--shadow-sm);
 }
 
-.teacher-classes__subject-code {
+.faculty-classes__subject-code {
   color: var(--primary-dark);
   background: var(--neutral-border);
   letter-spacing: 0.02em;
 }
 
-.teacher-classes__class:hover .teacher-classes__subject-code {
+.faculty-classes__class:hover .faculty-classes__subject-code {
   color: var(--primary-dark);
   background: var(--accent-light);
 }
 
-.teacher-classes__subject-name {
+.faculty-classes__subject-name {
   color: var(--text-dark);
 }
 
-.teacher-classes__subject-meta {
+.faculty-classes__subject-meta {
   color: var(--text-muted);
 }
 
 /* Gradebook action inside a subject row */
-.teacher-classes__subject-action {
+.faculty-classes__subject-action {
   border-color: var(--neutral-border);
   color: var(--primary-dark);
   background: var(--surface-white);
@@ -239,39 +239,39 @@
   transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 
-.teacher-classes__subject-action:hover {
+.faculty-classes__subject-action:hover {
   border-color: var(--primary);
   color: var(--primary-dark);
   background: var(--accent-light);
   transform: translateY(-1px);
 }
 
-.teacher-classes__subject-action:focus-visible {
+.faculty-classes__subject-action:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
 /* Class card footer */
-.teacher-classes__class-foot {
+.faculty-classes__class-foot {
   border-top: 1px solid var(--neutral-border);
 }
 
-.teacher-classes__class-stat {
+.faculty-classes__class-stat {
   color: var(--text-muted);
   font-size: 0.8125rem;
 }
 
-.teacher-classes__class-stat svg {
+.faculty-classes__class-stat svg {
   color: var(--primary);
   flex-shrink: 0;
 }
 
 /* ---------- Class detail view ---------- */
-.teacher-classes__details {
-  animation: teacher-classes-details-in var(--transition-slow) ease-out forwards;
+.faculty-classes__details {
+  animation: faculty-classes-details-in var(--transition-slow) ease-out forwards;
 }
 
-@keyframes teacher-classes-details-in {
+@keyframes faculty-classes-details-in {
   from {
     opacity: 0;
     transform: translateY(0.5rem);
@@ -282,7 +282,7 @@
   }
 }
 
-.teacher-classes__back {
+.faculty-classes__back {
   border-color: var(--neutral-border);
   color: var(--primary-dark);
   background: var(--surface-white);
@@ -290,24 +290,24 @@
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
-.teacher-classes__back:hover {
+.faculty-classes__back:hover {
   border-color: var(--primary);
   background: var(--surface-bg);
 }
 
-.teacher-classes__back:focus-visible {
+.faculty-classes__back:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-.teacher-classes__details-hero {
+.faculty-classes__details-hero {
   background: var(--gradient-brand);
   color: var(--text-on-dark);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
 }
 
-.teacher-classes__details-avatar {
+.faculty-classes__details-avatar {
   color: var(--text-on-dark);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
   border: 1px solid var(--border-on-dark);
@@ -316,87 +316,87 @@
   -webkit-backdrop-filter: blur(6px);
 }
 
-.teacher-classes__details-eyebrow {
+.faculty-classes__details-eyebrow {
   color: var(--text-on-dark-muted);
 }
 
-.teacher-classes__details-title {
+.faculty-classes__details-title {
   letter-spacing: -0.01em;
   color: var(--text-on-dark);
 }
 
-.teacher-classes__details-subtitle {
+.faculty-classes__details-subtitle {
   color: var(--text-on-dark-soft);
 }
 
-.teacher-classes__details-badge {
+.faculty-classes__details-badge {
   border-color: var(--border-on-dark);
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
 
-.teacher-classes__details-badge-count {
+.faculty-classes__details-badge-count {
   color: var(--text-on-dark);
 }
 
-.teacher-classes__details-badge-label {
+.faculty-classes__details-badge-label {
   color: var(--text-on-dark-muted);
 }
 
-.teacher-classes__details-stats {
+.faculty-classes__details-stats {
   border: 1px solid var(--neutral-border);
   border-radius: var(--radius-xl);
   background: var(--surface-white);
   box-shadow: var(--shadow-sm);
 }
 
-.teacher-classes__details-stat {
+.faculty-classes__details-stat {
   border-color: var(--neutral-border);
   background: var(--surface-bg);
   transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
 }
 
-.teacher-classes__details-stat:hover {
+.faculty-classes__details-stat:hover {
   border-color: var(--primary-light);
   background: var(--surface-white);
   transform: translateY(-1px);
 }
 
-.teacher-classes__details-stat-label {
+.faculty-classes__details-stat-label {
   color: var(--text-muted);
 }
 
-.teacher-classes__details-stat-value {
+.faculty-classes__details-stat-value {
   color: var(--primary-dark);
 }
 
 /* ---------- Roster table ---------- */
-.teacher-classes__roster-title {
+.faculty-classes__roster-title {
   color: var(--text-dark);
 }
 
-.teacher-classes__roster-subtitle {
+.faculty-classes__roster-subtitle {
   color: var(--text-muted);
 }
 
-.teacher-classes__roster-count {
+.faculty-classes__roster-count {
   border-radius: 9999px;
   color: var(--primary-dark);
   background: var(--neutral-border);
 }
 
-.teacher-classes__roster-count svg {
+.faculty-classes__roster-count svg {
   flex-shrink: 0;
 }
 
-.teacher-classes__roster-table-wrap {
+.faculty-classes__roster-table-wrap {
   border-color: var(--neutral-border);
   background: var(--surface-white);
   box-shadow: var(--shadow-sm);
 }
 
-.teacher-classes__roster-table th {
+.faculty-classes__roster-table th {
   text-align: left;
   color: var(--text-muted);
   background: var(--surface-bg);
@@ -404,34 +404,34 @@
   white-space: nowrap;
 }
 
-.teacher-classes__roster-table td {
+.faculty-classes__roster-table td {
   color: var(--text-body);
   border-bottom: 1px solid var(--neutral-border);
   vertical-align: middle;
 }
 
-.teacher-classes__roster-table tbody tr:last-child td {
+.faculty-classes__roster-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.teacher-classes__roster-table tbody tr:nth-child(even) {
+.faculty-classes__roster-table tbody tr:nth-child(even) {
   background: var(--surface-bg);
 }
 
-.teacher-classes__roster-table tbody tr {
+.faculty-classes__roster-table tbody tr {
   transition: background var(--transition-fast);
 }
 
-.teacher-classes__roster-table tbody tr:hover {
+.faculty-classes__roster-table tbody tr:hover {
   background: var(--accent-light);
 }
 
 /* Table cell variants */
-.teacher-classes__cell--lrn {
+.faculty-classes__cell--lrn {
   white-space: nowrap;
 }
 
-.teacher-classes__lrn-chip {
+.faculty-classes__lrn-chip {
   color: var(--primary-dark);
   background: var(--neutral-border);
   font-weight: 600;
@@ -439,30 +439,30 @@
   box-shadow: var(--shadow-sm);
 }
 
-.teacher-classes__cell--name {
+.faculty-classes__cell--name {
   font-weight: 600;
   color: var(--text-dark);
   white-space: nowrap;
 }
 
-.teacher-classes__cell--age {
+.faculty-classes__cell--age {
   white-space: nowrap;
 }
 
-.teacher-classes__cell--date {
+.faculty-classes__cell--date {
   color: var(--text-body);
   white-space: nowrap;
 }
 
-.teacher-classes__cell--email {
+.faculty-classes__cell--email {
   color: var(--text-muted);
 }
 
-.teacher-classes__cell--id {
+.faculty-classes__cell--id {
   white-space: nowrap;
 }
 
-.teacher-classes__id-chip {
+.faculty-classes__id-chip {
   color: var(--text-muted);
   background: var(--surface-bg);
   border: 1px solid var(--neutral-border);
@@ -470,80 +470,80 @@
 }
 
 /* Student cell: avatar + name + meta */
-.teacher-classes__student-avatar {
+.faculty-classes__student-avatar {
   color: var(--primary);
   background: var(--neutral-border);
   box-shadow: var(--shadow-sm);
 }
 
-.teacher-classes__student-name {
+.faculty-classes__student-name {
   color: var(--text-dark);
 }
 
-.teacher-classes__student-meta {
+.faculty-classes__student-meta {
   color: var(--text-muted);
 }
 
 /* Sex badge */
-.teacher-classes__sex {
+.faculty-classes__sex {
   color: var(--text-muted);
 }
 
-.teacher-classes__sex--male {
+.faculty-classes__sex--male {
   color: #1d4ed8;
   background: #dbeafe;
 }
 
-.teacher-classes__sex--female {
+.faculty-classes__sex--female {
   color: #be185d;
   background: #fce7f3;
 }
 
 
 /* Roster empty state */
-.teacher-classes__roster-empty {
+.faculty-classes__roster-empty {
   background: var(--surface-bg);
 }
 
-.teacher-classes__roster-empty-icon {
+.faculty-classes__roster-empty-icon {
   color: var(--primary);
   background: var(--neutral-border);
 }
 
-.teacher-classes__roster-empty-title {
+.faculty-classes__roster-empty-title {
   color: var(--text-dark);
 }
 
-.teacher-classes__roster-empty-text {
+.faculty-classes__roster-empty-text {
   color: var(--text-muted);
 }
 
 
 /* ---------- Empty state ---------- */
-.teacher-classes__empty-icon {
+.faculty-classes__empty-icon {
   color: var(--primary);
   background: var(--neutral-border);
 }
 
-.teacher-classes__empty-title {
+.faculty-classes__empty-title {
   color: var(--text-dark);
 }
 
-.teacher-classes__empty-text {
+.faculty-classes__empty-text {
   color: var(--text-muted);
 }
 
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .teacher-classes__hero,
-  .teacher-classes__details {
+  .faculty-classes__hero,
+  .faculty-classes__details {
     animation: none;
   }
 
-  .teacher-classes__stat,
-  .teacher-classes__class,
-  .teacher-classes__subject,
-  .teacher-classes__details-stat {
+  .faculty-classes__stat,
+  .faculty-classes__class,
+  .faculty-classes__subject,
+  .faculty-classes__details-stat {
     transition: none;
   }
 }

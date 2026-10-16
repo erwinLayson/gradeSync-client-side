@@ -1,21 +1,21 @@
 /* ============================================================
-   TeacherDashboard — component stylesheet (hybrid approach)
+   FacultyDashboard — component stylesheet (hybrid approach)
 
    Holds the "complex" layer only (colors, gradients, shadows,
    animations, transitions, state styles). Basic layout lives
-   as Tailwind utilities directly in TeacherDashboard.tsx.
+   as Tailwind utilities directly in FacultyDashboard.tsx.
    ============================================================ */
 
 /* ---------- Hero banner ---------- */
-.teacher-dashboard__hero {
+.faculty-dashboard__hero {
   background: var(--gradient-brand);
   color: var(--text-on-dark);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
-  animation: teacher-dashboard-in var(--transition-slow) ease-out forwards;
+  animation: faculty-dashboard-in var(--transition-slow) ease-out forwards;
 }
 
-@keyframes teacher-dashboard-in {
+@keyframes faculty-dashboard-in {
   from {
     opacity: 0;
     transform: translateY(0.5rem);
@@ -26,7 +26,7 @@
   }
 }
 
-.teacher-dashboard__hero-avatar {
+.faculty-dashboard__hero-avatar {
   color: var(--text-on-dark);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
   border: 1px solid var(--border-on-dark);
@@ -35,70 +35,70 @@
   -webkit-backdrop-filter: blur(6px);
 }
 
-.teacher-dashboard__hero-eyebrow {
+.faculty-dashboard__hero-eyebrow {
   color: var(--text-on-dark-muted);
 }
 
-.teacher-dashboard__hero-name {
+.faculty-dashboard__hero-name {
   letter-spacing: -0.01em;
   color: var(--text-on-dark);
 }
 
-.teacher-dashboard__hero-role {
+.faculty-dashboard__hero-role {
   color: var(--text-on-dark-soft);
 }
 
-.teacher-dashboard__hero-badge {
+.faculty-dashboard__hero-badge {
   border-color: var(--border-on-dark);
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
 
-.teacher-dashboard__hero-badge-count {
+.faculty-dashboard__hero-badge-count {
   color: var(--text-on-dark);
 }
 
-.teacher-dashboard__hero-badge-label {
+.faculty-dashboard__hero-badge-label {
   color: var(--text-on-dark-muted);
 }
 
 /* ---------- Quick stats ---------- */
-.teacher-dashboard__stat {
+.faculty-dashboard__stat {
   border-color: var(--neutral-border);
   background: var(--surface-white);
   box-shadow: var(--shadow-sm);
   transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
-.teacher-dashboard__stat:hover {
+.faculty-dashboard__stat:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
   border-color: var(--primary);
 }
 
-.teacher-dashboard__stat-icon {
+.faculty-dashboard__stat-icon {
   color: var(--primary-dark);
   background: var(--neutral-border);
   box-shadow: var(--shadow-sm);
 }
 
-.teacher-dashboard__stat-label {
+.faculty-dashboard__stat-label {
   color: var(--text-muted);
 }
 
-.teacher-dashboard__stat-value {
+.faculty-dashboard__stat-value {
   color: var(--text-dark);
 }
 
 /* ---------- Card shell ---------- */
-.teacher-dashboard__card {
+.faculty-dashboard__card {
   border: 1px solid var(--neutral-border);
   border-radius: var(--radius-xl);
-  animation: teacher-dashboard-card-in var(--transition-slow) ease-out forwards;
+  animation: faculty-dashboard-card-in var(--transition-slow) ease-out forwards;
 }
 
-@keyframes teacher-dashboard-card-in {
+@keyframes faculty-dashboard-card-in {
   from {
     opacity: 0;
     transform: translateY(0.375rem);
@@ -109,190 +109,190 @@
   }
 }
 
-.teacher-dashboard__card-head {
+.faculty-dashboard__card-head {
   border-bottom: 1px solid var(--neutral-border);
 }
 
-.teacher-dashboard__card-title {
+.faculty-dashboard__card-title {
   letter-spacing: -0.01em;
   color: var(--text-dark);
 }
 
-.teacher-dashboard__card-subtitle {
+.faculty-dashboard__card-subtitle {
   color: var(--text-muted);
 }
 
-.teacher-dashboard__count {
+.faculty-dashboard__count {
   border-radius: 9999px;
   color: var(--primary-dark);
   background: var(--primary-light);
 }
 
-.teacher-dashboard__count svg {
+.faculty-dashboard__count svg {
   margin-right: 0.25rem;
 }
 
-.teacher-dashboard__count--alert {
+.faculty-dashboard__count--alert {
   color: #92400E;
   background: #FEF3C7;
 }
 
 /* ---------- Schedule ---------- */
-.teacher-dashboard__period {
+.faculty-dashboard__period {
   border-bottom: 1px solid var(--neutral-border);
   transition: background var(--transition-fast);
 }
 
-.teacher-dashboard__period:last-child {
+.faculty-dashboard__period:last-child {
   border-bottom: none;
 }
 
-.teacher-dashboard__period:hover {
+.faculty-dashboard__period:hover {
   background: var(--accent-light);
 }
 
-.teacher-dashboard__period--now {
+.faculty-dashboard__period--now {
   background: linear-gradient(90deg, var(--accent-light), transparent 70%);
 }
 
-.teacher-dashboard__period--now:hover {
+.faculty-dashboard__period--now:hover {
   background: var(--accent-light);
 }
 
-.teacher-dashboard__period--break {
+.faculty-dashboard__period--break {
   opacity: 0.75;
 }
 
-.teacher-dashboard__period-time {
+.faculty-dashboard__period-time {
   border-color: var(--neutral-border);
   background: var(--surface-white);
 }
 
-.teacher-dashboard__period--now .teacher-dashboard__period-time {
+.faculty-dashboard__period--now .faculty-dashboard__period-time {
   border-color: var(--primary);
   background: var(--surface-white);
   box-shadow: var(--shadow-sm);
 }
 
-.teacher-dashboard__period-label {
+.faculty-dashboard__period-label {
   color: var(--text-muted);
 }
 
-.teacher-dashboard__period--now .teacher-dashboard__period-label {
+.faculty-dashboard__period--now .faculty-dashboard__period-label {
   color: var(--primary-dark);
 }
 
-.teacher-dashboard__period-clock {
+.faculty-dashboard__period-clock {
   color: var(--primary-dark);
 }
 
-.teacher-dashboard__period-title {
+.faculty-dashboard__period-title {
   color: var(--text-dark);
 }
 
-.teacher-dashboard__period-meta {
+.faculty-dashboard__period-meta {
   color: var(--text-muted);
 }
 
-.teacher-dashboard__period-status {
+.faculty-dashboard__period-status {
   color: var(--text-muted);
   background: var(--surface-bg);
   white-space: nowrap;
 }
 
-.teacher-dashboard__period-status--now {
+.faculty-dashboard__period-status--now {
   color: #065f46;
   background: #d1fae5;
 }
 
-.teacher-dashboard__period-status--now svg {
+.faculty-dashboard__period-status--now svg {
   flex-shrink: 0;
 }
 
 /* ---------- Quick action tiles ---------- */
-.teacher-dashboard__action {
+.faculty-dashboard__action {
   border-color: var(--neutral-border);
   background: var(--surface-white);
   font-family: var(--font-sans);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
 }
 
-.teacher-dashboard__action:hover {
+.faculty-dashboard__action:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
   border-color: var(--primary);
 }
 
-.teacher-dashboard__action:focus-visible {
+.faculty-dashboard__action:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-.teacher-dashboard__action-icon {
+.faculty-dashboard__action-icon {
   color: var(--primary-dark);
   background: var(--neutral-border);
   box-shadow: var(--shadow-sm);
 }
 
-.teacher-dashboard__action-title {
+.faculty-dashboard__action-title {
   color: var(--text-dark);
 }
 
-.teacher-dashboard__action-meta {
+.faculty-dashboard__action-meta {
   color: var(--text-muted);
 }
 
 /* ---------- Announcement ---------- */
-.teacher-dashboard__announcement {
+.faculty-dashboard__announcement {
   border-color: var(--neutral-border);
   background: var(--surface-bg);
 }
 
-.teacher-dashboard__announcement-icon {
+.faculty-dashboard__announcement-icon {
   color: #92400e;
   background: #fef3c7;
 }
 
-.teacher-dashboard__announcement-title {
+.faculty-dashboard__announcement-title {
   color: var(--text-dark);
 }
 
-.teacher-dashboard__announcement-meta {
+.faculty-dashboard__announcement-meta {
   color: var(--text-muted);
 }
 
 /* ---------- Class cards ---------- */
-.teacher-dashboard__class {
+.faculty-dashboard__class {
   background: var(--surface-white);
   transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
-.teacher-dashboard__class:hover {
+.faculty-dashboard__class:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
   border-color: var(--primary);
 }
 
-.teacher-dashboard__class-head {
+.faculty-dashboard__class-head {
   background: var(--gradient-brand);
   color: var(--text-on-dark);
 }
 
-.teacher-dashboard__class-eyebrow {
+.faculty-dashboard__class-eyebrow {
   color: var(--text-on-dark-muted);
 }
 
-.teacher-dashboard__class-name {
+.faculty-dashboard__class-name {
   letter-spacing: -0.01em;
   line-height: 1.25;
   color: var(--text-on-dark);
 }
 
-.teacher-dashboard__class-room {
+.faculty-dashboard__class-room {
   color: var(--text-on-dark-soft);
 }
 
-.teacher-dashboard__class-icon {
+.faculty-dashboard__class-icon {
   border-radius: var(--radius-sm);
   color: var(--text-on-dark);
   background: rgba(255, 255, 255, 0.12);
@@ -300,202 +300,202 @@
 }
 
 /* Subject row inside a class card */
-.teacher-dashboard__class-subject {
+.faculty-dashboard__class-subject {
   border-color: var(--neutral-border);
   background: var(--surface-bg);
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
-.teacher-dashboard__class:hover .teacher-dashboard__class-subject {
+.faculty-dashboard__class:hover .faculty-dashboard__class-subject {
   border-color: var(--primary-light);
 }
 
-.teacher-dashboard__class-subject-code {
+.faculty-dashboard__class-subject-code {
   color: var(--primary-dark);
   background: var(--neutral-border);
 }
 
-.teacher-dashboard__class-subject-name {
+.faculty-dashboard__class-subject-name {
   color: var(--text-dark);
 }
 
-.teacher-dashboard__class-subject-meta {
+.faculty-dashboard__class-subject-meta {
   color: var(--text-muted);
 }
 
-.teacher-dashboard__class-foot {
+.faculty-dashboard__class-foot {
   border-top: 1px solid var(--neutral-border);
 }
 
-.teacher-dashboard__class-stat {
+.faculty-dashboard__class-stat {
   color: var(--text-muted);
 }
 
-.teacher-dashboard__class-stat svg {
+.faculty-dashboard__class-stat svg {
   color: var(--primary);
   flex-shrink: 0;
 }
 
-.teacher-dashboard__class-link {
+.faculty-dashboard__class-link {
   color: var(--primary-dark);
   background: var(--surface-white);
   font-family: var(--font-sans);
   transition: color var(--transition-fast);
 }
 
-.teacher-dashboard__class-link:hover {
+.faculty-dashboard__class-link:hover {
   color: var(--primary);
 }
 
-.teacher-dashboard__class-link:focus-visible {
+.faculty-dashboard__class-link:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
 /* ---------- Pending tasks ---------- */
-.teacher-dashboard__task {
+.faculty-dashboard__task {
   border-bottom: 1px solid var(--neutral-border);
   transition: background var(--transition-fast);
 }
 
-.teacher-dashboard__task:last-child {
+.faculty-dashboard__task:last-child {
   border-bottom: none;
 }
 
-.teacher-dashboard__task:hover {
+.faculty-dashboard__task:hover {
   background: var(--accent-light);
 }
 
-.teacher-dashboard__task-icon {
+.faculty-dashboard__task-icon {
   color: var(--primary-dark);
   background: var(--neutral-border);
 }
 
-.teacher-dashboard__task-icon--due {
+.faculty-dashboard__task-icon--due {
   color: #92400e;
   background: #fef3c7;
 }
 
-.teacher-dashboard__task-icon--progress {
+.faculty-dashboard__task-icon--progress {
   color: #1d4ed8;
   background: #dbeafe;
 }
 
-.teacher-dashboard__task-icon--attention {
+.faculty-dashboard__task-icon--attention {
   color: #b91c1c;
   background: #fee2e2;
 }
 
-.teacher-dashboard__task-icon--upcoming {
+.faculty-dashboard__task-icon--upcoming {
   color: #065f46;
   background: #d1fae5;
 }
 
-.teacher-dashboard__task-title {
+.faculty-dashboard__task-title {
   color: var(--text-dark);
 }
 
-.teacher-dashboard__task-meta {
+.faculty-dashboard__task-meta {
   color: var(--text-muted);
 }
 
-.teacher-dashboard__task-badge {
+.faculty-dashboard__task-badge {
   white-space: nowrap;
 }
 
-.teacher-dashboard__task-badge--due {
+.faculty-dashboard__task-badge--due {
   color: #92400e;
   background: #fef3c7;
 }
 
-.teacher-dashboard__task-badge--progress {
+.faculty-dashboard__task-badge--progress {
   color: #1d4ed8;
   background: #dbeafe;
 }
 
-.teacher-dashboard__task-badge--attention {
+.faculty-dashboard__task-badge--attention {
   color: #b91c1c;
   background: #fee2e2;
 }
 
-.teacher-dashboard__task-badge--upcoming {
+.faculty-dashboard__task-badge--upcoming {
   color: var(--text-muted);
   background: var(--surface-bg);
 }
 
 /* ---------- Card foot ---------- */
-.teacher-dashboard__card-foot {
+.faculty-dashboard__card-foot {
   border-color: var(--neutral-border);
 }
 
-.teacher-dashboard__foot-note {
+.faculty-dashboard__foot-note {
   color: var(--text-muted);
 }
 
-.teacher-dashboard__foot-note strong {
+.faculty-dashboard__foot-note strong {
   color: var(--primary-dark);
 }
 
-.teacher-dashboard__foot-note svg {
+.faculty-dashboard__foot-note svg {
   color: var(--primary);
   flex-shrink: 0;
 }
 
-.teacher-dashboard__foot-link {
+.faculty-dashboard__foot-link {
   color: var(--primary-dark);
   background: var(--surface-white);
   font-family: var(--font-sans);
   transition: color var(--transition-fast), transform var(--transition-fast);
 }
 
-.teacher-dashboard__foot-link:hover {
+.faculty-dashboard__foot-link:hover {
   color: var(--primary);
   transform: translateX(2px);
 }
 
-.teacher-dashboard__foot-link:focus-visible {
+.faculty-dashboard__foot-link:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
 /* ---------- Loading skeleton ---------- */
-.teacher-dashboard__skeleton-bar {
+.faculty-dashboard__skeleton-bar {
   height: 0.75rem;
   border-radius: 0.25rem;
   background: linear-gradient(90deg, var(--neutral-border) 25%, var(--surface-bg) 50%, var(--neutral-border) 75%);
   background-size: 200% 100%;
-  animation: teacher-dashboard-skeleton-shimmer 1.5s ease-in-out infinite;
+  animation: faculty-dashboard-skeleton-shimmer 1.5s ease-in-out infinite;
 }
 
-.teacher-dashboard__skeleton-bar--short {
+.faculty-dashboard__skeleton-bar--short {
   width: 40%;
   height: 0.625rem;
 }
 
-.teacher-dashboard__skeleton-bar--long {
+.faculty-dashboard__skeleton-bar--long {
   width: 70%;
   height: 1rem;
 }
 
-.teacher-dashboard__skeleton-bar--icon {
+.faculty-dashboard__skeleton-bar--icon {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 0.5rem;
   flex-shrink: 0;
 }
 
-.teacher-dashboard__skeleton-bar--tiny {
+.faculty-dashboard__skeleton-bar--tiny {
   width: 25%;
   height: 0.5rem;
 }
 
-@keyframes teacher-dashboard-skeleton-shimmer {
+@keyframes faculty-dashboard-skeleton-shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 
 /* ---------- Adviser class cards with full-width pie chart ---------- */
-.teacher-dashboard__adviser-card {
+.faculty-dashboard__adviser-card {
   position: relative;
   border-radius: var(--radius-xl, 1rem);
   overflow: hidden;
@@ -505,14 +505,14 @@
   transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
-.teacher-dashboard__adviser-card:hover {
+.faculty-dashboard__adviser-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
   border-color: var(--primary);
 }
 
 /* Info overlay pinned to the bottom of the card */
-.teacher-dashboard__adviser-card-overlay {
+.faculty-dashboard__adviser-card-overlay {
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -529,7 +529,7 @@
   pointer-events: none;
 }
 
-.teacher-dashboard__adviser-card-eyebrow {
+.faculty-dashboard__adviser-card-eyebrow {
   font-size: 0.625rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -537,7 +537,7 @@
   color: var(--text-muted);
 }
 
-.teacher-dashboard__adviser-card-name {
+.faculty-dashboard__adviser-card-name {
   margin-top: 0.25rem;
   font-size: 1.0625rem;
   font-weight: 700;
@@ -546,13 +546,13 @@
 }
 
 /* ---------- Gender badges ---------- */
-.teacher-dashboard__adviser-gender {
+.faculty-dashboard__adviser-gender {
   display: flex;
   flex-wrap: wrap;
   gap: 0.375rem;
 }
 
-.teacher-dashboard__gender-badge {
+.faculty-dashboard__gender-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
@@ -563,22 +563,22 @@
   line-height: 1.4;
 }
 
-.teacher-dashboard__gender-badge svg {
+.faculty-dashboard__gender-badge svg {
   flex-shrink: 0;
 }
 
-.teacher-dashboard__gender-badge--male {
+.faculty-dashboard__gender-badge--male {
   color: #1e40af;
   background: #dbeafe;
 }
 
-.teacher-dashboard__gender-badge--female {
+.faculty-dashboard__gender-badge--female {
   color: #9333ea;
   background: #f3e8ff;
 }
 
 /* Gender indicator dots */
-.teacher-dashboard__gender-dot {
+.faculty-dashboard__gender-dot {
   display: inline-block;
   width: 0.5rem;
   height: 0.5rem;
@@ -586,37 +586,37 @@
   flex-shrink: 0;
 }
 
-.teacher-dashboard__gender-dot--male {
+.faculty-dashboard__gender-dot--male {
   background: #3b82f6;
 }
 
-.teacher-dashboard__gender-dot--female {
+.faculty-dashboard__gender-dot--female {
   background: #a855f7;
 }
 
 /* ---------- Empty state ---------- */
-.teacher-dashboard__empty-icon {
+.faculty-dashboard__empty-icon {
   color: var(--text-muted);
   background: var(--neutral-border);
 }
 
-.teacher-dashboard__empty-title {
+.faculty-dashboard__empty-title {
   color: var(--text-dark);
 }
 
-.teacher-dashboard__empty-text {
+.faculty-dashboard__empty-text {
   color: var(--text-muted);
 }
 
 /* ---------- Disabled action ---------- */
-.teacher-dashboard__action:disabled {
+.faculty-dashboard__action:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
-.teacher-dashboard__action:disabled:hover {
+.faculty-dashboard__action:disabled:hover {
   transform: none;
   box-shadow: none;
   border-color: var(--neutral-border);
@@ -624,18 +624,18 @@
 
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .teacher-dashboard__hero,
-  .teacher-dashboard__card {
+  .faculty-dashboard__hero,
+  .faculty-dashboard__card {
     animation: none;
   }
 
-  .teacher-dashboard__stat,
-  .teacher-dashboard__action,
-  .teacher-dashboard__class {
+  .faculty-dashboard__stat,
+  .faculty-dashboard__action,
+  .faculty-dashboard__class {
     transition: none;
   }
 
-  .teacher-dashboard__skeleton-bar {
+  .faculty-dashboard__skeleton-bar {
     animation: none;
   }
 }

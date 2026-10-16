@@ -15,7 +15,7 @@ export interface AcademicSettings {
 // Module-level cache so all pages share a single request.
 let cachedPromise: Promise<AcademicSettings | null> | null = null;
 // Track which user (and role) the cache belongs to so we re-fetch after
-// login/logout — and so a student never reuses an admin/teacher response.
+// login/logout — and so a student never reuses an admin/faculty response.
 let cachedKey: string | null = null;
 
 // Called after academic settings are edited so consumers re-fetch on the next render.
@@ -25,9 +25,9 @@ export function invalidateAcademicSettingsCache() {
 }
 
 // The grading configuration lives behind two endpoints with identical payloads:
-// /academic-settings is restricted to admin/teacher, while students read the
+// /academic-settings is restricted to admin/faculty, while students read the
 // same data through the student-only /students/current-quarter. Calling the
-// admin/teacher route as a student returned 403 ("Forbidden"), which surfaced as
+// admin/faculty route as a student returned 403 ("Forbidden"), which surfaced as
 // an error toast on the student's My Classrooms and Prospectus pages.
 function settingsEndpointFor(role: string | null | undefined): string {
     return role === ROLES.STUDENT ? "/students/current-quarter" : "/academic-settings";

@@ -126,17 +126,17 @@
 }
 
 /* Stagger each row's animation for a cascade effect */
-.teacher-dashboard__adviser-card:nth-child(1) .gender-pie-chart__ring { animation-delay: 0ms, 0ms; }
-.teacher-dashboard__adviser-card:nth-child(1) .gender-pie-chart__center { animation-delay: 350ms; }
+.faculty-dashboard__adviser-card:nth-child(1) .gender-pie-chart__ring { animation-delay: 0ms, 0ms; }
+.faculty-dashboard__adviser-card:nth-child(1) .gender-pie-chart__center { animation-delay: 350ms; }
 
-.teacher-dashboard__adviser-card:nth-child(2) .gender-pie-chart__ring { animation-delay: 120ms, 120ms; }
-.teacher-dashboard__adviser-card:nth-child(2) .gender-pie-chart__center { animation-delay: 470ms; }
+.faculty-dashboard__adviser-card:nth-child(2) .gender-pie-chart__ring { animation-delay: 120ms, 120ms; }
+.faculty-dashboard__adviser-card:nth-child(2) .gender-pie-chart__center { animation-delay: 470ms; }
 
-.teacher-dashboard__adviser-card:nth-child(3) .gender-pie-chart__ring { animation-delay: 240ms, 240ms; }
-.teacher-dashboard__adviser-card:nth-child(3) .gender-pie-chart__center { animation-delay: 590ms; }
+.faculty-dashboard__adviser-card:nth-child(3) .gender-pie-chart__ring { animation-delay: 240ms, 240ms; }
+.faculty-dashboard__adviser-card:nth-child(3) .gender-pie-chart__center { animation-delay: 590ms; }
 
-.teacher-dashboard__adviser-card:nth-child(4) .gender-pie-chart__ring { animation-delay: 360ms, 360ms; }
-.teacher-dashboard__adviser-card:nth-child(4) .gender-pie-chart__center { animation-delay: 710ms; }
+.faculty-dashboard__adviser-card:nth-child(4) .gender-pie-chart__ring { animation-delay: 360ms, 360ms; }
+.faculty-dashboard__adviser-card:nth-child(4) .gender-pie-chart__center { animation-delay: 710ms; }
 
 /* Reduced motion: skip animation */
 @media (prefers-reduced-motion: reduce) {

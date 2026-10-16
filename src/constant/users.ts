@@ -1,7 +1,9 @@
 export interface User {
     id: number,
     email:string,
-    role: UserRoles
+    role: UserRoles,
+    facultyVerified?: boolean,
+    facultyRole?: string
 }
 
 export interface CreateUserProps {
@@ -22,11 +24,9 @@ export const ROLES = {
     TEACHER: "teacher",
     STUDENT: "student",
     DEVELOPER: "developer",
-    // Registration/enrollment staff: enrolls students (existing or newly
-    // created) and prints SF10/Form-137 records. See
-    // docs/register-role-implementation-plan.md.
-    REGISTER: "register"
-} as const;export type UserRoles = (typeof ROLES)[keyof typeof ROLES];
+} as const;
+
+export type UserRoles = (typeof ROLES)[keyof typeof ROLES];
 
 // ==================== developer account management ====================
 // docs/developer-users-plan.md Phase 2. Row shape of GET /users
@@ -49,4 +49,3 @@ export interface UpdateUserStatusPayload {
 export interface UpdateUserRolePayload {
     role: UserRoles
 }
-

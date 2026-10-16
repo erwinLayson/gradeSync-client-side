@@ -10,8 +10,8 @@ import "../../style/adminSubjects.css";
 import { Validate } from "../../helper/validate";
 
 // Types
-import type { Subject, NewSubject, SubjectWithTeachers, ComponentCreateProps } from "../../constant/subjects";
-import type { Teacher } from "../../constant/teachers";
+import type { Subject, NewSubject, SubjectWithFaculties, ComponentCreateProps } from "../../constant/subjects";
+import type { Faculty } from "../../constant/faculties";
 
 // Components
 import { ConfirmDialog } from "../../components/ConfirmDialog";
@@ -19,22 +19,22 @@ import { PageSection, PageShell } from "../../components/PageLayout";
 import { EmptyState } from "../../components/EmptyState";
 import { ModalDialog } from "../../components/ModalDialog";
 
-interface newAssignedTeachers {
+interface newAssignedFaculties {
 subjectId: number | null;
-teachersId: number[] | null
+facultiesId: number[] | null
 }
 
-// A teacher queued for removal from the selected subject
-interface RemoveTeacherTarget {
-    teacherId: number;
-    teacherName: string;
+// A faculty queued for removal from the selected subject
+interface RemoveFacultyTarget {
+    facultyId: number;
+    facultyName: string;
 }
 
 export default function AdminSubjects() {
 const [subjects, setSubjects] = useState<Subject[] | null>(null);
-const [selectedSubject, setSelectedSubject] = useState<SubjectWithTeachers | null>(null);
-const [unassignedTeachers, setUnassignedTeachers] = useState<Teacher[] | null>(null);
-const [newAssignedTeachers, setNewAssignedTeachers] = useState<newAssignedTeachers | null>(null);
+const [selectedSubject, setSelectedSubject] = useState<SubjectWithFaculties | null>(null);
+const [unassignedFaculties, setUnassignedFaculties] = useState<Faculty[] | null>(null);
+const [newAssignedFaculties, setNewAssignedFaculties] = useState<newAssignedFaculties | null>(null);
 const [newSubject, setNewSubject] = useState<NewSubject>({
     name: "",
     code: "",
@@ -55,9 +55,9 @@ const [deleteTarget, setDeleteTarget] = useState<Subject | null>(null);
 const [deletingSubject, setDeletingSubject] = useState(false);
 const deleteTriggerRef = useRef<HTMLButtonElement>(null);
 
-// Remove-teacher confirmation dialog state
-const [removeTarget, setRemoveTarget] = useState<RemoveTeacherTarget | null>(null);
-const [removingTeacher, setRemovingTeacher] = useState(false);
+// Remove-faculty confirmation dialog state
+const [removeTarget, setRemoveTarget] = useState<RemoveFacultyTarget | null>(null);
+const [removingFaculty, setRemovingFaculty] = useState(false);
 const removeTriggerRef = useRef<HTMLButtonElement>(null);
 
 //  Create Subject modal Functions & data
@@ -154,7 +154,7 @@ async function handleEditSubjectClick(subject: Subject) {
     if (!subject.hasComponents) return;
 
     try {
-        const response = await getAPICall<SubjectWithTeachers>(`/subjects/${subject.id}/teachers`);
+        const response = await getAPICall<SubjectWithFaculties>(`/subjects/${subject.id}/faculties`);
         const components = (response.data?.components ?? []).map(({ name, code, weight }) => ({
             name,
             code,
@@ -196,20 +196,20 @@ async function handleEditModalForm(e: React.FormEvent<HTMLFormElement>) {
 
 async function handleAssignModalForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!selectedSubject || !newAssignedTeachers) return;
+    if (!selectedSubject || !newAssignedFaculties) return;
 
     try {
-        await postAPICall<newAssignedTeachers, null>(`/subjects/${selectedSubject.id}/assign-teachers`, newAssignedTeachers);
-        await fetchUnassignedTeachers();
+        await postAPICall<newAssignedFaculties, null>(`/subjects/${selectedSubject.id}/assign-faculties`, newAssignedFaculties);
+        await fetchUnassignedFaculties();
         await fetchSelectedSubjectDetails(selectedSubject.id);
-        setNewAssignedTeachers(null);
+        setNewAssignedFaculties(null);
         closeModal();
     } catch {
         // Error toast is handled by the axios interceptor in api.ts
     }
 }
 
-// Close the remove-teacher confirmation dialog
+// Close the remove-faculty confirmation dialog
 const closeRemoveConfirm = useCallback(() => setRemoveTarget(null), []);
 
 // Close the delete-subject confirmation dialog
@@ -236,60 +236,60 @@ async function handleConfirmDeleteSubject() {
     }
 }
 
-// Confirm and execute removing a teacher from the selected subject
-async function handleConfirmRemoveTeacher() {
-    if (!selectedSubject || !removeTarget || removingTeacher) return;
+// Confirm and execute removing a faculty from the selected subject
+async function handleConfirmRemoveFaculty() {
+    if (!selectedSubject || !removeTarget || removingFaculty) return;
 
-    setRemovingTeacher(true);
+    setRemovingFaculty(true);
     try {
         await deleteAPICall<{ removed: boolean; warning: string | null }, null>(
-            `/subjects/${selectedSubject.id}/teachers/${removeTarget.teacherId}`
+            `/subjects/${selectedSubject.id}/faculties/${removeTarget.facultyId}`
         );
         // Refresh both the assigned list and the assign-modal pool so the
-        // removed teacher immediately becomes assignable again.
+        // removed faculty immediately becomes assignable again.
         await fetchSelectedSubjectDetails(selectedSubject.id);
-        await fetchUnassignedTeachers();
+        await fetchUnassignedFaculties();
         setRemoveTarget(null);
         removeTriggerRef.current?.focus();
     } catch {
         // Error toast is handled by the axios interceptor; keep the dialog open to retry.
     } finally {
-        setRemovingTeacher(false);
+        setRemovingFaculty(false);
     }
 }
 
-// This function will fetch teachers that are not assigned to the selected subject
-async function fetchUnassignedTeachers() {
+// This function will fetch faculties that are not assigned to the selected subject
+async function fetchUnassignedFaculties() {
     if (!selectedSubject) return;
     
-    const response = await getAPICall<Teacher[]>(`/subjects/${selectedSubject.id}/unassigned-teachers`);
-    setUnassignedTeachers(response.data ?? null);
+    const response = await getAPICall<Faculty[]>(`/subjects/${selectedSubject.id}/unassigned-faculties`);
+    setUnassignedFaculties(response.data ?? null);
 }
 
-// Handle checkbox change for assigning teachers to the selected subject
-async function handleAssignTeacherChange(e: React.ChangeEvent<HTMLInputElement>) {
+// Handle checkbox change for assigning faculties to the selected subject
+async function handleAssignFacultyChange(e: React.ChangeEvent<HTMLInputElement>) {
     const {checked, value} = e.target;
 
     if(checked) {
-        setNewAssignedTeachers((prev) => {
+        setNewAssignedFaculties((prev) => {
             const curent = prev ?? {
                 subjectId: selectedSubject?.id ?? null,
-                teachersId: []
+                facultiesId: []
             }
             return {
                 ...curent,
-                teachersId: [...(curent.teachersId ?? []), Number(value)]
+                facultiesId: [...(curent.facultiesId ?? []), Number(value)]
             }
         })
     }else {
-        setNewAssignedTeachers((prev) => {
+        setNewAssignedFaculties((prev) => {
             const curent = prev ?? {
                 subjectId: selectedSubject?.id ?? null,
-                teachersId: []
+                facultiesId: []
             }
             return {
                 ...curent,
-                teachersId: (curent.teachersId ?? []).filter((id) => id !== Number(value))
+                facultiesId: (curent.facultiesId ?? []).filter((id) => id !== Number(value))
             }
         })
     }
@@ -304,11 +304,11 @@ async function handleSelectedSubject(e: React.MouseEvent<HTMLElement>) {
     await fetchSelectedSubjectDetails(Number(subjectId));
 }
 
-// Fetch selected subject details along with assigned teachers
+// Fetch selected subject details along with assigned faculties
 async function fetchSelectedSubjectDetails(subjectId: number) {
     try {
         setLoading(true);
-        const response = await getAPICall<SubjectWithTeachers>(`/subjects/${subjectId}/teachers`);
+        const response = await getAPICall<SubjectWithFaculties>(`/subjects/${subjectId}/faculties`);
         setSelectedSubject(response.data ?? null);
     } catch {
         // Error toast is handled by the axios interceptor in api.ts
@@ -497,8 +497,8 @@ return (
                             </div>
                         </div>
                         <div className="subjects__details-badge flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border px-3.5 py-2.5">
-                            <span className="subjects__details-badge-count text-[1.375rem] font-bold leading-none">{selectedSubject.teachers?.length ?? 0}</span>
-                            <span className="subjects__details-badge-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">Teachers</span>
+                            <span className="subjects__details-badge-count text-[1.375rem] font-bold leading-none">{selectedSubject.faculties?.length ?? 0}</span>
+                            <span className="subjects__details-badge-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">Faculties</span>
                         </div>
                     </div>
 
@@ -556,55 +556,55 @@ return (
                         </section>
                     )}
 
-                    {/* Assigned teachers table */}
-                    <section className="subjects__teachers p-5" aria-label="Assigned teachers">
-                        <div className="subjects__teachers-head flex items-start justify-between gap-4">
-                            <div className="subjects__teachers-heading min-w-0">
-                                <h4 className="subjects__teachers-title text-[0.9375rem] font-bold">Assigned Teachers</h4>
-                                <p className="subjects__teachers-subtitle mt-1 text-[0.8125rem]">Teachers currently handling {selectedSubject.name}</p>
+                    {/* Assigned faculties table */}
+                    <section className="subjects__faculties p-5" aria-label="Assigned faculties">
+                        <div className="subjects__faculties-head flex items-start justify-between gap-4">
+                            <div className="subjects__faculties-heading min-w-0">
+                                <h4 className="subjects__faculties-title text-[0.9375rem] font-bold">Assigned Faculties</h4>
+                                <p className="subjects__faculties-subtitle mt-1 text-[0.8125rem]">Faculties currently handling {selectedSubject.name}</p>
                             </div>
-                            <div className="subjects__teachers-actions flex items-center gap-2">
-                                <span className="subjects__teachers-count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">{(selectedSubject.teachers ?? []).length} teacher{(selectedSubject.teachers ?? []).length === 1 ? "" : "s"}</span>
+                            <div className="subjects__faculties-actions flex items-center gap-2">
+                                <span className="subjects__faculties-count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">{(selectedSubject.faculties ?? []).length} faculty{(selectedSubject.faculties ?? []).length === 1 ? "" : "s"}</span>
 
-                                <button className="subjects__teachers-button inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold" onClick={() => (
+                                <button className="subjects__faculties-button inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold" onClick={() => (
                                     setModalStatus("assign"),
-                                    fetchUnassignedTeachers(),
+                                    fetchUnassignedFaculties(),
                                     setIsModalOpen(true)
                                 )} >
                                     <FiUsers />
-                                    <span className="subjects__teachers-button-text">Assign Teacher</span>
+                                    <span className="subjects__faculties-button-text">Assign Faculty</span>
                                 </button>
                             </div>
                         </div>
 
-                        {selectedSubject.teachers && selectedSubject.teachers.length > 0 ? (
+                        {selectedSubject.faculties && selectedSubject.faculties.length > 0 ? (
                             <div className="data-table__wrap mt-4 rounded-xl border">
                                 <table className="data-table">
                                     <thead>
                                         <tr>
                                             <th scope="col" className="data-table__th data-table__th--center w-12">#</th>
-                                            <th scope="col" className="data-table__th w-56">Teacher Name</th>
+                                            <th scope="col" className="data-table__th w-56">Faculty Name</th>
                                             <th scope="col" className="data-table__th w-24">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {selectedSubject.teachers.map((teacher, index) => (
-                                            <tr key={`${teacher.id}-${index}`} className="data-table__row">
+                                        {selectedSubject.faculties.map((faculty, index) => (
+                                            <tr key={`${faculty.id}-${index}`} className="data-table__row">
                                                 <td className="data-table__td data-table__td--center data-table__td--mono w-12">{index + 1}</td>
                                                 <td className="data-table__td">
-                                                    <span className="data-table__value">{teacher.name}</span>
-                                                    <span className="data-table__sub">Teacher ID #{teacher.id}</span>
+                                                    <span className="data-table__value">{faculty.name}</span>
+                                                    <span className="data-table__sub">Faculty ID #{faculty.id}</span>
                                                 </td>
                                                 <td className="data-table__td">
                                                     <button
                                                         type="button"
-                                                        className="subjects__teachers-remove inline-flex h-8 w-8 items-center justify-center rounded-lg"
+                                                        className="subjects__faculties-remove inline-flex h-8 w-8 items-center justify-center rounded-lg"
                                                         onClick={(e) => {
                                                             // Capture the clicked button so focus returns to it when the dialog closes
                                                             removeTriggerRef.current = e.currentTarget;
-                                                            setRemoveTarget({ teacherId: teacher.id, teacherName: teacher.name });
+                                                            setRemoveTarget({ facultyId: faculty.id, facultyName: faculty.name });
                                                         }}
-                                                        aria-label={`Remove ${teacher.name} from ${selectedSubject.name}`}
+                                                        aria-label={`Remove ${faculty.name} from ${selectedSubject.name}`}
                                                         title="Remove from subject"
                                                     >
                                                         <FiTrash2 aria-hidden="true" />
@@ -616,12 +616,12 @@ return (
                                 </table>
                             </div>
                         ) : (
-                            <div className="subjects__teachers-empty mt-4 flex flex-col items-center justify-center rounded-xl border border-dashed px-6 py-10 text-center">
-                                <span className="subjects__teachers-empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
+                            <div className="subjects__faculties-empty mt-4 flex flex-col items-center justify-center rounded-xl border border-dashed px-6 py-10 text-center">
+                                <span className="subjects__faculties-empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
                                     <FiUsers />
                                 </span>
-                                <p className="subjects__teachers-empty-title mt-3 text-sm font-bold">No teachers assigned</p>
-                                <p className="subjects__teachers-empty-text mt-1 text-[0.8125rem]">Teachers will appear here once they are assigned to this subject.</p>
+                                <p className="subjects__faculties-empty-title mt-3 text-sm font-bold">No faculties assigned</p>
+                                <p className="subjects__faculties-empty-text mt-1 text-[0.8125rem]">Faculties will appear here once they are assigned to this subject.</p>
                             </div>
                         )}
                     </section>
@@ -661,7 +661,7 @@ return (
                             <div className="subjects-modal__heading">
                                 <span className="subjects-modal__eyebrow uppercase tracking-[0.08em]">Assign</span>
                                 <h3 id="subjects-modal-title" className="subjects-modal__title mt-0.5 text-xl font-bold">Assign Subject</h3>
-                                <p className="subjects-modal__subtitle mt-1 text-[0.8125rem]">Assign a subject to a teacher</p>
+                                <p className="subjects-modal__subtitle mt-1 text-[0.8125rem]">Assign a subject to a faculty</p>
                             </div>
                         )}
                         <button type="button" className="subjects-modal__close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg" onClick={closeModal} aria-label="Close modal">
@@ -800,46 +800,46 @@ return (
                             </div>
                         )}
 
-                        {/* Assign Teacher Form */}
+                        {/* Assign Faculty Form */}
                         {modalStatus === "assign" && (
-                            <div className="unassign-teacher-form flex flex-col gap-3.5">
-                                <div className="unassign-teacher-form__head flex items-center justify-between gap-4">
-                                    <p className="unassign-teacher-form__hint text-[0.8125rem]">
-                                        Select teachers to assign to <strong className="font-bold">{selectedSubject?.name}</strong>
+                            <div className="unassign-faculty-form flex flex-col gap-3.5">
+                                <div className="unassign-faculty-form__head flex items-center justify-between gap-4">
+                                    <p className="unassign-faculty-form__hint text-[0.8125rem]">
+                                        Select faculties to assign to <strong className="font-bold">{selectedSubject?.name}</strong>
                                     </p>
-                                    <span className="unassign-teacher-form__count shrink-0 whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
-                                        {unassignedTeachers === null ? "…" : `${unassignedTeachers.length} available`}
+                                    <span className="unassign-faculty-form__count shrink-0 whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
+                                        {unassignedFaculties === null ? "…" : `${unassignedFaculties.length} available`}
                                     </span>
                                 </div>
 
-                                {unassignedTeachers === null ? (
-                                    <div className="unassign-teacher-form__loading flex items-center justify-center gap-2.5 rounded-xl border border-dashed px-4 py-6 text-[0.8125rem]" aria-busy="true">
-                                        <span className="unassign-teacher-form__loading-spinner h-4 w-4 shrink-0 rounded-full border-2" aria-hidden="true" />
-                                        Loading unassigned teachers…
+                                {unassignedFaculties === null ? (
+                                    <div className="unassign-faculty-form__loading flex items-center justify-center gap-2.5 rounded-xl border border-dashed px-4 py-6 text-[0.8125rem]" aria-busy="true">
+                                        <span className="unassign-faculty-form__loading-spinner h-4 w-4 shrink-0 rounded-full border-2" aria-hidden="true" />
+                                        Loading unassigned faculties…
                                     </div>
-                                ) : unassignedTeachers.length > 0 ? (
-                                    <div className="unassign-teacher-form__grid grid grid-cols-1 gap-2.5 overflow-y-auto pr-1 sm:grid-cols-2">
-                                        {unassignedTeachers.map((teacher) => (
-                                            <div key={teacher.id} className="unassign-teacher-form__field rounded-lg border">
-                                                <label className="unassign-teacher-form__label flex cursor-pointer items-center gap-2.5 p-2.5 text-sm font-medium">
+                                ) : unassignedFaculties.length > 0 ? (
+                                    <div className="unassign-faculty-form__grid grid grid-cols-1 gap-2.5 overflow-y-auto pr-1 sm:grid-cols-2">
+                                        {unassignedFaculties.map((faculty) => (
+                                            <div key={faculty.id} className="unassign-faculty-form__field rounded-lg border">
+                                                <label className="unassign-faculty-form__label flex cursor-pointer items-center gap-2.5 p-2.5 text-sm font-medium">
                                                     <input
                                                         type="checkbox"
-                                                        name="selectedTeachers"
-                                                        value={teacher.id}
-                                                        onChange={handleAssignTeacherChange}
+                                                        name="selectedFaculties"
+                                                        value={faculty.id}
+                                                        onChange={handleAssignFacultyChange}
                                                     />
-                                                    {teacher.fullname}
+                                                    {faculty.fullname}
                                                 </label>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="unassign-teacher-form__empty flex flex-col items-center justify-center rounded-xl border border-dashed px-4 py-8 text-center">
-                                        <span className="unassign-teacher-form__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
+                                    <div className="unassign-faculty-form__empty flex flex-col items-center justify-center rounded-xl border border-dashed px-4 py-8 text-center">
+                                        <span className="unassign-faculty-form__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
                                             <FiUsers />
                                         </span>
-                                        <p className="unassign-teacher-form__empty-title mt-3 text-sm font-bold">No unassigned teachers</p>
-                                        <p className="unassign-teacher-form__empty-text mt-1 text-[0.8125rem]">Every teacher is already assigned to this subject.</p>
+                                        <p className="unassign-faculty-form__empty-title mt-3 text-sm font-bold">No unassigned faculties</p>
+                                        <p className="unassign-faculty-form__empty-text mt-1 text-[0.8125rem]">Every faculty is already assigned to this subject.</p>
                                     </div>
                                 )}
                             </div>
@@ -858,22 +858,22 @@ return (
                     </form>
             </ModalDialog>
 
-            {/* Remove teacher confirmation dialog */}
+            {/* Remove faculty confirmation dialog */}
         <ConfirmDialog
             open={removeTarget !== null}
-            title="Remove teacher from subject?"
+            title="Remove faculty from subject?"
             description={
                 removeTarget && selectedSubject
-                    ? `${removeTarget.teacherName} will no longer be assignable to ${selectedSubject.name}. This cannot be undone — reassign them later if needed.`
-                    : "This will remove the teacher from the subject."
+                    ? `${removeTarget.facultyName} will no longer be assignable to ${selectedSubject.name}. This cannot be undone — reassign them later if needed.`
+                    : "This will remove the faculty from the subject."
             }
             confirmLabel="Remove"
             confirmIcon={<FiTrash2 aria-hidden="true" />}
             icon={<FiAlertTriangle aria-hidden="true" />}
             tone="danger"
-            pending={removingTeacher}
+            pending={removingFaculty}
             pendingLabel="Removing…"
-            onConfirm={handleConfirmRemoveTeacher}
+            onConfirm={handleConfirmRemoveFaculty}
             onClose={closeRemoveConfirm}
             triggerRef={removeTriggerRef}
         />
@@ -884,7 +884,7 @@ return (
             title="Delete subject?"
             description={
                 deleteTarget
-                    ? `${deleteTarget.name} will be permanently deleted. This only works when the subject is not taught in any class, assigned to any teacher, or on any enrollment record — the app will tell you what's blocking it if it is. Past student records keep their own copy of the subject name, so they are not affected.`
+                    ? `${deleteTarget.name} will be permanently deleted. This only works when the subject is not taught in any class, assigned to any faculty, or on any enrollment record — the app will tell you what's blocking it if it is. Past student records keep their own copy of the subject name, so they are not affected.`
                     : "This subject will be permanently deleted."
             }
             confirmLabel="Delete"

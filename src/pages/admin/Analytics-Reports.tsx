@@ -25,6 +25,8 @@ interface SchoolYear {
     id: number;
     startYear: string;
     endYear: string;
+    // Authoritative completion marker — see plan §7.
+    status?: "ongoing" | "completed" | string;
 }
 
 interface EnrollmentByGrade {
@@ -57,7 +59,7 @@ interface AttendanceTrendRow {
 
 interface AnalyticsData {
     students: number;
-    teachers: number;
+    faculties: number;
     classrooms: number;
     /** The quarter every grade metric below is scoped to. */
     quarter: number;
@@ -185,7 +187,7 @@ export default function AnalyticsReports() {
     const kpis = useMemo(
         () => [
             { label: "Total Students", value: String(analytics?.students ?? 0), icon: FiUsers },
-            { label: "Teaching Staff", value: String(analytics?.teachers ?? 0), icon: FiBookOpen },
+            { label: "Teaching Staff", value: String(analytics?.faculties ?? 0), icon: FiBookOpen },
             { label: "Active Classes", value: String(analytics?.classrooms ?? 0), icon: FiActivity },
             {
                 label: analytics?.quarter != null ? `Average Grade (Q${analytics.quarter})` : "Average Grade",
@@ -331,7 +333,7 @@ export default function AnalyticsReports() {
                             </div>
                         </div>
                     ) : !hasGradeData ? (
-                        <AnalyticsEmpty message="No graded assessments yet — passing rate will appear once teachers record scores." />
+                        <AnalyticsEmpty message="No graded assessments yet — passing rate will appear once faculties record scores." />
                     ) : (
                         <div className="flex flex-col items-center gap-6 p-5 sm:flex-row sm:justify-center sm:gap-10">
                             <div

@@ -133,7 +133,7 @@ export default function DeveloperFeatures() {
                     <div className="min-w-0">
                         <h4 className="text-sm font-bold text-neutral-800">System features</h4>
                         <p className="mt-0.5 text-[0.75rem] text-neutral-500">
-                            Disabling a feature hides it from admins, teachers and students.
+                            Disabling a feature hides it from admins, faculties and students.
                         </p>
                     </div>
                     <label className="relative block">
@@ -222,7 +222,7 @@ export default function DeveloperFeatures() {
                 title="Disable this feature?"
                 description={
                     confirmTarget
-                        ? `“${confirmTarget.label}” will be hidden from admins, teachers and students across the whole school. You can re-enable it anytime.`
+                        ? `“${confirmTarget.label}” will be hidden from admins, faculties and students across the whole school. You can re-enable it anytime.`
                         : ""
                 }
                 confirmLabel="Disable feature"

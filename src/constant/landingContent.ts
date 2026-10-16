@@ -150,7 +150,7 @@ export const SECTION_META: Record<LandingSectionKey, { label: string; descriptio
     },
     audiences: {
         label: "Who It's For",
-        description: "One card per role: administrators, teachers, students.",
+        description: "One card per role: administrators, faculties, students.",
     },
     contact: {
         label: "Contact",
@@ -449,7 +449,7 @@ export const DEFAULT_LANDING_CONTENT: LandingContent = {
             {
                 iconKey: "FaClipboardCheck",
                 title: "Grading & Attendance",
-                text: "Quarter grades computed automatically from teacher-entered scores and attendance.",
+                text: "Quarter grades computed automatically from faculty-entered scores and attendance.",
             },
             {
                 iconKey: "FaBookOpen",
@@ -459,7 +459,7 @@ export const DEFAULT_LANDING_CONTENT: LandingContent = {
             {
                 iconKey: "FaChartLine",
                 title: "Reports & Analytics",
-                text: "Dashboards for admins, report cards for teachers and prospects for students.",
+                text: "Dashboards for admins, report cards for faculties and prospects for students.",
             },
         ],
     },
@@ -478,7 +478,7 @@ export const DEFAULT_LANDING_CONTENT: LandingContent = {
             {
                 step: "02",
                 title: "Record daily progress",
-                text: "Teachers take attendance and encode scores in the gradebook as classes happen.",
+                text: "Faculties take attendance and encode scores in the gradebook as classes happen.",
             },
             {
                 step: "03",
@@ -511,7 +511,7 @@ export const DEFAULT_LANDING_CONTENT: LandingContent = {
             },
             {
                 iconKey: "FaChalkboardTeacher",
-                title: "For Teachers",
+                title: "For Faculties",
                 text: "Spend less time on paperwork, more time teaching.",
                 points: [
                     "Fast attendance taking",
@@ -558,6 +558,6 @@ export const DEFAULT_LANDING_CONTENT: LandingContent = {
     },
     cta: {
         title: "Ready to simplify school records?",
-        text: "Sign in with your school account — admins, teachers and students all use the same door.",
+        text: "Sign in with your school account — admins, faculties and students all use the same door.",
     },
 };

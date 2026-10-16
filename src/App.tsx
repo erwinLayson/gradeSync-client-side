@@ -13,19 +13,19 @@ import AdminEnrollments from './pages/admin/AdminEnrollments'
 import AdminStudents from './pages/admin/AdminStudent'
 import AdminClassrooms from './pages/admin/AdminClassrooms'
 import AdminSubjects from './pages/admin/AdminSubjects'
-import AdminTeachers from './pages/admin/AdminTeachers'
+import AdminFaculties from './pages/admin/AdminFaculties'
 import AdminReports from './pages/admin/Admin-Reports'
 import AdminStudentRecords from './pages/admin/AdminStudentRecords'
 import AdminSettings from './pages/admin/AdminSettings'
-// Teacher Pages
-import TeacherDashboard from './pages/teacher/TeacherDashboard'
-import TeacherAttendance from './pages/teacher/TeacherAttendance'
-import TeacherClasses from './pages/teacher/TeacherClasses'
-import TeacherMyClass from './pages/teacher/TeacherMyClass'
-import TeacherGradeBook from './pages/teacher/TeacherGradebook'
-import TeacherStudentRecords from './pages/teacher/TeacherStudentRecords'
-import TeacherReport from './pages/teacher/TeacherReport'
-import TeacherSetting from "./pages/teacher/TeacherSettings"
+// Faculty Pages
+import FacultyDashboard from './pages/faculty/FacultyDashboard'
+import FacultyAttendance from './pages/faculty/FacultyAttendance'
+import FacultyClasses from './pages/faculty/FacultyClasses'
+import FacultyMyClass from './pages/faculty/FacultyMyClass'
+import FacultyGradeBook from './pages/faculty/FacultyGradebook'
+import FacultyStudentRecords from './pages/faculty/FacultyStudentRecords'
+import FacultyReport from './pages/faculty/FacultyReport'
+import FacultySetting from "./pages/faculty/FacultySettings"
 
 // Student Pages
 import StudentDashboard from './pages/student/StudentDashboard'
@@ -50,7 +50,8 @@ import DeveloperSettings from './pages/developer/DeveloperSettings'
 // Components
 import MasterLayout from './components/MaterLayout'
 import ProtectedRoutes from './routes/ProtectedRoutes'
-import { ROLES} from "./constant/users";
+import { ROLES } from "./constant/users";
+import { FACULTY_ROLES } from "./constant/faculties";
 
 
 
@@ -79,33 +80,38 @@ function App() {
               <Route path="/admin/students" element={<AdminStudents />} />
               <Route path="/admin/classrooms" element={<AdminClassrooms />} />
               <Route path="/admin/subjects" element={<AdminSubjects />} />
-              <Route path="/admin/teachers" element={<AdminTeachers />} />
+              <Route path="/admin/faculties" element={<AdminFaculties />} />
               <Route path="/admin/analytics-reports" element={<AnalyticsReports />} />
               <Route path="/admin/reports" element={<AdminReports />} />
               <Route path="/admin/student-records" element={<AdminStudentRecords />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
             </Route>
 
-            {/* Teacher Routes */}
+            {/* Faculty Routes — guarded by faculty-role, not by user role. */}
+            {/* Every faculty account authenticates as users.role = "teacher", so a
+                plain user-role check would let register faculty into the teaching
+                workspace. The frontend mirror here is intentionally aligned with the
+                backend model: the real authority for faculty workspaces is the
+                authenticated user's verified faculty role. */}
             <Route
               element={
-                <ProtectedRoutes allowedRoles={[ROLES.TEACHER]} />
+                <ProtectedRoutes allowedRoles={[FACULTY_ROLES.TEACHER]} />
               }
             >
-              <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
-              <Route path="/teacher/attendance" element={<TeacherAttendance />} />
-              <Route path="/teacher/classes" element={<TeacherClasses />} />
-              <Route path="/teacher/my-class" element={<TeacherMyClass />} />
+              <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
+              <Route path="/faculty/attendance" element={<FacultyAttendance />} />
+              <Route path="/faculty/classes" element={<FacultyClasses />} />
+              <Route path="/faculty/my-class" element={<FacultyMyClass />} />
               <Route
-                path="/teacher/classes/:classId/gradebook"
-                element={<TeacherGradeBook />}
+                path="/faculty/classes/:classId/gradebook"
+                element={<FacultyGradeBook />}
               />
               <Route
-                path="/teacher/student-records"
-                element={<TeacherStudentRecords />}
+                path="/faculty/student-records"
+                element={<FacultyStudentRecords />}
               />
-              <Route path="/teacher/reports" element={<TeacherReport />} />
-              <Route path="/teacher/settings" element={<TeacherSetting />} />
+              <Route path="/faculty/reports" element={<FacultyReport />} />
+              <Route path="/faculty/settings" element={<FacultySetting />} />
             </Route>
 
             {/* Student Routes */}
@@ -120,10 +126,13 @@ function App() {
               <Route path="/student/prospectus" element={<StudentProspectus />} />
             </Route>
 
-            {/* Register Routes (registration/enrollment staff) */}
+            {/* Register workspace (registration/enrollment staff). */}
+            {/* Access is determined by the authenticated user's verified faculty role
+                (faculties.role === "register"), mirrored here for navigation. The
+                backend remains the authoritative boundary. */}
             <Route
               element={
-                <ProtectedRoutes allowedRoles={[ROLES.REGISTER]} />
+                <ProtectedRoutes allowedRoles={[FACULTY_ROLES.REGISTER]} />
               }
             >
               <Route path="/register/dashboard" element={<RegisterDashboard />} />

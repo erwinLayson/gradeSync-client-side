@@ -32,7 +32,7 @@ import type { Assessment, AssessmentType } from "../../constant/assessment";
 import type { GradeWeights } from "../../constant/gradingWeights";
 import type { SubjectComponent } from "../../constant/subjects";
 
-import "../../style/teacherGradebook.css";
+import "../../style/facultyGradebook.css";
 
 // ================= Types =================
 
@@ -197,7 +197,7 @@ function toDateInputValue(dateGiven: string | null): string {
     return `${year}-${month}-${day}`;
 }
 
-export default function TeacherGradebook() {
+export default function FacultyGradebook() {
     const navigate = useNavigate();
     const { classId } = useParams(); // URL param is actually the class_subjects id
     const { quarters } = useAcademicSettings();
@@ -544,13 +544,13 @@ export default function TeacherGradebook() {
 
     // =============== handle back to class List button ================
     const handleBackToClassList = () => {
-        navigate("/teacher/classes");
+        navigate("/faculty/classes");
     };
 
     if (loading) {
         return (
-            <PageShell className="teacher-gradebook" busy>
-                <PageSection className="teacher-gradebook__card" flush>
+            <PageShell className="faculty-gradebook" busy>
+                <PageSection className="faculty-gradebook__card" flush>
                     <div className="p-5">
                         <Skeleton lines={5} gap="1rem" />
                     </div>
@@ -560,11 +560,11 @@ export default function TeacherGradebook() {
     }
 
     return (
-        <PageShell className="teacher-gradebook">
+        <PageShell className="faculty-gradebook">
             {/* ==================== Back button ==================== */}
             <button
                 type="button"
-                className="teacher-gradebook__back inline-flex cursor-pointer items-center justify-center gap-2 self-start rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
+                className="faculty-gradebook__back inline-flex cursor-pointer items-center justify-center gap-2 self-start rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
                 aria-label="Back to class list"
                 onClick={handleBackToClassList}
             >
@@ -582,8 +582,8 @@ export default function TeacherGradebook() {
             )}
 
             {/* ==================== Quarter tabs + actions ==================== */}
-            <div className="teacher-gradebook__toolbar flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm">
-                <div className="teacher-gradebook__tabs flex items-center gap-1.5" role="tablist" aria-label="Select quarter">
+            <div className="faculty-gradebook__toolbar flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm">
+                <div className="faculty-gradebook__tabs flex items-center gap-1.5" role="tablist" aria-label="Select quarter">
                     {quarters.map((q) => (
                         <button
                             key={q}
@@ -591,8 +591,8 @@ export default function TeacherGradebook() {
                             role="tab"
                             aria-selected={quarter === q}
                             aria-label={`Quarter ${q}`}
-                            className={`teacher-gradebook__tab inline-flex cursor-pointer items-center justify-center rounded-lg px-4 py-2 text-[0.8125rem] font-bold transition-colors${
-                                quarter === q ? " teacher-gradebook__tab--active" : ""
+                            className={`faculty-gradebook__tab inline-flex cursor-pointer items-center justify-center rounded-lg px-4 py-2 text-[0.8125rem] font-bold transition-colors${
+                                quarter === q ? " faculty-gradebook__tab--active" : ""
                             }`}
                             onClick={() => handleQuarterChange(q)}
                         >
@@ -600,10 +600,10 @@ export default function TeacherGradebook() {
                         </button>
                     ))}
                 </div>
-                <div className="teacher-gradebook__toolbar-actions flex items-center gap-2">
+                <div className="faculty-gradebook__toolbar-actions flex items-center gap-2">
                     <button
                         type="button"
-                        className="teacher-gradebook__weights inline-flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2 text-[0.8125rem] font-bold"
+                        className="faculty-gradebook__weights inline-flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2 text-[0.8125rem] font-bold"
                         disabled={!gradeBookDetails}
                         onClick={openWeightsModal}
                     >
@@ -612,7 +612,7 @@ export default function TeacherGradebook() {
                     </button>
                     <button
                         type="button"
-                        className="teacher-gradebook__add inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold"
+                        className="faculty-gradebook__add inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold"
                         onClick={openCreateModal}
                     >
                         <FiPlus aria-hidden="true" />
@@ -623,15 +623,15 @@ export default function TeacherGradebook() {
 
             {/* ==================== Component tabs (for composite subjects) ==================== */}
             {isCompositeSubject && components.length > 0 && (
-                <div className="teacher-gradebook__components flex flex-wrap items-center gap-2 rounded-xl border bg-white p-4 shadow-sm">
+                <div className="faculty-gradebook__components flex flex-wrap items-center gap-2 rounded-xl border bg-white p-4 shadow-sm">
                     <span className="text-[0.75rem] font-bold text-neutral-500">Component:</span>
                     <div className="flex items-center gap-1.5" role="tablist" aria-label="Select component">
                         <button
                             type="button"
                             role="tab"
                             aria-selected={selectedComponentId === null}
-                            className={`teacher-gradebook__tab inline-flex cursor-pointer items-center justify-center rounded-lg px-3 py-1.5 text-[0.75rem] font-bold transition-colors${
-                                selectedComponentId === null ? " teacher-gradebook__tab--active" : ""
+                            className={`faculty-gradebook__tab inline-flex cursor-pointer items-center justify-center rounded-lg px-3 py-1.5 text-[0.75rem] font-bold transition-colors${
+                                selectedComponentId === null ? " faculty-gradebook__tab--active" : ""
                             }`}
                             onClick={() => setSelectedComponentId(null)}
                         >
@@ -643,8 +643,8 @@ export default function TeacherGradebook() {
                                 type="button"
                                 role="tab"
                                 aria-selected={selectedComponentId === comp.id}
-                                className={`teacher-gradebook__tab inline-flex cursor-pointer items-center justify-center rounded-lg px-3 py-1.5 text-[0.75rem] font-bold transition-colors${
-                                    selectedComponentId === comp.id ? " teacher-gradebook__tab--active" : ""
+                                className={`faculty-gradebook__tab inline-flex cursor-pointer items-center justify-center rounded-lg px-3 py-1.5 text-[0.75rem] font-bold transition-colors${
+                                    selectedComponentId === comp.id ? " faculty-gradebook__tab--active" : ""
                                 }`}
                                 onClick={() => setSelectedComponentId(comp.id)}
                             >
@@ -657,23 +657,23 @@ export default function TeacherGradebook() {
             )}
 
             {/* ==================== Component summary ==================== */}
-            <div className="teacher-gradebook__chips grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="faculty-gradebook__chips grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {(Object.keys(ASSESSMENT_TYPE_META) as AssessmentType[]).map((type) => {
                     const meta = ASSESSMENT_TYPE_META[type];
                     const count = assessmentCounts[type];
                     return (
-                        <div key={type} className="teacher-gradebook__chip flex items-center gap-3 rounded-xl border p-4">
+                        <div key={type} className="faculty-gradebook__chip flex items-center gap-3 rounded-xl border p-4">
                             <span
-                                className="teacher-gradebook__chip-icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[0.6875rem] font-bold"
+                                className="faculty-gradebook__chip-icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[0.6875rem] font-bold"
                                 aria-hidden="true"
                             >
                                 {meta.short}
                             </span>
                             <div className="min-w-0">
-                                <span className="teacher-gradebook__chip-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">
+                                <span className="faculty-gradebook__chip-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">
                                     {meta.label}
                                 </span>
-                                <span className="teacher-gradebook__chip-value mt-0.5 block text-[1.125rem] font-bold">
+                                <span className="faculty-gradebook__chip-value mt-0.5 block text-[1.125rem] font-bold">
                                     {count} assessment{count === 1 ? "" : "s"}
                                 </span>
                             </div>
@@ -683,17 +683,17 @@ export default function TeacherGradebook() {
             </div>
 
             {/* ==================== Score sheet ==================== */}
-            <div className="teacher-gradebook__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                <div className="teacher-gradebook__card-head flex flex-wrap items-center justify-between gap-4 p-5">
-                    <div className="teacher-gradebook__card-heading min-w-0">
-                        <h3 className="teacher-gradebook__card-title text-base font-bold">Score Sheet</h3>
-                        <p className="teacher-gradebook__card-subtitle mt-1 text-[0.8125rem]">
+            <div className="faculty-gradebook__card overflow-hidden rounded-2xl bg-white shadow-sm">
+                <div className="faculty-gradebook__card-head flex flex-wrap items-center justify-between gap-4 p-5">
+                    <div className="faculty-gradebook__card-heading min-w-0">
+                        <h3 className="faculty-gradebook__card-title text-base font-bold">Score Sheet</h3>
+                        <p className="faculty-gradebook__card-subtitle mt-1 text-[0.8125rem]">
                             {students.length} students &middot; Quarter {quarter}
                         </p>
                     </div>
                     <button
                         type="button"
-                        className="teacher-gradebook__save inline-flex items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold hover:cursor-pointer"
+                        className="faculty-gradebook__save inline-flex items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold hover:cursor-pointer"
                         disabled={!isDirty || savingScores}
                         onClick={handleSaveScores}
                     >
@@ -702,22 +702,22 @@ export default function TeacherGradebook() {
                 </div>
 
                 {assessments.length === 0 ? (
-                    <div className="teacher-gradebook__empty flex flex-col items-center justify-center px-6 py-16 text-center">
+                    <div className="faculty-gradebook__empty flex flex-col items-center justify-center px-6 py-16 text-center">
                         <span
-                            className="teacher-gradebook__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full"
+                            className="faculty-gradebook__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full"
                             aria-hidden="true"
                         >
                             <FiBookOpen />
                         </span>
-                        <p className="teacher-gradebook__empty-title mt-3 text-sm font-bold">
+                        <p className="faculty-gradebook__empty-title mt-3 text-sm font-bold">
                             No assessments yet for Quarter {quarter}
                         </p>
-                        <p className="teacher-gradebook__empty-text mt-1 text-[0.8125rem]">
+                        <p className="faculty-gradebook__empty-text mt-1 text-[0.8125rem]">
                             Add an assessment to start recording scores for this class.
                         </p>
                         <button
                             type="button"
-                            className="teacher-gradebook__add teacher-gradebook__empty-add mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold"
+                            className="faculty-gradebook__add faculty-gradebook__empty-add mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold"
                             onClick={openCreateModal}
                         >
                             <FiPlus aria-hidden="true" />
@@ -725,15 +725,15 @@ export default function TeacherGradebook() {
                         </button>
                     </div>
                 ) : students.length === 0 ? (
-                    <div className="teacher-gradebook__empty flex flex-col items-center justify-center px-6 py-16 text-center">
+                    <div className="faculty-gradebook__empty flex flex-col items-center justify-center px-6 py-16 text-center">
                         <span
-                            className="teacher-gradebook__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full"
+                            className="faculty-gradebook__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full"
                             aria-hidden="true"
                         >
                             <FiUsers />
                         </span>
-                        <p className="teacher-gradebook__empty-title mt-3 text-sm font-bold">No students enrolled</p>
-                        <p className="teacher-gradebook__empty-text mt-1 text-[0.8125rem]">
+                        <p className="faculty-gradebook__empty-title mt-3 text-sm font-bold">No students enrolled</p>
+                        <p className="faculty-gradebook__empty-text mt-1 text-[0.8125rem]">
                             Students will appear here once they are enrolled in this class.
                         </p>
                     </div>
@@ -753,21 +753,21 @@ export default function TeacherGradebook() {
 
                                     {assessments.map((assessment) => (
                                         <th key={assessment.id} scope="col" className="data-table__th w-40">
-                                            <div className="teacher-gradebook__assessment-cell flex flex-col gap-1">
-                                                <span className="teacher-gradebook__assessment-title flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.06em]">
-                                                    <span className="teacher-gradebook__assessment-type inline-flex items-center rounded px-1.5 py-0.5 text-[0.625rem] font-bold">
+                                            <div className="faculty-gradebook__assessment-cell flex flex-col gap-1">
+                                                <span className="faculty-gradebook__assessment-title flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.06em]">
+                                                    <span className="faculty-gradebook__assessment-type inline-flex items-center rounded px-1.5 py-0.5 text-[0.625rem] font-bold">
                                                         {ASSESSMENT_TYPE_META[assessment.type].short}
                                                     </span>
                                                     <span className="min-w-0 truncate">{assessment.title}</span>
                                                 </span>
-                                                <span className="teacher-gradebook__assessment-meta font-mono text-[0.6875rem]">
+                                                <span className="faculty-gradebook__assessment-meta font-mono text-[0.6875rem]">
                                                     {assessment.dateGiven ? `${assessment.dateGiven} · ` : ""}max{" "}
                                                     {assessment.maxScore}
                                                 </span>
-                                                <span className="teacher-gradebook__assessment-actions flex items-center gap-1">
+                                                <span className="faculty-gradebook__assessment-actions flex items-center gap-1">
                                                     <button
                                                         type="button"
-                                                        className="teacher-gradebook__assessment-action inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                                        className="faculty-gradebook__assessment-action inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded"
                                                         aria-label={`Edit ${assessment.title}`}
                                                         onClick={() => openEditModal(assessment)}
                                                     >
@@ -775,7 +775,7 @@ export default function TeacherGradebook() {
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        className="teacher-gradebook__assessment-action teacher-gradebook__assessment-action--danger inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                                        className="faculty-gradebook__assessment-action faculty-gradebook__assessment-action--danger inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded"
                                                         aria-label={`Delete ${assessment.title}`}
                                                         onClick={() => setDeletingAssessment(assessment)}
                                                     >
@@ -791,7 +791,7 @@ export default function TeacherGradebook() {
                                     </th>
                                     <th scope="col" className="data-table__th data-table__th--center w-28">
                                         <span className="block">Attendance</span>
-                                        <span className="teacher-gradebook__attendance-meta block font-mono">
+                                        <span className="faculty-gradebook__attendance-meta block font-mono">
                                             weight {attendanceWeight}%
                                         </span>
                                     </th>
@@ -834,7 +834,7 @@ export default function TeacherGradebook() {
                                                         min={0}
                                                         max={Number(assessment.maxScore)}
                                                         step="0.01"
-                                                        className="teacher-gradebook__score-input"
+                                                        className="faculty-gradebook__score-input"
                                                         value={draftRow[assessment.id] ?? ""}
                                                         placeholder="—"
                                                         aria-label={`${student.fullname} score in ${assessment.title}`}
@@ -857,14 +857,14 @@ export default function TeacherGradebook() {
                                             <td className="data-table__td data-table__td--center">
                                                 {student.attendance && student.attendance.totalDays > 0 ? (
                                                     <span
-                                                        className={`teacher-gradebook__attendance inline-flex flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1${
+                                                        className={`faculty-gradebook__attendance inline-flex flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1${
                                                             attendanceWeight > 0
                                                                 ? student.attendance.percentage >= 90
-                                                                    ? " teacher-gradebook__attendance--good"
+                                                                    ? " faculty-gradebook__attendance--good"
                                                                     : student.attendance.percentage >= 75
-                                                                      ? " teacher-gradebook__attendance--warn"
-                                                                      : " teacher-gradebook__attendance--low"
-                                                                : " teacher-gradebook__attendance--off"
+                                                                      ? " faculty-gradebook__attendance--warn"
+                                                                      : " faculty-gradebook__attendance--low"
+                                                                : " faculty-gradebook__attendance--off"
                                                         }`}
                                                         title={
                                                             attendanceWeight > 0
@@ -875,13 +875,13 @@ export default function TeacherGradebook() {
                                                         <span className="font-mono text-[0.8125rem] font-bold leading-none">
                                                             {student.attendance.percentage.toFixed(0)}%
                                                         </span>
-                                                        <span className="teacher-gradebook__attendance-days text-[0.625rem] leading-none">
+                                                        <span className="faculty-gradebook__attendance-days text-[0.625rem] leading-none">
                                                             {student.attendance.presentDays}/{student.attendance.totalDays} days
                                                         </span>
                                                     </span>
                                                 ) : (
                                                     <span
-                                                        className="teacher-gradebook__attendance-empty"
+                                                        className="faculty-gradebook__attendance-empty"
                                                         title="No attendance records for this class yet"
                                                     >
                                                         No records
@@ -892,10 +892,10 @@ export default function TeacherGradebook() {
                                                 {computed.quarterGrade !== null ? (
                                                     <div className="flex flex-col items-center gap-0.5">
                                                         <span
-                                                            className={`teacher-gradebook__grade inline-flex items-center justify-center rounded-lg px-2 py-1 font-mono text-[0.8125rem] font-bold${
+                                                            className={`faculty-gradebook__grade inline-flex items-center justify-center rounded-lg px-2 py-1 font-mono text-[0.8125rem] font-bold${
                                                                 isPassing(computed.quarterGrade)
-                                                                    ? " teacher-gradebook__grade--pass"
-                                                                    : " teacher-gradebook__grade--fail"
+                                                                    ? " faculty-gradebook__grade--pass"
+                                                                    : " faculty-gradebook__grade--fail"
                                                             }`}
                                                             title={
                                                                 computed.fromServer
@@ -906,7 +906,7 @@ export default function TeacherGradebook() {
                                                             {computed.quarterGrade.toFixed(2)}
                                                         </span>
                                                         {computed.componentGrades.length > 0 && (
-                                                            <span className="teacher-gradebook__attendance-days text-[0.625rem] leading-none">
+                                                            <span className="faculty-gradebook__attendance-days text-[0.625rem] leading-none">
                                                                 {computed.componentGrades
                                                                     .map(
                                                                         (componentGrade) =>
@@ -927,10 +927,10 @@ export default function TeacherGradebook() {
                                             <td className="data-table__td data-table__td--center">
                                                 {computed.remarks ? (
                                                     <span
-                                                        className={`teacher-gradebook__remarks inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold${
+                                                        className={`faculty-gradebook__remarks inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold${
                                                             computed.remarks === "Passed"
-                                                                ? " teacher-gradebook__remarks--passed"
-                                                                : " teacher-gradebook__remarks--failed"
+                                                                ? " faculty-gradebook__remarks--passed"
+                                                                : " faculty-gradebook__remarks--failed"
                                                         }`}
                                                     >
                                                         {computed.remarks}
@@ -948,13 +948,13 @@ export default function TeacherGradebook() {
                 )}
 
                 {/* ==================== Sheet footer ==================== */}
-                <div className="teacher-gradebook__card-foot flex flex-wrap items-center justify-between gap-3 p-5">
-                    <p className="teacher-gradebook__foot-note flex items-center gap-2 text-[0.8125rem]">
+                <div className="faculty-gradebook__card-foot flex flex-wrap items-center justify-between gap-3 p-5">
+                    <p className="faculty-gradebook__foot-note flex items-center gap-2 text-[0.8125rem]">
                         <FiUsers aria-hidden="true" />
                         {students.length} students &middot; {passedCount} passed &middot; {failedCount} failed
                     </p>
                     {isCompositeSubject && (
-                        <p className="teacher-gradebook__foot-note">
+                        <p className="faculty-gradebook__foot-note">
                             Composite subject: the quarter grade and each component grade are
                             computed by the server from saved scores (weighted by component weight).
                             Save changes to refresh.
@@ -968,20 +968,20 @@ export default function TeacherGradebook() {
             <ModalDialog
                 open={modal !== null}
                 onClose={closeModal}
-                labelledById="teacher-gradebook-modal-title"
-                className="teacher-gradebook__modal-panel w-full max-w-[30rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+                labelledById="faculty-gradebook-modal-title"
+                className="faculty-gradebook__modal-panel w-full max-w-[30rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
             >
                 {modal && (
                     <>
-                        <header className="teacher-gradebook__modal-header flex items-start justify-between gap-4 p-6 pb-5">
-                            <div className="teacher-gradebook__modal-heading">
-                                <span className="teacher-gradebook__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
+                        <header className="faculty-gradebook__modal-header flex items-start justify-between gap-4 p-6 pb-5">
+                            <div className="faculty-gradebook__modal-heading">
+                                <span className="faculty-gradebook__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
                                     {modal.mode === "create" ? "New record" : "Edit record"}
                                 </span>
-                                <h3 id="teacher-gradebook-modal-title" className="teacher-gradebook__modal-title mt-0.5 text-xl font-bold">
+                                <h3 id="faculty-gradebook-modal-title" className="faculty-gradebook__modal-title mt-0.5 text-xl font-bold">
                                     {modal.mode === "create" ? "Create Assessment" : "Edit Assessment"}
                                 </h3>
-                                <p className="teacher-gradebook__modal-subtitle mt-1 text-[0.8125rem]">
+                                <p className="faculty-gradebook__modal-subtitle mt-1 text-[0.8125rem]">
                                     {modal.mode === "create"
                                         ? `Add an assessment to Quarter ${quarter}`
                                         : `Update ${modal.assessment.title}`}
@@ -989,7 +989,7 @@ export default function TeacherGradebook() {
                             </div>
                             <button
                                 type="button"
-                                className="teacher-gradebook__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg"
+                                className="faculty-gradebook__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg"
                                 onClick={closeModal}
                                 aria-label="Close modal"
                             >
@@ -997,19 +997,19 @@ export default function TeacherGradebook() {
                             </button>
                         </header>
 
-                        <form className="teacher-gradebook__form p-6" onSubmit={handleAssessmentSubmit} noValidate>
-                            <div className="teacher-gradebook__form-grid grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div className="teacher-gradebook__form-field sm:col-span-2">
+                        <form className="faculty-gradebook__form p-6" onSubmit={handleAssessmentSubmit} noValidate>
+                            <div className="faculty-gradebook__form-grid grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div className="faculty-gradebook__form-field sm:col-span-2">
                                     <label
                                         htmlFor="assessment-title"
-                                        className="teacher-gradebook__form-label text-[0.8125rem] font-semibold"
+                                        className="faculty-gradebook__form-label text-[0.8125rem] font-semibold"
                                     >
                                         Title
                                     </label>
                                     <input
                                         id="assessment-title"
                                         type="text"
-                                        className="teacher-gradebook__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                        className="faculty-gradebook__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
                                         placeholder="Quiz 1: Fractions"
                                         autoFocus
                                         name="title"
@@ -1017,16 +1017,16 @@ export default function TeacherGradebook() {
                                         onChange={handleModalInputChange}
                                     />
                                 </div>
-                                <div className="teacher-gradebook__form-field">
+                                <div className="faculty-gradebook__form-field">
                                     <label
                                         htmlFor="assessment-type"
-                                        className="teacher-gradebook__form-label text-[0.8125rem] font-semibold"
+                                        className="faculty-gradebook__form-label text-[0.8125rem] font-semibold"
                                     >
                                         Type
                                     </label>
                                     <select
                                         id="assessment-type"
-                                        className="teacher-gradebook__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                        className="faculty-gradebook__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
                                         name="type"
                                         value={modalForm.type}
                                         onChange={handleModalInputChange}
@@ -1038,10 +1038,10 @@ export default function TeacherGradebook() {
                                         ))}
                                     </select>
                                 </div>
-                                <div className="teacher-gradebook__form-field">
+                                <div className="faculty-gradebook__form-field">
                                     <label
                                         htmlFor="assessment-max-score"
-                                        className="teacher-gradebook__form-label text-[0.8125rem] font-semibold"
+                                        className="faculty-gradebook__form-label text-[0.8125rem] font-semibold"
                                     >
                                         Max Score
                                     </label>
@@ -1050,25 +1050,25 @@ export default function TeacherGradebook() {
                                         type="number"
                                         min={0.01}
                                         step="0.01"
-                                        className="teacher-gradebook__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                        className="faculty-gradebook__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
                                         placeholder="20"
                                         name="maxScore"
                                         value={modalForm.maxScore}
                                         onChange={handleModalInputChange}
                                     />
                                 </div>
-                                <div className="teacher-gradebook__form-field sm:col-span-2">
+                                <div className="faculty-gradebook__form-field sm:col-span-2">
                                     <label
                                         htmlFor="assessment-date"
-                                        className="teacher-gradebook__form-label text-[0.8125rem] font-semibold"
+                                        className="faculty-gradebook__form-label text-[0.8125rem] font-semibold"
                                     >
                                         Date Given{" "}
-                                        <span className="teacher-gradebook__form-optional font-normal">(optional)</span>
+                                        <span className="faculty-gradebook__form-optional font-normal">(optional)</span>
                                     </label>
                                     <input
                                         id="assessment-date"
                                         type="date"
-                                        className="teacher-gradebook__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                        className="faculty-gradebook__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
                                         name="dateGiven"
                                         value={modalForm.dateGiven}
                                         onChange={handleModalInputChange}
@@ -1076,17 +1076,17 @@ export default function TeacherGradebook() {
                                 </div>
                             </div>
 
-                            <footer className="teacher-gradebook__form-footer mt-6 flex justify-end gap-3 border-t pt-5">
+                            <footer className="faculty-gradebook__form-footer mt-6 flex justify-end gap-3 border-t pt-5">
                                 <button
                                     type="button"
-                                    className="teacher-gradebook__form-cancel rounded-lg border px-4 py-2.5 text-sm font-semibold"
+                                    className="faculty-gradebook__form-cancel rounded-lg border px-4 py-2.5 text-sm font-semibold"
                                     onClick={closeModal}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="teacher-gradebook__form-submit inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold"
+                                    className="faculty-gradebook__form-submit inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold"
                                     disabled={savingAssessment}
                                 >
                                     {savingAssessment
@@ -1105,27 +1105,27 @@ export default function TeacherGradebook() {
             <ModalDialog
                 open={weightsModalOpen}
                 onClose={closeWeightsModal}
-                labelledById="teacher-gradebook-weights-title"
-                className="teacher-gradebook__modal-panel w-full max-w-[30rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+                labelledById="faculty-gradebook-weights-title"
+                className="faculty-gradebook__modal-panel w-full max-w-[30rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
             >
-                        <header className="teacher-gradebook__modal-header flex items-start justify-between gap-4 p-6 pb-5">
-                            <div className="teacher-gradebook__modal-heading">
-                                <span className="teacher-gradebook__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
+                        <header className="faculty-gradebook__modal-header flex items-start justify-between gap-4 p-6 pb-5">
+                            <div className="faculty-gradebook__modal-heading">
+                                <span className="faculty-gradebook__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
                                     Class subject settings
                                 </span>
                                 <h3
-                                    id="teacher-gradebook-weights-title"
-                                    className="teacher-gradebook__modal-title mt-0.5 text-xl font-bold"
+                                    id="faculty-gradebook-weights-title"
+                                    className="faculty-gradebook__modal-title mt-0.5 text-xl font-bold"
                                 >
                                     Grading Weights
                                 </h3>
-                                <p className="teacher-gradebook__modal-subtitle mt-1 text-[0.8125rem]">
+                                <p className="faculty-gradebook__modal-subtitle mt-1 text-[0.8125rem]">
                                     Set how each component counts toward the quarter grade
                                 </p>
                             </div>
                             <button
                                 type="button"
-                                className="teacher-gradebook__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg"
+                                className="faculty-gradebook__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg"
                                 onClick={closeWeightsModal}
                                 aria-label="Close modal"
                             >
@@ -1133,19 +1133,19 @@ export default function TeacherGradebook() {
                             </button>
                         </header>
 
-                        <form className="teacher-gradebook__form p-6" onSubmit={handleWeightsSubmit} noValidate>
-                            <div className="teacher-gradebook__form-grid grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <form className="faculty-gradebook__form p-6" onSubmit={handleWeightsSubmit} noValidate>
+                            <div className="faculty-gradebook__form-grid grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 {WEIGHTS_FIELD_LABELS.map((field) => (
                                     <div
                                         key={field.key}
-                                        className={`teacher-gradebook__form-field${field.key === "attendanceWeight" ? " sm:col-span-2" : ""}`}
+                                        className={`faculty-gradebook__form-field${field.key === "attendanceWeight" ? " sm:col-span-2" : ""}`}
                                     >
                                         <label
                                             htmlFor={`weights-${field.key}`}
-                                            className="teacher-gradebook__form-label text-[0.8125rem] font-semibold"
+                                            className="faculty-gradebook__form-label text-[0.8125rem] font-semibold"
                                         >
                                             {field.label}
-                                            <span className="teacher-gradebook__form-suffix font-normal"> %</span>
+                                            <span className="faculty-gradebook__form-suffix font-normal"> %</span>
                                         </label>
                                         <input
                                             id={`weights-${field.key}`}
@@ -1153,30 +1153,30 @@ export default function TeacherGradebook() {
                                             min={0}
                                             max={100}
                                             step="0.5"
-                                            className="teacher-gradebook__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                            className="faculty-gradebook__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
                                             placeholder="0"
                                             name={field.key}
                                             value={weightsForm[field.key]}
                                             onChange={handleWeightsInputChange}
                                         />
                                         {field.hint && (
-                                            <p className="teacher-gradebook__form-hint mt-1 text-[0.6875rem]">{field.hint}</p>
+                                            <p className="faculty-gradebook__form-hint mt-1 text-[0.6875rem]">{field.hint}</p>
                                         )}
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="teacher-gradebook__weights-total-wrap mt-4 flex items-center justify-between gap-3 rounded-lg border px-4 py-3">
-                                <span className="teacher-gradebook__weights-total-label text-[0.8125rem] font-semibold">
+                            <div className="faculty-gradebook__weights-total-wrap mt-4 flex items-center justify-between gap-3 rounded-lg border px-4 py-3">
+                                <span className="faculty-gradebook__weights-total-label text-[0.8125rem] font-semibold">
                                     Total
                                 </span>
                                 <span
-                                    className={`teacher-gradebook__weights-total font-mono text-[0.8125rem] font-bold${
+                                    className={`faculty-gradebook__weights-total font-mono text-[0.8125rem] font-bold${
                                         Number.isNaN(weightsTotal)
                                             ? ""
                                             : weightsTotal > 100
-                                              ? " teacher-gradebook__weights-total--over"
-                                              : " teacher-gradebook__weights-total--ok"
+                                              ? " faculty-gradebook__weights-total--over"
+                                              : " faculty-gradebook__weights-total--ok"
                                     }`}
                                     aria-live="polite"
                                 >
@@ -1184,17 +1184,17 @@ export default function TeacherGradebook() {
                                 </span>
                             </div>
 
-                            <footer className="teacher-gradebook__form-footer mt-6 flex justify-end gap-3 border-t pt-5">
+                            <footer className="faculty-gradebook__form-footer mt-6 flex justify-end gap-3 border-t pt-5">
                                 <button
                                     type="button"
-                                    className="teacher-gradebook__form-cancel rounded-lg border px-4 py-2.5 text-sm font-semibold"
+                                    className="faculty-gradebook__form-cancel rounded-lg border px-4 py-2.5 text-sm font-semibold"
                                     onClick={closeWeightsModal}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="teacher-gradebook__form-submit inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold"
+                                    className="faculty-gradebook__form-submit inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold"
                                     disabled={savingWeights}
                                 >
                                     {savingWeights ? "Saving…" : "Save Weights"}

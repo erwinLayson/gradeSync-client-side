@@ -7,13 +7,13 @@ import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useUser } from "../../hooks/useUser";
 import { isPassing } from "../../helper/grades";
 
-import type { ClassroomResponseProps, ClassroomTeachersWithSubjectProps } from "../../constant/classrooms";
+import type { ClassroomResponseProps, ClassroomFacultiesWithSubjectProps } from "../../constant/classrooms";
 
-import "../../style/teacherClasses.css";
+import "../../style/facultyClasses.css";
 
 interface AdvisedClassData {
     classroom: ClassroomResponseProps | null;
-    teachersWithSubjects: ClassroomTeachersWithSubjectProps[];
+    facultiesWithSubjects: ClassroomFacultiesWithSubjectProps[];
 }
 
 interface Student {
@@ -42,7 +42,7 @@ interface StudentGrades {
 
 type ViewMode = "roster" | "grades";
 
-export default function TeacherMyClass() {
+export default function FacultyMyClass() {
     const { user, loading: userLoading } = useUser();
     const { quarters, numQuarters } = useAcademicSettings();
 
@@ -100,7 +100,7 @@ export default function TeacherMyClass() {
 
             setLoadingGrades(true);
         try {
-            const subjects = adviserClass.teachersWithSubjects;
+            const subjects = adviserClass.facultiesWithSubjects;
 
             // Fetch gradebook for each subject × quarter combination. These are a
             // fan-out of best-effort reads (the table degrades to "—" per cell),
@@ -163,8 +163,8 @@ export default function TeacherMyClass() {
     // Loading state
     if (userLoading || loading) {
         return (
-            <PageShell className="teacher-classes" busy>
-                <PageSection className="teacher-classes__card" title="My Class" description="Loading…" flush>
+            <PageShell className="faculty-classes" busy>
+                <PageSection className="faculty-classes__card" title="My Class" description="Loading…" flush>
                     <div className="p-6">
                         <Skeleton count={2} lines={1} height="10rem" radius="0.75rem" grid="repeat(2, 1fr)" />
                     </div>
@@ -176,18 +176,18 @@ export default function TeacherMyClass() {
     // Not an adviser
     if (!adviserClass || !adviserClass.classroom) {
         return (
-            <PageShell className="teacher-classes">
+            <PageShell className="faculty-classes">
                 <PageSection
-                    className="teacher-classes__card"
+                    className="faculty-classes__card"
                     title="My Class"
                     description="You are not assigned as a class adviser"
                 >
-                    <div className="teacher-classes__empty flex flex-col items-center justify-center py-10 text-center">
-                        <span className="teacher-classes__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
+                    <div className="faculty-classes__empty flex flex-col items-center justify-center py-10 text-center">
+                        <span className="faculty-classes__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
                             <FiHome />
                         </span>
-                        <p className="teacher-classes__empty-title mt-3 text-sm font-bold">No advised class</p>
-                        <p className="teacher-classes__empty-text mt-1 text-[0.8125rem]">
+                        <p className="faculty-classes__empty-title mt-3 text-sm font-bold">No advised class</p>
+                        <p className="faculty-classes__empty-text mt-1 text-[0.8125rem]">
                             You are not assigned as a class adviser yet.
                         </p>
                     </div>
@@ -196,11 +196,11 @@ export default function TeacherMyClass() {
         );
     }
 
-    const { classroom, teachersWithSubjects } = adviserClass;
+    const { classroom, facultiesWithSubjects } = adviserClass;
     const students = roster?.students ?? [];
 
     return (
-        <PageShell className="teacher-classes">
+        <PageShell className="faculty-classes">
             {/* Header */}
             <PageHeader
                 title={`Grade ${classroom.gradeLevel} — ${classroom.section}`}
@@ -209,34 +209,34 @@ export default function TeacherMyClass() {
             />
 
             {/* Quick stats */}
-            <div className="teacher-classes__stats grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div className="teacher-classes__stat flex items-center gap-3 rounded-xl border p-4">
-                    <span className="teacher-classes__stat-icon teacher-classes__stat-icon--green inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
+            <div className="faculty-classes__stats grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="faculty-classes__stat flex items-center gap-3 rounded-xl border p-4">
+                    <span className="faculty-classes__stat-icon faculty-classes__stat-icon--green inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
                         <FiHome />
                     </span>
                     <div className="min-w-0">
-                        <span className="teacher-classes__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Grade Level</span>
-                        <span className="teacher-classes__stat-value mt-0.5 block text-[1.125rem] font-bold">
+                        <span className="faculty-classes__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Grade Level</span>
+                        <span className="faculty-classes__stat-value mt-0.5 block text-[1.125rem] font-bold">
                             Grade {classroom.gradeLevel} — {classroom.section}
                         </span>
                     </div>
                 </div>
-                <div className="teacher-classes__stat flex items-center gap-3 rounded-xl border p-4">
-                    <span className="teacher-classes__stat-icon teacher-classes__stat-icon--blue inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
+                <div className="faculty-classes__stat flex items-center gap-3 rounded-xl border p-4">
+                    <span className="faculty-classes__stat-icon faculty-classes__stat-icon--blue inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
                         <FiUsers />
                     </span>
                     <div className="min-w-0">
-                        <span className="teacher-classes__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Students</span>
-                        <span className="teacher-classes__stat-value mt-0.5 block text-[1.125rem] font-bold">{students.length}</span>
+                        <span className="faculty-classes__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Students</span>
+                        <span className="faculty-classes__stat-value mt-0.5 block text-[1.125rem] font-bold">{students.length}</span>
                     </div>
                 </div>
-                <div className="teacher-classes__stat flex items-center gap-3 rounded-xl border p-4">
-                    <span className="teacher-classes__stat-icon teacher-classes__stat-icon--amber inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
+                <div className="faculty-classes__stat flex items-center gap-3 rounded-xl border p-4">
+                    <span className="faculty-classes__stat-icon faculty-classes__stat-icon--amber inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
                         <FiBookOpen />
                     </span>
                     <div className="min-w-0">
-                        <span className="teacher-classes__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Subjects</span>
-                        <span className="teacher-classes__stat-value mt-0.5 block text-[1.125rem] font-bold">{teachersWithSubjects.length}</span>
+                        <span className="faculty-classes__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Subjects</span>
+                        <span className="faculty-classes__stat-value mt-0.5 block text-[1.125rem] font-bold">{facultiesWithSubjects.length}</span>
                     </div>
                 </div>
             </div>
@@ -272,47 +272,47 @@ export default function TeacherMyClass() {
             {/* ==================== Roster View ==================== */}
             {viewMode === "roster" && (
                 <>
-                    {/* Subjects & Teachers */}
-                    <section className="teacher-classes__subjects" aria-label="Subjects and teachers">
-                        <div className="teacher-classes__roster-head flex flex-wrap items-center justify-between gap-3">
-                            <div className="teacher-classes__roster-heading min-w-0">
-                                <h4 className="teacher-classes__roster-title text-[0.9375rem] font-bold">Subjects & Teachers</h4>
-                                <p className="teacher-classes__roster-subtitle mt-1 text-[0.8125rem]">
-                                    All subjects and teachers in your advised class
+                    {/* Subjects & Faculties */}
+                    <section className="faculty-classes__subjects" aria-label="Subjects and faculties">
+                        <div className="faculty-classes__roster-head flex flex-wrap items-center justify-between gap-3">
+                            <div className="faculty-classes__roster-heading min-w-0">
+                                <h4 className="faculty-classes__roster-title text-[0.9375rem] font-bold">Subjects & Faculties</h4>
+                                <p className="faculty-classes__roster-subtitle mt-1 text-[0.8125rem]">
+                                    All subjects and faculties in your advised class
                                 </p>
                             </div>
-                            {teachersWithSubjects.length > 0 && (
-                                <span className="teacher-classes__roster-count inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
+                            {facultiesWithSubjects.length > 0 && (
+                                <span className="faculty-classes__roster-count inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
                                     <FiBookOpen aria-hidden="true" />
-                                    {teachersWithSubjects.length} {teachersWithSubjects.length === 1 ? "subject" : "subjects"}
+                                    {facultiesWithSubjects.length} {facultiesWithSubjects.length === 1 ? "subject" : "subjects"}
                                 </span>
                             )}
                         </div>
 
                         <div className="data-table__wrap mt-4 rounded-xl border">
-                            {teachersWithSubjects.length > 0 ? (
+                            {facultiesWithSubjects.length > 0 ? (
                                 <table className="data-table">
                                     <thead>
                                         <tr>
                                             <th scope="col" className="data-table__th w-56">Subject</th>
                                             <th scope="col" className="data-table__th w-24">Code</th>
-                                            <th scope="col" className="data-table__th w-48">Teacher</th>
+                                            <th scope="col" className="data-table__th w-48">Faculty</th>
                                             <th scope="col" className="data-table__th data-table__th--num w-20">Units</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {teachersWithSubjects.map((ct) => (
-                                            <tr key={`${ct.teacherId}-${ct.subjectId}`} className="data-table__row">
+                                        {facultiesWithSubjects.map((ct) => (
+                                            <tr key={`${ct.facultyId}-${ct.subjectId}`} className="data-table__row">
                                                 <td className="data-table__td data-table__td--primary">{ct.subjectName}</td>
                                                 <td className="data-table__td data-table__td--mono">{ct.code}</td>
-                                                <td className="data-table__td">{ct.teacherFullname}</td>
+                                                <td className="data-table__td">{ct.facultyFullname}</td>
                                                 <td className="data-table__td data-table__td--num">{ct.unit}</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             ) : (
-                                <div className="teacher-classes__roster-empty flex flex-col items-center justify-center px-6 py-10 text-center">
+                                <div className="faculty-classes__roster-empty flex flex-col items-center justify-center px-6 py-10 text-center">
                                     <FiBookOpen className="text-gray-400" />
                                     <p className="mt-3 text-sm font-bold">No subjects assigned</p>
                                 </div>
@@ -321,14 +321,14 @@ export default function TeacherMyClass() {
                     </section>
 
                     {/* Class Roster */}
-                    <section className="teacher-classes__roster" aria-label="Class roster">
-                        <div className="teacher-classes__roster-head flex flex-wrap items-center justify-between gap-3">
-                            <div className="teacher-classes__roster-heading min-w-0">
-                                <h4 className="teacher-classes__roster-title text-[0.9375rem] font-bold">Class Roster</h4>
-                                <p className="teacher-classes__roster-subtitle mt-1 text-[0.8125rem]">Students enrolled in your class</p>
+                    <section className="faculty-classes__roster" aria-label="Class roster">
+                        <div className="faculty-classes__roster-head flex flex-wrap items-center justify-between gap-3">
+                            <div className="faculty-classes__roster-heading min-w-0">
+                                <h4 className="faculty-classes__roster-title text-[0.9375rem] font-bold">Class Roster</h4>
+                                <p className="faculty-classes__roster-subtitle mt-1 text-[0.8125rem]">Students enrolled in your class</p>
                             </div>
                             {!loadingRoster && students.length > 0 && (
-                                <span className="teacher-classes__roster-count inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
+                                <span className="faculty-classes__roster-count inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
                                     <FiUsers aria-hidden="true" />
                                     {students.length} {students.length === 1 ? "student" : "students"}
                                 </span>
@@ -361,7 +361,7 @@ export default function TeacherMyClass() {
                                                     <span className="data-table__sub">Student ID #{student.studentId}</span>
                                                 </td>
                                                 <td className="data-table__td data-table__td--center">
-                                                    <span className={`teacher-classes__sex inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold capitalize teacher-classes__sex--${student.studentSex.toLowerCase()}`}>
+                                                    <span className={`faculty-classes__sex inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold capitalize faculty-classes__sex--${student.studentSex.toLowerCase()}`}>
                                                         {student.studentSex}
                                                     </span>
                                                 </td>
@@ -375,7 +375,7 @@ export default function TeacherMyClass() {
                                     </tbody>
                                 </table>
                             ) : (
-                                <div className="teacher-classes__roster-empty flex flex-col items-center justify-center px-6 py-10 text-center">
+                                <div className="faculty-classes__roster-empty flex flex-col items-center justify-center px-6 py-10 text-center">
                                     <FiUsers className="text-gray-400" />
                                     <p className="mt-3 text-sm font-bold">No students enrolled</p>
                                 </div>
@@ -387,18 +387,18 @@ export default function TeacherMyClass() {
 
             {/* ==================== Grades View ==================== */}
             {viewMode === "grades" && (
-                <section className="teacher-classes__roster" aria-label="Student grades">
-                    <div className="teacher-classes__roster-head flex flex-wrap items-center justify-between gap-3">
-                        <div className="teacher-classes__roster-heading min-w-0">
-                            <h4 className="teacher-classes__roster-title text-[0.9375rem] font-bold">Student Grades</h4>
-                            <p className="teacher-classes__roster-subtitle mt-1 text-[0.8125rem]">
+                <section className="faculty-classes__roster" aria-label="Student grades">
+                    <div className="faculty-classes__roster-head flex flex-wrap items-center justify-between gap-3">
+                        <div className="faculty-classes__roster-heading min-w-0">
+                            <h4 className="faculty-classes__roster-title text-[0.9375rem] font-bold">Student Grades</h4>
+                            <p className="faculty-classes__roster-subtitle mt-1 text-[0.8125rem]">
                                 Live grades for all students across all subjects (Q1–Q{numQuarters})
                             </p>
                         </div>
                         {!loadingGrades && studentGrades.length > 0 && (
-                            <span className="teacher-classes__roster-count inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
+                            <span className="faculty-classes__roster-count inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
                                 <FiGrid aria-hidden="true" />
-                                {studentGrades.length} students &times; {teachersWithSubjects.length} subjects
+                                {studentGrades.length} students &times; {facultiesWithSubjects.length} subjects
                             </span>
                         )}
                     </div>
@@ -412,14 +412,14 @@ export default function TeacherMyClass() {
                             // three-digit grade readable.
                             <table
                                 className="data-table"
-                                style={{ minWidth: `${12 + teachersWithSubjects.length * quarters.length * 4}rem` }}
+                                style={{ minWidth: `${12 + facultiesWithSubjects.length * quarters.length * 4}rem` }}
                             >
                                 <thead>
                                     <tr>
                                         <th rowSpan={2} scope="col" className="data-table__th data-table__sticky w-48">
                                             Student
                                         </th>
-                                        {teachersWithSubjects.map((s) => (
+                                        {facultiesWithSubjects.map((s) => (
                                             <th key={s.classSubjectId} colSpan={quarters.length} scope="colgroup" className="data-table__th border-x text-center">
                                                 <span className="data-table__value block">{s.subjectName}</span>
                                                 <span className="data-table__sub block font-mono">{s.code}</span>
@@ -427,7 +427,7 @@ export default function TeacherMyClass() {
                                         ))}
                                     </tr>
                                     <tr>
-                                        {teachersWithSubjects.map((s) => (
+                                        {facultiesWithSubjects.map((s) => (
                                             quarters.map((q) => (
                                                 <th key={`${s.classSubjectId}-q${q}`} scope="col" className="data-table__th data-table__th--center">
                                                     Q{q}
@@ -442,7 +442,7 @@ export default function TeacherMyClass() {
                                             <td className="data-table__td data-table__td--primary data-table__sticky">
                                                 {sg.fullname}
                                             </td>
-                                            {teachersWithSubjects.flatMap((s) =>
+                                            {facultiesWithSubjects.flatMap((s) =>
                                                 quarters.map((q) => {
                                                     const grade = sg.grades[s.classSubjectId]?.[q]?.quarterGrade;
                                                     return (
@@ -466,11 +466,11 @@ export default function TeacherMyClass() {
                                 </tbody>
                             </table>
                         ) : (
-                            <div className="teacher-classes__roster-empty flex flex-col items-center justify-center px-6 py-10 text-center">
+                            <div className="faculty-classes__roster-empty flex flex-col items-center justify-center px-6 py-10 text-center">
                                 <FiGrid className="text-gray-400" />
                                 <p className="mt-3 text-sm font-bold">No grades available</p>
                                 <p className="mt-1 text-[0.8125rem]">
-                                    Grades will appear here once teachers start recording scores.
+                                    Grades will appear here once faculties start recording scores.
                                 </p>
                             </div>
                         )}

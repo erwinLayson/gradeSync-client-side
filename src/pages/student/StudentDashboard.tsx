@@ -242,7 +242,7 @@ export default function StudentDashboard() {
                                     <div className="min-w-0">
                                         <p className="truncate text-sm font-bold text-neutral-900">{subject.name}</p>
                                         <p className="mt-0.5 truncate text-xs text-neutral-400">
-                                            {subject.code} &middot; {subject.teacher ?? "—"}
+                                            {subject.code} &middot; {subject.faculty ?? "—"}
                                         </p>
                                     </div>
                                 </div>

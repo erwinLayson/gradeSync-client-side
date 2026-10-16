@@ -48,10 +48,10 @@ const REPORT_TYPES = [
         icon: FiUserCheck
     },
     {
-        id: "teacher",
-        label: "Teacher Load",
-        description: "Teacher assignments, subject loads, and classes handled.",
-        meta: "10 teachers",
+        id: "faculty",
+        label: "Faculty Load",
+        description: "Faculty assignments, subject loads, and classes handled.",
+        meta: "10 faculties",
         icon: FiBookOpen
     },
     {
@@ -63,7 +63,7 @@ const REPORT_TYPES = [
     }
 ];
 
-type ReportTypeId = "master" | "roster" | "grade" | "attendance" | "teacher" | "subject";
+type ReportTypeId = "master" | "roster" | "grade" | "attendance" | "faculty" | "subject";
 
 // Hardcoded preview rows per report type.
 const MASTER_ROWS = [
@@ -255,12 +255,12 @@ function PreviewTable({ type }: { type: ReportTypeId }) {
         );
     }
 
-    if (type === "teacher") {
+    if (type === "faculty") {
         return (
             <table className="reports__table w-full min-w-[42rem] border-collapse text-sm">
                 <thead>
                     <tr>
-                        <th className="px-6 py-3">Teacher</th>
+                        <th className="px-6 py-3">Faculty</th>
                         <th className="px-6 py-3">Subject</th>
                         <th className="px-6 py-3">Classes</th>
                         <th className="px-6 py-3">Units</th>

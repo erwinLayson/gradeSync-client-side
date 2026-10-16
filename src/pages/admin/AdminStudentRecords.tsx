@@ -32,6 +32,8 @@ interface SchoolYear {
     startYear: string;
     endYear: string;
     isActive?: boolean | number;
+    // Authoritative completion marker — see plan §7.
+    status?: "ongoing" | "completed" | string;
 }
 
 interface AcademicSettingsData {
@@ -554,7 +556,7 @@ export default function AdminStudentRecords() {
                 <div className="tracker__card-foot flex flex-wrap items-center justify-between gap-3 p-5">
                     <p className="tracker__foot-note flex items-center gap-2 text-[0.8125rem]">
                         <FiAlertTriangle className="tracker__foot-warn" aria-hidden="true" />
-                        The administrator can lock grade submissions from the Settings page to prevent teachers from
+                        The administrator can lock grade submissions from the Settings page to prevent faculties from
                         submitting student records.
                     </p>
                 </div>
@@ -682,7 +684,7 @@ export default function AdminStudentRecords() {
             <ConfirmDialog
                 open={confirmAdvance}
                 title={`Advance to Quarter ${(currentQuarter ?? 0) + 1}?`}
-                description={`This will change the active quarter from Q${currentQuarter} to Q${(currentQuarter ?? 0) + 1}. Teachers will then be able to submit records for the new quarter. This action cannot be undone from this page.`}
+                description={`This will change the active quarter from Q${currentQuarter} to Q${(currentQuarter ?? 0) + 1}. Faculties will then be able to submit records for the new quarter. This action cannot be undone from this page.`}
                 confirmLabel={advancing ? "Advancing…" : "Advance Quarter"}
                 confirmIcon={advancing ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiSkipForward aria-hidden="true" />}
                 tone="primary"

@@ -26,7 +26,7 @@ import type {
     SubmitAllResult,
 } from "../../constant/studentRecord";
 
-import "../../style/teacherStudentRecords.css";
+import "../../style/facultyStudentRecords.css";
 
 // ================= Helpers =================
 
@@ -45,13 +45,13 @@ function formatSubmittedAt(iso: string | null): string | null {
 
 // ================= Component =================
 
-export default function TeacherStudentRecords() {
+export default function FacultyStudentRecords() {
     // ================= State =================
     const { quarters } = useAcademicSettings();
     const [loading, setLoading] = useState(true);
     const [quarter, setQuarter] = useState<number>(1);
     const [records, setRecords] = useState<ClassRecordsResponse | null>(null);
-    // Records could not be loaded (e.g. this teacher is not a class adviser).
+    // Records could not be loaded (e.g. this faculty is not a class adviser).
     const [loadFailed, setLoadFailed] = useState(false);
     const [submissionsLocked, setSubmissionsLocked] = useState(false);
 
@@ -204,8 +204,8 @@ export default function TeacherStudentRecords() {
     // ================= Loading =================
     if (loading) {
         return (
-            <PageShell className="teacher-records" busy label="Loading student records">
-                <PageSection className="teacher-records__loading" flush>
+            <PageShell className="faculty-records" busy label="Loading student records">
+                <PageSection className="faculty-records__loading" flush>
                     <div className="p-6">
                         <Skeleton lines={6} gap="1rem" />
                     </div>
@@ -217,16 +217,16 @@ export default function TeacherStudentRecords() {
     // ================= Not an adviser / no data =================
     if (loadFailed || !records) {
         return (
-            <PageShell className="teacher-records">
-                <PageSection className="teacher-records__empty">
+            <PageShell className="faculty-records">
+                <PageSection className="faculty-records__empty">
                     <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <span className="teacher-records__empty-icon inline-flex h-14 w-14 items-center justify-center rounded-2xl text-2xl" aria-hidden="true">
+                    <span className="faculty-records__empty-icon inline-flex h-14 w-14 items-center justify-center rounded-2xl text-2xl" aria-hidden="true">
                         <FiFileText />
                     </span>
-                    <h2 className="teacher-records__empty-title mt-4 text-base font-bold">
+                    <h2 className="faculty-records__empty-title mt-4 text-base font-bold">
                         No advised class found
                     </h2>
-                    <p className="teacher-records__empty-text mt-1 max-w-md text-[0.8125rem] leading-relaxed">
+                    <p className="faculty-records__empty-text mt-1 max-w-md text-[0.8125rem] leading-relaxed">
                         You are not assigned as a class adviser yet. Once the administrator assigns you to a
                         class, its student records will appear here for quarterly submission.
                     </p>
@@ -238,7 +238,7 @@ export default function TeacherStudentRecords() {
 
     // ================= Main =================
     return (
-        <PageShell className="teacher-records">
+        <PageShell className="faculty-records">
             {/* ==================== Header ==================== */}
             <PageHeader
                 title={records.section}
@@ -260,8 +260,8 @@ export default function TeacherStudentRecords() {
             )}
 
             {/* ==================== Quarter tabs + submit all ==================== */}
-            <div className="teacher-records__toolbar flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm">
-                <div className="teacher-records__tabs flex items-center gap-1.5" role="tablist" aria-label="Select quarter">
+            <div className="faculty-records__toolbar flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm">
+                <div className="faculty-records__tabs flex items-center gap-1.5" role="tablist" aria-label="Select quarter">
                     {quarters.map((q) => (
                         <button
                             key={q}
@@ -269,8 +269,8 @@ export default function TeacherStudentRecords() {
                             role="tab"
                             aria-selected={quarter === q}
                             aria-label={`Quarter ${q}`}
-                            className={`teacher-records__tab inline-flex cursor-pointer items-center justify-center rounded-lg px-4 py-2 text-[0.8125rem] font-bold transition-colors${
-                                quarter === q ? " teacher-records__tab--active" : ""
+                            className={`faculty-records__tab inline-flex cursor-pointer items-center justify-center rounded-lg px-4 py-2 text-[0.8125rem] font-bold transition-colors${
+                                quarter === q ? " faculty-records__tab--active" : ""
                             }`}
                             onClick={() => handleQuarterChange(q)}
                         >
@@ -278,10 +278,10 @@ export default function TeacherStudentRecords() {
                         </button>
                     ))}
                 </div>
-                <div className="teacher-records__toolbar-actions flex items-center gap-2">
+                <div className="faculty-records__toolbar-actions flex items-center gap-2">
                     <button
                         type="button"
-                        className="teacher-records__submit-all inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold"
+                        className="faculty-records__submit-all inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold"
                         disabled={progress.pending === 0 || submittingAll || submissionsLocked}
                         onClick={() => setConfirmSubmitAll(true)}
                     >
@@ -292,23 +292,23 @@ export default function TeacherStudentRecords() {
             </div>
 
             {/* ==================== Progress banner ==================== */}
-            <div className="teacher-records__progress flex flex-col gap-3 rounded-xl border p-5">
+            <div className="faculty-records__progress flex flex-col gap-3 rounded-xl border p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="teacher-records__progress-heading min-w-0">
-                        <h3 className="teacher-records__progress-title text-[0.9375rem] font-bold">
+                    <div className="faculty-records__progress-heading min-w-0">
+                        <h3 className="faculty-records__progress-title text-[0.9375rem] font-bold">
                             Quarter {quarter} submission progress
                         </h3>
-                        <p className="teacher-records__progress-subtitle mt-1 text-[0.8125rem]">
+                        <p className="faculty-records__progress-subtitle mt-1 text-[0.8125rem]">
                             {progress.submitted} of {progress.total} students submitted &middot;{" "}
                             {progress.pending} pending
                         </p>
                     </div>
-                    <span className="teacher-records__progress-pct inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-bold">
+                    <span className="faculty-records__progress-pct inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-bold">
                         {progressPercent}%
                     </span>
                 </div>
                 <div
-                    className="teacher-records__progress-track h-2.5 w-full overflow-hidden rounded-full"
+                    className="faculty-records__progress-track h-2.5 w-full overflow-hidden rounded-full"
                     role="progressbar"
                     aria-valuenow={progress.submitted}
                     aria-valuemin={0}
@@ -316,31 +316,31 @@ export default function TeacherStudentRecords() {
                     aria-label="Submitted student records"
                 >
                     <div
-                        className="teacher-records__progress-bar h-full rounded-full transition-all duration-500"
+                        className="faculty-records__progress-bar h-full rounded-full transition-all duration-500"
                         style={{ width: `${progressPercent}%` }}
                     />
                 </div>
             </div>
 
             {/* ==================== Roster table ==================== */}
-            <div className="teacher-records__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                <div className="teacher-records__card-head flex flex-wrap items-center justify-between gap-4 p-5">
-                    <div className="teacher-records__card-heading min-w-0">
-                        <h3 className="teacher-records__card-title text-base font-bold">Student Records</h3>
-                        <p className="teacher-records__card-subtitle mt-1 text-[0.8125rem]">
+            <div className="faculty-records__card overflow-hidden rounded-2xl bg-white shadow-sm">
+                <div className="faculty-records__card-head flex flex-wrap items-center justify-between gap-4 p-5">
+                    <div className="faculty-records__card-heading min-w-0">
+                        <h3 className="faculty-records__card-title text-base font-bold">Student Records</h3>
+                        <p className="faculty-records__card-subtitle mt-1 text-[0.8125rem]">
                             {records.students.length} students &middot; grades are{" "}
-                            <strong>frozen on submit</strong> — teacher score edits after submission won't change them
+                            <strong>frozen on submit</strong> — faculty score edits after submission won't change them
                         </p>
                     </div>
                 </div>
 
                 {records.students.length === 0 ? (
-                    <div className="teacher-records__empty flex flex-col items-center justify-center px-6 py-16 text-center">
-                        <span className="teacher-records__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
+                    <div className="faculty-records__empty flex flex-col items-center justify-center px-6 py-16 text-center">
+                        <span className="faculty-records__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
                             <FiUsers />
                         </span>
-                        <p className="teacher-records__empty-title mt-3 text-sm font-bold">No students enrolled</p>
-                        <p className="teacher-records__empty-text mt-1 text-[0.8125rem]">
+                        <p className="faculty-records__empty-title mt-3 text-sm font-bold">No students enrolled</p>
+                        <p className="faculty-records__empty-text mt-1 text-[0.8125rem]">
                             Students will appear here once they are enrolled in this class.
                         </p>
                     </div>
@@ -391,7 +391,7 @@ export default function TeacherStudentRecords() {
                                                     return (
                                                         <td key={subject.subjectId} className="data-table__td data-table__td--center">
                                                             <span
-                                                                className="teacher-records__grade teacher-records__grade--off"
+                                                                className="faculty-records__grade faculty-records__grade--off"
                                                                 title="Not enrolled in this subject"
                                                             >
                                                                 —
@@ -404,7 +404,7 @@ export default function TeacherStudentRecords() {
                                                 return (
                                                     <td key={subject.subjectId} className="data-table__td data-table__td--center">
                                                         <span
-                                                            className={`teacher-records__grade teacher-records__grade--${isFrozen ? "frozen" : hasGrade ? "live" : "missing"}`}
+                                                            className={`faculty-records__grade faculty-records__grade--${isFrozen ? "frozen" : hasGrade ? "live" : "missing"}`}
                                                             title={
                                                                 isFrozen
                                                                     ? `Frozen on ${formatSubmittedAt(student.submittedAt) ?? "submission"}`
@@ -413,7 +413,7 @@ export default function TeacherStudentRecords() {
                                                                       : "No grade yet — blocks submission"
                                                             }
                                                         >
-                                                            {isFrozen && <FiLock className="teacher-records__grade-lock" aria-hidden="true" />}
+                                                            {isFrozen && <FiLock className="faculty-records__grade-lock" aria-hidden="true" />}
                                                             {formatGrade(subjectGrade.grade)}
                                                         </span>
                                                     </td>
@@ -422,7 +422,7 @@ export default function TeacherStudentRecords() {
 
                                             <td className="data-table__td">
                                                 {isSubmitted ? (
-                                                    <span className="teacher-records__status teacher-records__status--submitted inline-flex flex-col items-start gap-0.5">
+                                                    <span className="faculty-records__status faculty-records__status--submitted inline-flex flex-col items-start gap-0.5">
                                                         <span className="inline-flex items-center gap-1 text-[0.6875rem] font-bold">
                                                             <FiCheckCircle aria-hidden="true" />
                                                             Submitted
@@ -434,7 +434,7 @@ export default function TeacherStudentRecords() {
                                                         )}
                                                     </span>
                                                 ) : (
-                                                    <span className="teacher-records__status teacher-records__status--pending inline-flex items-center gap-1 text-[0.6875rem] font-bold">
+                                                    <span className="faculty-records__status faculty-records__status--pending inline-flex items-center gap-1 text-[0.6875rem] font-bold">
                                                         <FiClock aria-hidden="true" />
                                                         Pending
                                                     </span>
@@ -445,7 +445,7 @@ export default function TeacherStudentRecords() {
                                                 {isSubmitted ? (
                                                     <button
                                                         type="button"
-                                                        className="teacher-records__reopen inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[0.6875rem] font-bold"
+                                                        className="faculty-records__reopen inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[0.6875rem] font-bold"
                                                         disabled={submissionsLocked}
                                                         onClick={() => setReopenTarget(student)}
                                                     >
@@ -460,7 +460,7 @@ export default function TeacherStudentRecords() {
                                                                 ? reviewTriggerRef
                                                                 : undefined
                                                         }
-                                                        className="teacher-records__review inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-[0.6875rem] font-bold"
+                                                        className="faculty-records__review inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-[0.6875rem] font-bold"
                                                         disabled={isBusy || submissionsLocked}
                                                         onClick={() => setReviewing(student)}
                                                     >
@@ -481,8 +481,8 @@ export default function TeacherStudentRecords() {
                     </div>
                 )}
 
-                <div className="teacher-records__card-foot flex flex-wrap items-center justify-between gap-3 p-5">
-                    <p className="teacher-records__foot-note flex items-center gap-2 text-[0.8125rem]">
+                <div className="faculty-records__card-foot flex flex-wrap items-center justify-between gap-3 p-5">
+                    <p className="faculty-records__foot-note flex items-center gap-2 text-[0.8125rem]">
                         <FiLock aria-hidden="true" />
                         Submitted records are snapshots — reopen to unlock, then submit again to re-freeze.
                     </p>
@@ -493,27 +493,27 @@ export default function TeacherStudentRecords() {
             <ModalDialog
                 open={reviewing !== null}
                 onClose={() => setReviewing(null)}
-                labelledById="teacher-records-modal-title"
+                labelledById="faculty-records-modal-title"
                 restoreFocusRef={reviewTriggerRef}
-                className="teacher-records__modal-panel w-full max-w-[36rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+                className="faculty-records__modal-panel w-full max-w-[36rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
             >
                 {reviewing && (
                     <div>
-                        <header className="teacher-records__modal-header flex items-start justify-between gap-4 p-6 pb-5">
-                            <div className="teacher-records__modal-heading min-w-0">
-                                <span className="teacher-records__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
+                        <header className="faculty-records__modal-header flex items-start justify-between gap-4 p-6 pb-5">
+                            <div className="faculty-records__modal-heading min-w-0">
+                                <span className="faculty-records__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
                                     Review before freezing &middot; Quarter {quarter}
                                 </span>
-                                <h3 id="teacher-records-modal-title" className="teacher-records__modal-title mt-0.5 truncate text-xl font-bold">
+                                <h3 id="faculty-records-modal-title" className="faculty-records__modal-title mt-0.5 truncate text-xl font-bold">
                                     {reviewing.fullname}
                                 </h3>
-                                <p className="teacher-records__modal-subtitle mt-1 truncate font-mono text-[0.8125rem]">
+                                <p className="faculty-records__modal-subtitle mt-1 truncate font-mono text-[0.8125rem]">
                                     LRN {reviewing.studentLrn} &middot; {reviewing.studentSex}
                                 </p>
                             </div>
                             <button
                                 type="button"
-                                className="teacher-records__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg"
+                                className="faculty-records__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg"
                                 onClick={() => setReviewing(null)}
                                 aria-label="Close modal"
                             >
@@ -551,11 +551,11 @@ export default function TeacherStudentRecords() {
                                                     </td>
                                                     <td className="data-table__td data-table__td--center">
                                                         <span
-                                                            className={`teacher-records__review-grade inline-flex items-center justify-center rounded-lg px-2 py-1 font-mono text-[0.8125rem] font-bold${
+                                                            className={`faculty-records__review-grade inline-flex items-center justify-center rounded-lg px-2 py-1 font-mono text-[0.8125rem] font-bold${
                                                                 subjectGrade.grade === null
-                                                                    ? " teacher-records__review-grade--missing"
+                                                                    ? " faculty-records__review-grade--missing"
                                                                     : isFrozen
-                                                                      ? " teacher-records__review-grade--frozen"
+                                                                      ? " faculty-records__review-grade--frozen"
                                                                       : ""
                                                             }`}
                                                         >
@@ -577,8 +577,8 @@ export default function TeacherStudentRecords() {
                             </div>
 
                             {missingSubjectsFor(reviewing).length > 0 ? (
-                                <div className="teacher-records__modal-warning mt-4 flex items-start gap-3 rounded-xl border p-4">
-                                    <FiAlertTriangle className="teacher-records__modal-warning-icon mt-0.5 shrink-0" aria-hidden="true" />
+                                <div className="faculty-records__modal-warning mt-4 flex items-start gap-3 rounded-xl border p-4">
+                                    <FiAlertTriangle className="faculty-records__modal-warning-icon mt-0.5 shrink-0" aria-hidden="true" />
                                     <div className="min-w-0">
                                         <p className="text-[0.8125rem] font-bold">Cannot submit yet</p>
                                         <p className="mt-0.5 text-[0.75rem] leading-relaxed">
@@ -589,24 +589,24 @@ export default function TeacherStudentRecords() {
                                     </div>
                                 </div>
                             ) : (
-                                <p className="teacher-records__modal-note mt-4 flex items-center gap-2 text-[0.75rem]">
+                                <p className="faculty-records__modal-note mt-4 flex items-center gap-2 text-[0.75rem]">
                                     <FiLock aria-hidden="true" />
                                     Submitting freezes these grades as the official record for Quarter {quarter}.
-                                    Later score edits by teachers won't change it — reopen to update.
+                                    Later score edits by faculties won't change it — reopen to update.
                                 </p>
                             )}
 
-                            <div className="teacher-records__modal-footer mt-5 flex flex-wrap items-center justify-end gap-3 border-t pt-5">
+                            <div className="faculty-records__modal-footer mt-5 flex flex-wrap items-center justify-end gap-3 border-t pt-5">
                                 <button
                                     type="button"
-                                    className="teacher-records__form-cancel inline-flex cursor-pointer items-center rounded-lg border px-4 py-2.5 text-[0.8125rem] font-semibold"
+                                    className="faculty-records__form-cancel inline-flex cursor-pointer items-center rounded-lg border px-4 py-2.5 text-[0.8125rem] font-semibold"
                                     onClick={() => setReviewing(null)}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="button"
-                                    className="teacher-records__form-submit inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2.5 text-[0.8125rem] font-bold"
+                                    className="faculty-records__form-submit inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2.5 text-[0.8125rem] font-bold"
                                     disabled={missingSubjectsFor(reviewing).length > 0 || submittingEnrollmentId !== null}
                                     onClick={() => handleSubmitOne(reviewing)}
                                 >

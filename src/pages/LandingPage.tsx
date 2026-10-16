@@ -311,7 +311,7 @@ function LandingPage() {
               <FiLogIn aria-hidden="true" />
               Sign in to GradeSync
             </Link>
-            <p className="landing-mobile-menu__hint">Students, teachers and admins use the same sign-in.</p>
+            <p className="landing-mobile-menu__hint">Students, faculties and admins use the same sign-in.</p>
           </nav>
         )}
       </header>
@@ -581,7 +581,7 @@ function LandingPage() {
                 </span>
                 <span className="landing-footer__badge">
                   <FaChalkboardTeacher aria-hidden="true" />
-                  Teacher
+                  Faculty
                 </span>
                 <span className="landing-footer__badge">
                   <FiUserPlus aria-hidden="true" />

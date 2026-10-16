@@ -399,44 +399,44 @@
   color: var(--primary-dark);
 }
 
-/* ---------- Assigned teachers section ---------- */
-.subjects__teachers-title {
+/* ---------- Assigned faculties section ---------- */
+.subjects__faculties-title {
   color: var(--text-dark);
 }
 
-.subjects__teachers-subtitle {
+.subjects__faculties-subtitle {
   color: var(--text-muted);
 }
 
-.subjects__teachers-count {
+.subjects__faculties-count {
   border-radius: 9999px;
   color: var(--primary-dark);
   background: var(--neutral-border);
 }
 
-.subjects__teacher-meta {
+.subjects__faculty-meta {
   color: var(--text-muted);
 }
 
-/* Empty state for teachers */
-.subjects__teachers-empty {
+/* Empty state for faculties */
+.subjects__faculties-empty {
   background: var(--surface-bg);
 }
 
-.subjects__teachers-empty-icon {
+.subjects__faculties-empty-icon {
   color: var(--primary);
   background: var(--neutral-border);
 }
 
-.subjects__teachers-empty-title {
+.subjects__faculties-empty-title {
   color: var(--text-dark);
 }
 
-.subjects__teachers-empty-text {
+.subjects__faculties-empty-text {
   color: var(--text-muted);
 }
 
-.subjects__teachers-button {
+.subjects__faculties-button {
   border: none;
   color: var(--text-on-dark);
   background: var(--gradient-brand);
@@ -446,8 +446,8 @@
   transition: box-shadow var(--transition-base), filter var(--transition-base);
 }
 
-/* Remove-teacher button on each assigned-teacher row */
-.subjects__teachers-remove {
+/* Remove-faculty button on each assigned-faculty row */
+.subjects__faculties-remove {
   border: none;
   color: var(--text-muted);
   background: var(--surface-bg);
@@ -455,12 +455,12 @@
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 
-.subjects__teachers-remove:hover {
+.subjects__faculties-remove:hover {
   color: var(--error);
   background: #fef2f2;
 }
 
-.subjects__teachers-remove:focus-visible {
+.subjects__faculties-remove:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
@@ -493,58 +493,58 @@
   outline-offset: 2px;
 }
 
-.subjects__teachers-button:hover {
+.subjects__faculties-button:hover {
   box-shadow: var(--shadow-md);
   filter: brightness(1.1);
 }
 
-.subjects__teachers-button:active {
+.subjects__faculties-button:active {
   transform: translateY(1px);
 }
 
-.subjects__teachers-button:focus-visible {
+.subjects__faculties-button:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-/* ---------- Assign / unassign teacher form ---------- */
-.unassign-teacher-form__hint {
+/* ---------- Assign / unassign faculty form ---------- */
+.unassign-faculty-form__hint {
   color: var(--text-muted);
 }
 
-.unassign-teacher-form__count {
+.unassign-faculty-form__count {
   border-radius: 9999px;
   color: var(--primary-dark);
   background: var(--neutral-border);
 }
 
-.unassign-teacher-form__field {
+.unassign-faculty-form__field {
   background: var(--surface-white);
   transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.unassign-teacher-form__field:hover {
+.unassign-faculty-form__field:hover {
   border-color: var(--primary-light);
   background: var(--surface-bg);
 }
 
-.unassign-teacher-form__field:has(input:checked) {
+.unassign-faculty-form__field:has(input:checked) {
   border-color: var(--primary);
   background: var(--accent-light);
   box-shadow: 0 0 0 3px var(--primary-light);
 }
 
-.unassign-teacher-form__field:has(input:focus-visible) {
+.unassign-faculty-form__field:has(input:focus-visible) {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-.unassign-teacher-form__label {
+.unassign-faculty-form__label {
   color: var(--text-body);
   user-select: none;
 }
 
-.unassign-teacher-form__label input[type="checkbox"] {
+.unassign-faculty-form__label input[type="checkbox"] {
   width: 1.125rem;
   height: 1.125rem;
   margin: 0;
@@ -553,38 +553,38 @@
 }
 
 /* Loading state for the assign form */
-.unassign-teacher-form__loading {
+.unassign-faculty-form__loading {
   background: var(--surface-bg);
   color: var(--text-muted);
 }
 
-.unassign-teacher-form__loading-spinner {
+.unassign-faculty-form__loading-spinner {
   border: 2px solid var(--neutral-border);
   border-top-color: var(--primary);
-  animation: unassign-teacher-spin 0.7s linear infinite;
+  animation: unassign-faculty-spin 0.7s linear infinite;
 }
 
-@keyframes unassign-teacher-spin {
+@keyframes unassign-faculty-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
 /* Empty state for the assign form */
-.unassign-teacher-form__empty {
+.unassign-faculty-form__empty {
   background: var(--surface-bg);
 }
 
-.unassign-teacher-form__empty-icon {
+.unassign-faculty-form__empty-icon {
   color: var(--primary);
   background: var(--neutral-border);
 }
 
-.unassign-teacher-form__empty-title {
+.unassign-faculty-form__empty-title {
   color: var(--text-dark);
 }
 
-.unassign-teacher-form__empty-text {
+.unassign-faculty-form__empty-text {
   color: var(--text-muted);
 }
 
@@ -593,7 +593,7 @@
   .subjects-modal,
   .subjects-modal__panel,
   .subjects__details,
-  .unassign-teacher-form__loading-spinner {
+  .unassign-faculty-form__loading-spinner {
     animation: none;
   }
 }

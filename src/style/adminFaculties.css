@@ -1,5 +1,5 @@
 /* ============================================================
-   AdminTeachers — component stylesheet (hybrid approach)
+   AdminFaculties — component stylesheet (hybrid approach)
 
    This file holds the "complex" layer only:
    - colors / gradients / shadows / radii from the design tokens
@@ -7,37 +7,37 @@
    - scrollbars, reduced-motion handling
 
    Basic layout (display, flex/grid, gap, padding, typography)
-   lives as Tailwind utilities directly in AdminTeachers.tsx.
+   lives as Tailwind utilities directly in AdminFaculties.tsx.
    ============================================================ */
 
 /* ---------- Card ---------- */
-.teachers__card {
+.faculties__card {
   border: 1px solid var(--neutral-border);
   border-radius: var(--radius-xl);
 }
 
 /* ---------- Card header ---------- */
-.teachers__header {
+.faculties__header {
   border-bottom: 1px solid var(--neutral-border);
 }
 
-.teachers__title {
+.faculties__title {
   letter-spacing: -0.01em;
   color: var(--text-dark);
 }
 
-.teachers__subtitle {
+.faculties__subtitle {
   color: var(--text-muted);
 }
 
 /* ---------- Header pill & buttons ---------- */
-.teachers__count {
+.faculties__count {
   border-radius: 9999px;
   color: var(--primary-dark);
   background: var(--neutral-border);
 }
 
-.teachers__add {
+.faculties__add {
   border: none;
   color: var(--text-on-dark);
   background: var(--gradient-brand);
@@ -47,21 +47,21 @@
   transition: box-shadow var(--transition-base), filter var(--transition-base), transform var(--transition-base);
 }
 
-.teachers__add:hover {
+.faculties__add:hover {
   box-shadow: var(--shadow-md);
   filter: brightness(1.1);
 }
 
-.teachers__add:active {
+.faculties__add:active {
   transform: translateY(1px);
 }
 
-.teachers__add:focus-visible {
+.faculties__add:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-.teachers__refresh {
+.faculties__refresh {
   border-color: var(--neutral-border);
   color: var(--primary-dark);
   background: var(--surface-white);
@@ -70,31 +70,31 @@
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
-.teachers__refresh:hover {
+.faculties__refresh:hover {
   border-color: var(--primary);
   background: var(--surface-bg);
 }
 
-.teachers__refresh:active {
+.faculties__refresh:active {
   transform: translateY(1px);
 }
 
-.teachers__refresh:focus-visible {
+.faculties__refresh:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-.teachers__refresh-icon {
+.faculties__refresh-icon {
   display: inline-block;
   transition: transform var(--transition-base);
 }
 
-.teachers__refresh:hover .teachers__refresh-icon {
+.faculties__refresh:hover .faculties__refresh-icon {
   transform: rotate(180deg);
 }
 
 /* Row action (edit) button */
-.teachers__edit {
+.faculties__edit {
   border: none;
   color: var(--primary-dark);
   background: transparent;
@@ -102,27 +102,27 @@
   transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 
-.teachers__edit:hover:not(:disabled) {
+.faculties__edit:hover:not(:disabled) {
   background: var(--neutral-border);
   color: var(--primary);
 }
 
-.teachers__edit:active:not(:disabled) {
+.faculties__edit:active:not(:disabled) {
   transform: scale(0.92);
 }
 
-.teachers__edit:focus-visible {
+.faculties__edit:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-.teachers__edit:disabled {
+.faculties__edit:disabled {
   opacity: 0.5;
   cursor: wait;
 }
 
 /* Row action (delete) button */
-.teachers__delete {
+.faculties__delete {
   border: none;
   color: var(--error);
   background: transparent;
@@ -130,21 +130,21 @@
   transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 
-.teachers__delete:hover:not(:disabled) {
+.faculties__delete:hover:not(:disabled) {
   background: rgba(239, 68, 68, 0.12);
   color: var(--error);
 }
 
-.teachers__delete:active:not(:disabled) {
+.faculties__delete:active:not(:disabled) {
   transform: scale(0.92);
 }
 
-.teachers__delete:focus-visible {
+.faculties__delete:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-.teachers__delete:disabled {
+.faculties__delete:disabled {
   opacity: 0.5;
   cursor: wait;
 }
@@ -152,22 +152,22 @@
 
 
 /* ---------- Empty state ---------- */
-.teachers__empty-icon {
+.faculties__empty-icon {
   color: var(--primary);
   background: var(--neutral-border);
   box-shadow: var(--shadow-sm);
 }
 
-.teachers__empty-title {
+.faculties__empty-title {
   color: var(--text-dark);
 }
 
-.teachers__empty-text {
+.faculties__empty-text {
   color: var(--text-muted);
 }
 
 /* ---------- Back to list button ---------- */
-.teachers__back {
+.faculties__back {
   border-color: var(--neutral-border);
   color: var(--primary-dark);
   background: var(--surface-white);
@@ -177,26 +177,26 @@
     transform var(--transition-fast);
 }
 
-.teachers__back:hover {
+.faculties__back:hover {
   border-color: var(--primary);
   background: var(--surface-bg);
 }
 
-.teachers__back:active {
+.faculties__back:active {
   transform: translateY(1px);
 }
 
-.teachers__back:focus-visible {
+.faculties__back:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-/* ---------- Teacher subject details ---------- */
-.teachers__details {
-  animation: teachers-details-in var(--transition-slow) ease-out forwards;
+/* ---------- Faculty subject details ---------- */
+.faculties__details {
+  animation: faculties-details-in var(--transition-slow) ease-out forwards;
 }
 
-@keyframes teachers-details-in {
+@keyframes faculties-details-in {
   from {
     opacity: 0;
     transform: translateY(0.5rem);
@@ -208,131 +208,131 @@
 }
 
 /* Hero profile banner */
-.teachers__profile {
+.faculties__profile {
   background: var(--gradient-brand);
   color: var(--text-on-dark);
 }
 
-.teachers__profile-eyebrow {
+.faculties__profile-eyebrow {
   color: var(--text-on-dark-muted);
 }
 
-.teachers__profile-name {
+.faculties__profile-name {
   letter-spacing: -0.01em;
   color: var(--text-on-dark);
 }
 
-.teachers__profile-email {
+.faculties__profile-email {
   color: var(--text-on-dark-soft);
 }
 
-.teachers__profile-badge {
+.faculties__profile-badge {
   border-color: var(--border-on-dark);
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
 
-.teachers__profile-badge-count {
+.faculties__profile-badge-count {
   color: var(--text-on-dark);
 }
 
-.teachers__profile-badge-label {
+.faculties__profile-badge-label {
   color: var(--text-on-dark-muted);
 }
 
 /* Quick stats */
-.teachers__stats {
+.faculties__stats {
   border-bottom: 1px solid var(--neutral-border);
 }
 
-.teachers__stat {
+.faculties__stat {
   border-color: var(--neutral-border);
   background: var(--surface-bg);
 }
 
-.teachers__stat-label {
+.faculties__stat-label {
   color: var(--text-muted);
 }
 
-.teachers__stat-value {
+.faculties__stat-value {
   color: var(--primary-dark);
 }
 
 /* Subjects section heading */
-.teachers__subjects-title {
+.faculties__subjects-title {
   color: var(--text-dark);
 }
 
-.teachers__subjects-subtitle {
+.faculties__subjects-subtitle {
   color: var(--text-muted);
 }
 
-.teachers__subjects-count {
+.faculties__subjects-count {
   border-radius: 9999px;
   color: var(--primary-dark);
   background: var(--neutral-border);
 }
 
 /* Unit pill */
-.teachers__subject-unit {
+.faculties__subject-unit {
   color: var(--primary-dark);
   background: var(--neutral-border);
 }
 
 /* No subjects empty state */
-.teachers__no-subjects {
+.faculties__no-subjects {
   background: var(--surface-bg);
 }
 
-.teachers__no-subjects-icon {
+.faculties__no-subjects-icon {
   color: var(--primary);
   background: var(--neutral-border);
 }
 
-.teachers__no-subjects-title {
+.faculties__no-subjects-title {
   color: var(--text-dark);
 }
 
-.teachers__no-subjects-text {
+.faculties__no-subjects-text {
   color: var(--text-muted);
 }
 
 
 
-/* ---------- Create Teacher modal ---------- */
-.teachers-modal {
+/* ---------- Create Faculty modal ---------- */
+.faculties-modal {
   background: rgba(7, 44, 28, 0.6);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  animation: teachers-modal-fade var(--transition-base) ease-out forwards;
+  animation: faculties-modal-fade var(--transition-base) ease-out forwards;
 }
 
-.teachers-modal__panel {
+.faculties-modal__panel {
   max-height: calc(100vh - 2.5rem);
-  animation: teachers-modal-pop var(--transition-base) cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+  animation: faculties-modal-pop var(--transition-base) cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
 }
 
-.teachers-modal__header {
+.faculties-modal__header {
   border-bottom: 1px solid var(--neutral-border);
 }
 
-.teachers-modal__eyebrow {
+.faculties-modal__eyebrow {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--primary);
 }
 
-.teachers-modal__title {
+.faculties-modal__title {
   letter-spacing: -0.01em;
   color: var(--text-dark);
 }
 
-.teachers-modal__subtitle {
+.faculties-modal__subtitle {
   color: var(--text-muted);
 }
 
-.teachers-modal__close {
+.faculties-modal__close {
   border: none;
   color: var(--text-muted);
   background: transparent;
@@ -340,17 +340,17 @@
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 
-.teachers-modal__close:hover {
+.faculties-modal__close:hover {
   background: var(--surface-bg);
   color: var(--text-dark);
 }
 
-.teachers-modal__close:focus-visible {
+.faculties-modal__close:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-@keyframes teachers-modal-fade {
+@keyframes faculties-modal-fade {
   from {
     opacity: 0;
   }
@@ -359,7 +359,7 @@
   }
 }
 
-@keyframes teachers-modal-pop {
+@keyframes faculties-modal-pop {
   from {
     opacity: 0;
     transform: translateY(0.75rem) scale(0.98);
@@ -371,16 +371,16 @@
 }
 
 /* ---------- Modal form ---------- */
-.teachers-form__label {
+.faculties-form__label {
   color: var(--primary-dark);
 }
 
-.teachers-form__optional {
+.faculties-form__optional {
   font-weight: 500;
   color: var(--text-muted);
 }
 
-.teachers-form__input {
+.faculties-form__input {
   border-color: var(--neutral-border);
   color: var(--text-input);
   background: var(--surface-white);
@@ -390,20 +390,20 @@
   transition: border-color var(--transition-base), box-shadow var(--transition-base);
 }
 
-.teachers-form__input::placeholder {
+.faculties-form__input::placeholder {
   color: var(--text-placeholder);
 }
 
-.teachers-form__input:hover {
+.faculties-form__input:hover {
   border-color: var(--primary-light);
 }
 
-.teachers-form__input:focus {
+.faculties-form__input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 4px var(--primary-light);
 }
 
-select.teachers-form__input {
+select.faculties-form__input {
   appearance: none;
   -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2315803D' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
@@ -412,11 +412,11 @@ select.teachers-form__input {
   cursor: pointer;
 }
 
-.teachers-form__footer {
+.faculties-form__footer {
   border-top: 1px solid var(--neutral-border);
 }
 
-.teachers-form__cancel {
+.faculties-form__cancel {
   border-color: var(--neutral-border);
   color: var(--text-body);
   background: var(--surface-white);
@@ -425,17 +425,17 @@ select.teachers-form__input {
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
-.teachers-form__cancel:hover {
+.faculties-form__cancel:hover {
   border-color: var(--primary-light);
   background: var(--surface-bg);
 }
 
-.teachers-form__cancel:focus-visible {
+.faculties-form__cancel:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-.teachers-form__submit {
+.faculties-form__submit {
   border: none;
   color: var(--text-on-dark);
   background: var(--gradient-brand);
@@ -445,30 +445,67 @@ select.teachers-form__input {
   transition: box-shadow var(--transition-base), filter var(--transition-base);
 }
 
-.teachers-form__submit:hover:not(:disabled) {
+.faculties-form__submit:hover:not(:disabled) {
   box-shadow: var(--shadow-lg);
   filter: brightness(1.1);
 }
 
-.teachers-form__submit:active:not(:disabled) {
+.faculties-form__submit:active:not(:disabled) {
   transform: scale(0.98);
 }
 
-.teachers-form__submit:focus-visible {
+.faculties-form__submit:focus-visible {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-.teachers-form__submit:disabled {
+.faculties-form__submit:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
+/* ---------- Faculty role badge (teacher | register) ---------- */
+.faculties__role {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.faculties__role--teacher {
+  color: var(--primary-dark, #1d4ed8);
+  background: var(--primary-light, #dbeafe);
+  border-color: var(--primary-light, #dbeafe);
+}
+
+.faculties__role--register {
+  color: var(--success-dark, #065f46);
+  background: var(--success-light, #d1fae5);
+  border-color: var(--success-light, #d1fae5);
+}
+
+.faculties-form__hint {
+  color: var(--neutral-text-muted, #6b7280);
+}
+
+.faculties-form__required {
+  margin-left: 0.35rem;
+  color: var(--neutral-text-muted, #6b7280);
+  font-weight: 500;
+}
+
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .teachers-modal,
-  .teachers-modal__panel,
-  .teachers__details {
+  .faculties-modal,
+  .faculties-modal__panel,
+  .faculties__details {
     animation: none;
   }
 }

@@ -568,12 +568,12 @@
   background: var(--accent-light);
 }
 
-/* Teacher cell: avatar + name + meta */
-.classrooms__subjects-teacher-name {
+/* Faculty cell: avatar + name + meta */
+.classrooms__subjects-faculty-name {
   color: var(--text-dark);
 }
 
-.classrooms__subjects-teacher-meta {
+.classrooms__subjects-faculty-meta {
   color: var(--text-muted);
 }
 
@@ -867,7 +867,7 @@
   outline-offset: 2px;
 }
 
-/* ---------- Subject picker (add subject / edit teacher modals) ---------- */
+/* ---------- Subject picker (add subject / edit faculty modals) ---------- */
 .classrooms-subject-picker__hint {
   color: var(--text-muted);
 }
@@ -945,7 +945,7 @@
   letter-spacing: 0.04em;
 }
 
-.classrooms-subject-picker__teacher {
+.classrooms-subject-picker__faculty {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -988,13 +988,13 @@
   color: var(--text-muted);
 }
 
-/* ---------- Conditional teacher picker (shown when a subject is checked) ---------- */
-.classrooms-subject-picker__teachers {
+/* ---------- Conditional faculty picker (shown when a subject is checked) ---------- */
+.classrooms-subject-picker__faculties {
   border-top: 1px dashed var(--neutral-border);
-  animation: classrooms-teachers-in var(--transition-base) ease-out forwards;
+  animation: classrooms-faculties-in var(--transition-base) ease-out forwards;
 }
 
-@keyframes classrooms-teachers-in {
+@keyframes classrooms-faculties-in {
   from {
     opacity: 0;
     transform: translateY(-0.25rem);
@@ -1005,40 +1005,40 @@
   }
 }
 
-.classrooms-subject-picker__teachers-title {
+.classrooms-subject-picker__faculties-title {
   color: var(--primary-dark);
   letter-spacing: 0.08em;
 }
 
-.classrooms-subject-picker__teachers-count {
+.classrooms-subject-picker__faculties-count {
   border-color: var(--neutral-border);
   color: var(--primary-dark);
   background: var(--surface-white);
 }
 
-.classrooms-subject-picker__teacher-option {
+.classrooms-subject-picker__faculty-option {
   background: var(--surface-white);
   cursor: pointer;
   transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.classrooms-subject-picker__teacher-option:hover {
+.classrooms-subject-picker__faculty-option:hover {
   border-color: var(--primary-light);
   background: var(--surface-bg);
 }
 
-.classrooms-subject-picker__teacher-option:has(input:checked) {
+.classrooms-subject-picker__faculty-option:has(input:checked) {
   border-color: var(--primary);
   background: var(--accent-light);
   box-shadow: 0 0 0 3px var(--primary-light);
 }
 
-.classrooms-subject-picker__teacher-option:has(input:focus-visible) {
+.classrooms-subject-picker__faculty-option:has(input:focus-visible) {
   outline: 2px solid var(--primary-light);
   outline-offset: 2px;
 }
 
-.classrooms-subject-picker__teacher-option input[type="radio"] {
+.classrooms-subject-picker__faculty-option input[type="radio"] {
   width: 1.125rem;
   height: 1.125rem;
   margin: 0;
@@ -1052,19 +1052,19 @@
   box-shadow: none;
 }
 
-.classrooms-subject-picker__teacher-option .classrooms-subject-picker__check {
+.classrooms-subject-picker__faculty-option .classrooms-subject-picker__check {
   width: 1.25rem;
   height: 1.25rem;
 }
 
-.classrooms-subject-picker__teacher-option:has(input:checked) .classrooms-subject-picker__check {
+.classrooms-subject-picker__faculty-option:has(input:checked) .classrooms-subject-picker__check {
   color: var(--text-on-dark);
   background: var(--gradient-brand);
   border-color: transparent;
   transform: scale(1.05);
 }
 
-.classrooms-subject-picker__teachers-empty {
+.classrooms-subject-picker__faculties-empty {
   color: var(--text-muted);
   background: var(--surface-bg);
 }
@@ -1081,7 +1081,7 @@
   background: #fef3c7;
 }
 
-/* Teachers who already advise another class are disabled in the picker */
+/* Faculties who already advise another class are disabled in the picker */
 .classrooms-subject-picker__field--taken {
   opacity: 0.6;
   background: var(--surface-bg);
@@ -1106,7 +1106,7 @@
   .classrooms-modal__panel,
   .classrooms__details,
   .classrooms__subjects,
-  .classrooms-subject-picker__teachers {
+  .classrooms-subject-picker__faculties {
     animation: none;
   }
 }

@@ -35,7 +35,7 @@ export const WIPE_DOMAINS: WipeDomainMeta[] = [
         phrase: "WIPE GRADES",
         label: "Academic data",
         description:
-            "Student scores, assessments, academic records, grading weights, subject and teacher assignments.",
+            "Student scores, assessments, academic records, grading weights, subject and faculty assignments.",
         keeps: "Classrooms, subjects, enrollments, users and settings are kept.",
         severity: "high",
     },
@@ -61,7 +61,7 @@ export const WIPE_DOMAINS: WipeDomainMeta[] = [
         phrase: "WIPE USERS",
         label: "User accounts",
         description:
-            "Every teacher and student account, plus the academic/attendance/enrollment data tied to them.",
+            "Every faculty and student account, plus the academic/attendance/enrollment data tied to them.",
         keeps: "Admin and developer logins always survive.",
         severity: "critical",
     },
@@ -94,7 +94,7 @@ export const WIPE_DOMAINS: WipeDomainMeta[] = [
         phrase: "WIPE ALL DATA",
         label: "EVERYTHING",
         description:
-            "Reports, grades, attendance, enrollments, teacher/student accounts, classrooms, subjects, school settings and uploaded files — in one irreversible action.",
+            "Reports, grades, attendance, enrollments, faculty/student accounts, classrooms, subjects, school settings and uploaded files — in one irreversible action.",
         keeps: "Admin + developer logins and landing page content always survive.",
         severity: "critical",
     },

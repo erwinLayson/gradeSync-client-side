@@ -12,8 +12,8 @@ export interface NewSubject extends Omit<Subject, "id" | "unit" | "hasComponents
     components?: ComponentCreateProps[];
 }
 
-export interface SubjectWithTeachers extends Subject {
-    teachers: {
+export interface SubjectWithFaculties extends Subject {
+    faculties: {
         id: number;
         name: string;
     }[];

@@ -1,4 +1,4 @@
-// Shared attendance types for the teacher spreadsheet view.
+// Shared attendance types for the faculty spreadsheet view.
 //
 // Mirrors the server payload from GET /attendance/range (service
 // getAttendanceRangeService) and POST /attendance, so the grid never invents
@@ -53,4 +53,7 @@ export interface SchoolYearOption {
     startYear: string;
     endYear: string;
     isActive?: boolean | number;
+    // Authoritative completion marker: only 'completed' unlocks faculty role
+    // changes (plan §7). Absent on older payloads — treat as not completed.
+    status?: "ongoing" | "completed" | string;
 }

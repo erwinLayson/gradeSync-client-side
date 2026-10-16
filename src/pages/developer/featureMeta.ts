@@ -29,7 +29,7 @@ export const FEATURE_META: Record<string, Omit<FeatureRow, "key">> = {
     },
     login_teacher: {
         label: "Teacher Logins",
-        description: "Master switch for teacher account logins. While disabled, no teacher can sign in (existing sessions expire naturally).",
+        description: "Master switch for faculty account logins. While disabled, no faculty can sign in (existing sessions expire naturally).",
     },
     login_student: {
         label: "Student Logins",

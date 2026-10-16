@@ -38,7 +38,7 @@ Concretely, the developer gets:
 | `GET /users/:id` admin-only; `PUT /users/:id` = own-account-or-admin, **whitelisted to email/password only** (no role/status escalation possible — deliberately hardened) | `routes/users.ts`, `controller/users.ts`, `model/users.ts` | Role/status changes need **new endpoints**, not widening PUT |
 | **Dead model code:** `Users.updateUserStatus(userId, "active"\|"inactive")` and `Users.deleteUserById(id)` exist but are wired to **no controller/route** | `model/users.ts` | Phase 1 wires the first one up (status) — the exact missing piece |
 | `getUserByEmail` returns password hash — reusable for the reset flow | `model/users.ts` | Reset = hash new temp password, no plaintext anywhere |
-| Login checks `status`: deactivated users already rejected (seed/backfill in migration step 1 set `status` enum `active\|inactive`) | `controller/authentication.ts` + `users.status` | Deactivation **works end-to-end the moment the endpoint exists** |
+| Login checks `status`: deactivated users already rejected (`users.status` is `enum('active','inactive')` in the schema baseline — `server/migrations/0001_create_users.sql`) | `controller/authentication.ts` + `users.status` | Deactivation **works end-to-end the moment the endpoint exists** |
 | `Validate()` helper + `NormalizedData()` + `{ message, success, data }` envelope + `BadRequestError`/`ForbiddenError` | `helper/*`, `middleware/errors.ts` | Follow existing controller conventions |
 | `allowedRoles([ROLES.DEVELOPER])` proven in `routes/features.ts`, `routes/landingContent.ts`, `routes/uploads.ts` | — | Copy the middleware array pattern |
 | Password hashing = bcrypt via `createUserService`/auth | `service/users.ts` | Reuse the same hash call for resets |

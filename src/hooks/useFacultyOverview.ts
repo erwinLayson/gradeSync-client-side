@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getAPICall } from "../api/api";
 import { useUser } from "./useUser";
 
-import type { TeacherDetails, TeacherSubjectDetails } from "../constant/teachers";
+import type { FacultyDetails, FacultySubjectDetails } from "../constant/faculties";
 import type { ClassroomResponseProps } from "../constant/classrooms";
 
 // ================= Types =================
@@ -12,7 +12,7 @@ export interface ClassGroup {
     classId: number;
     classSection: string;
     classGradeLevel: number;
-    subjects: TeacherSubjectDetails[];
+    subjects: FacultySubjectDetails[];
 }
 
 export interface AdviserClassStat {
@@ -24,9 +24,9 @@ export interface AdviserClassStat {
     femaleCount: number;
 }
 
-export interface TeacherOverview {
-    teacher: TeacherDetails;
-    subjectDetails: TeacherSubjectDetails[];
+export interface FacultyOverview {
+    faculty: FacultyDetails;
+    subjectDetails: FacultySubjectDetails[];
     classrooms: ClassroomResponseProps[];
     classes: ClassGroup[];
     adviserClasses: ClassroomResponseProps[];
@@ -38,9 +38,9 @@ export interface TeacherOverview {
 
 // ================= Hook =================
 
-export function useTeacherOverview() {
+export function useFacultyOverview() {
     const { user, loading: userLoading } = useUser();
-    const [data, setData] = useState<TeacherOverview | null>(null);
+    const [data, setData] = useState<FacultyOverview | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
@@ -56,12 +56,12 @@ export function useTeacherOverview() {
             }
 
             try {
-                // 1. Find the teacher record linked to the logged-in account
-                const teacherRes = await getAPICall<TeacherDetails>(`/teachers/by-user/${user.id}`);
-                const teacher = teacherRes.data ?? null;
+                // 1. Find the faculty record linked to the logged-in account
+                const facultyRes = await getAPICall<FacultyDetails>(`/faculties/by-user/${user.id}`);
+                const faculty = facultyRes.data ?? null;
                 if (cancelled) return;
 
-                if (!teacher) {
+                if (!faculty) {
                     setLoading(false);
                     setError(true);
                     return;
@@ -69,7 +69,7 @@ export function useTeacherOverview() {
 
                 // 2. Load subjects and classrooms in parallel
                 const [subjectsRes, classroomsRes] = await Promise.all([
-                    getAPICall<TeacherSubjectDetails[]>(`/teachers/${teacher.id}/subjects`),
+                    getAPICall<FacultySubjectDetails[]>(`/faculties/${faculty.id}/subjects`),
                     getAPICall<ClassroomResponseProps[]>("/classrooms"),
                 ]);
                 if (cancelled) return;
@@ -94,8 +94,8 @@ export function useTeacherOverview() {
                 }
                 const classes = [...map.values()];
 
-                // 4. Filter adviser classes (where this teacher is the formal class adviser)
-                const adviserClasses = classrooms.filter((cl) => cl.adviserId === teacher.id);
+                // 4. Filter adviser classes (where this faculty is the formal class adviser)
+                const adviserClasses = classrooms.filter((cl) => cl.adviserId === faculty.id);
 
                 // 5. Fetch student gender counts for adviser classes
                 const adviserClassStats: AdviserClassStat[] = await Promise.all(
@@ -142,7 +142,7 @@ export function useTeacherOverview() {
                 const weeklyHours = subjectDetails.reduce((sum, row) => sum + Number(row.subjectUnit), 0);
 
                 setData({
-                    teacher,
+                    faculty,
                     subjectDetails,
                     classrooms,
                     classes,

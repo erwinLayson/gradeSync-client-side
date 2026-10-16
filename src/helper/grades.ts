@@ -10,7 +10,7 @@ import type { GradeWeights } from "../constant/gradingWeights";
 //  helper/computeGeneralAverage.ts, helper/getRemarks.ts).
 //
 // The only calculation allowed on the client is the LIVE SCORE-ENTRY PREVIEW
-// below, which exists so a teacher sees the effect of a score before saving it.
+// below, which exists so a faculty sees the effect of a score before saving it.
 // It mirrors the server's flat `computeQuarterGrade` exactly:
 //   per type t present and graded: pct_t = Σearned/Σmax * 100
 //   weighted = Σ pct_t * w_t, active = Σ w_t          (attendance added the same way)

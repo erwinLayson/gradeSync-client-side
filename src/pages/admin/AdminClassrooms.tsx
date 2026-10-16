@@ -16,14 +16,14 @@ import "../../style/adminClassrooms.css";
 import type { 
 ClassroomResponseProps,
 ClassroomWithStudentsProps, 
-ClassroomTeachersWithSubjectProps, 
-subjectTeachersProps, 
+ClassroomFacultiesWithSubjectProps, 
+subjectFacultiesProps, 
 subjectNotInClassProps,
-EditSubjectTeacherProps
+EditSubjectFacultyProps
 
 } from "../../constant/classrooms.js";
 
-import type { Teacher } from "../../constant/teachers.js";
+import type { Faculty } from "../../constant/faculties.js";
 
 // Helper functions
 import { Validate } from "../../helper/validate.js";
@@ -41,7 +41,7 @@ export default function AdminClassrooms() {
 // Classsroom data states
 // const [classrooms, setClassrooms] = useState<ClassroomResponseProps[] | null>(null);
 const {classrooms, refetchClassroom, loading, setLoading} = useClassroom<ClassroomResponseProps[]>()
-const [classroomTeachersWithSubject, setClassroomTeachersWithSubject] = useState<ClassroomTeachersWithSubjectProps[] | null>(null);
+const [classroomFacultiesWithSubject, setClassroomFacultiesWithSubject] = useState<ClassroomFacultiesWithSubjectProps[] | null>(null);
 const [newClassroom, setNewClassroom] = useState<Omit<ClassroomResponseProps, "id" | "gradeLevel" | "totalStudent"> & { gradeLevel: string }>({
 section: "",
 gradeLevel: ""
@@ -49,17 +49,17 @@ gradeLevel: ""
 
 // Subjects data states
 const [selectedClassroom, setSelectedClassroom] = useState<ClassroomWithStudentsProps | null>(null);
-const [subjectTeachers, setSubjectTeachers] = useState<subjectTeachersProps[] | null>(null);
+const [subjectFaculties, setSubjectFaculties] = useState<subjectFacultiesProps[] | null>(null);
 const [subjectsNotInClass, setSubjectsNotInClass] = useState<subjectNotInClassProps[] | null>(null);
 const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([]);
-const [newClassroomSubjectAdded, setNewClassroomSubjectAdded] = useState<{classId: number,subjectId: number, teacherId: number}[] | null>(null);
-const [editSubjectTeacher, setEditSubjectTeacher] = useState<EditSubjectTeacherProps | null>(null);
+const [newClassroomSubjectAdded, setNewClassroomSubjectAdded] = useState<{classId: number,subjectId: number, facultyId: number}[] | null>(null);
+const [editSubjectFaculty, setEditSubjectFaculty] = useState<EditSubjectFacultyProps | null>(null);
 
 // Class adviser states
-const [allTeachers, setAllTeachers] = useState<Teacher[] | null>(null);
+const [allFaculties, setAllFaculties] = useState<Faculty[] | null>(null);
 const [adviserSelection, setAdviserSelection] = useState<number | null>(null);
 const [assigningAdviser, setAssigningAdviser] = useState(false);
-// teacherId -> section name of the class they already advise (one class per teacher)
+// facultyId -> section name of the class they already advise (one class per faculty)
 const [adviserTakenBy, setAdviserTakenBy] = useState<Record<number, string>>({});
 
 // Edit classroom state (the classroom being edited in the modal)
@@ -72,12 +72,12 @@ const archiveTriggerRef = useRef<HTMLButtonElement>(null);
 
 // Conditional rendering states
 const [pageStatus, setPageStatus] = useState<"view-students" | "view-subjects">("view-students");
-const [modalStatus, setModalStatus] = useState<"create-class" | "edit-class" | "create-subject" | "edit-subject-teachers" | "assign-adviser" | null>(null);
+const [modalStatus, setModalStatus] = useState<"create-class" | "edit-class" | "create-subject" | "edit-subject-faculties" | "assign-adviser" | null>(null);
 const [isModalOpen, setIsModalOpen] = useState(false);
 const triggerRef = useRef<HTMLButtonElement>(null);
 
 // Delete subject confirmation dialog states
-const [deleteTarget, setDeleteTarget] = useState<{ subjectId: number; teacherId: number; classId: number } | null>(null);
+const [deleteTarget, setDeleteTarget] = useState<{ subjectId: number; facultyId: number; classId: number } | null>(null);
 const [deletingSubject, setDeletingSubject] = useState(false);
 const deleteTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -140,28 +140,30 @@ closeModal();
 setNewClassroom({section: "", gradeLevel: ""});
 setSelectedSubjectIds([]);
 setNewClassroomSubjectAdded([]);
-setSubjectTeachers([]);
+setSubjectFaculties([]);
 setModalStatus(null);
-setEditSubjectTeacher(null);
+setEditSubjectFaculty(null);
 setAdviserSelection(null);
-setAllTeachers(null);
+setAllFaculties(null);
 setAdviserTakenBy({});
 setEditingClassroom(null);
 setSubjectsNotInClass(null);
 }
 
-// Open the assign-adviser modal: loads the teacher list and preselects the current adviser.
-// Also builds the map of teachers who already advise another class (one class per teacher).
+// Open the assign-adviser modal: loads the faculty list and preselects the current adviser.
+// Also builds the map of faculties who already advise another class (one class per faculty).
 async function handleAssignAdviserClick() {
 if (!selectedClassroom) return;
 
 try {
-    const [teachersResponse, classroomsResponse] = await Promise.all([
-        getAPICall<Teacher[]>("/teachers"),
+    const [facultiesResponse, classroomsResponse] = await Promise.all([
+        // Adviser candidates are teaching faculty only: a register faculty
+        // member must never appear in this dropdown (plan §6.2).
+        getAPICall<Faculty[]>("/faculties?role=teacher"),
         getAPICall<ClassroomResponseProps[]>("/classrooms")
     ]);
-    setAllTeachers(teachersResponse.data ?? null);
-    // A teacher counts as "taken" only when they advise a DIFFERENT classroom.
+    setAllFaculties(facultiesResponse.data ?? null);
+    // A faculty counts as "taken" only when they advise a DIFFERENT classroom.
     const taken: Record<number, string> = {};
     for (const classroom of classroomsResponse.data ?? []) {
         if (
@@ -174,7 +176,7 @@ try {
     }
     setAdviserTakenBy(taken);
 } catch {
-    setAllTeachers(null);
+    setAllFaculties(null);
     setAdviserTakenBy({});
 }
 setAdviserSelection(selectedClassroom.adviserId ?? null);
@@ -182,20 +184,20 @@ setModalStatus("assign-adviser");
 setIsModalOpen(true);
 }
 
-// Submit the adviser assignment (teacherId null clears the adviser)
+// Submit the adviser assignment (facultyId null clears the adviser)
 async function handleSubmitOfAssignAdviser(e: React.FormEvent<HTMLFormElement>) {
 e.preventDefault();
 if (!selectedClassroom || assigningAdviser) return;
 
 setAssigningAdviser(true);
 try {
-    await putAPICall<{ teacherId: number | null }, null>(
+    await putAPICall<{ facultyId: number | null }, null>(
         `/classrooms/${selectedClassroom.id}/adviser`,
-        { teacherId: adviserSelection }
+        { facultyId: adviserSelection }
     );
     // Update the detail view in place and refresh the classroom list cards.
-    const teacher = (allTeachers ?? []).find((t) => t.id === adviserSelection) ?? null;
-    setSelectedClassroom((prev) => (prev ? { ...prev, adviserId: adviserSelection, adviserFullname: teacher?.fullname ?? null } : prev));
+    const faculty = (allFaculties ?? []).find((t) => t.id === adviserSelection) ?? null;
+    setSelectedClassroom((prev) => (prev ? { ...prev, adviserId: adviserSelection, adviserFullname: faculty?.fullname ?? null } : prev));
     refetchClassroom();
     handleModalClose();
 } catch {
@@ -270,18 +272,18 @@ setNewClassroom((prev) => ({
 }));
 }
 
-// Fetch classroom teachers with subjects
-async function fetchClassroomTeachersWithSubject() {
+// Fetch classroom faculties with subjects
+async function fetchClassroomFacultiesWithSubject() {
 if (!selectedClassroom) return;
 
-const response = await getAPICall<ClassroomTeachersWithSubjectProps[]>(`/classrooms/${selectedClassroom.id}/teachers-subject`);
-setClassroomTeachersWithSubject(response.data ?? null);
+const response = await getAPICall<ClassroomFacultiesWithSubjectProps[]>(`/classrooms/${selectedClassroom.id}/faculties-subject`);
+setClassroomFacultiesWithSubject(response.data ?? null);
 }
 
-// Handle the click event for changing the subject teacher
-async function handleChangeSubjectTeacherClickEvent(subjectId: number, classroomId: number) {
-await fetchSubjectTeachers(Number(subjectId), Number(classroomId));
-setModalStatus("edit-subject-teachers");
+// Handle the click event for changing the subject faculty
+async function handleChangeSubjectFacultyClickEvent(subjectId: number, classroomId: number) {
+await fetchSubjectFaculties(Number(subjectId), Number(classroomId));
+setModalStatus("edit-subject-faculties");
 setIsModalOpen(true);
 }
 
@@ -293,8 +295,8 @@ async function handleConfirmDeleteSubject() {
 
     setDeletingSubject(true);
     try {
-        await deleteAPICall<null, null>(`/classrooms/${deleteTarget.classId}/subjects/${deleteTarget.subjectId}/teachers/${deleteTarget.teacherId}`);
-        fetchClassroomTeachersWithSubject();
+        await deleteAPICall<null, null>(`/classrooms/${deleteTarget.classId}/subjects/${deleteTarget.subjectId}/faculties/${deleteTarget.facultyId}`);
+        fetchClassroomFacultiesWithSubject();
         setDeleteTarget(null);
         deleteTriggerRef.current?.focus();
     } catch {
@@ -306,8 +308,8 @@ async function handleConfirmDeleteSubject() {
 
 // The subject being deleted, used to show its name in the confirmation dialog
 const pendingDeleteSubject = deleteTarget
-    ? (classroomTeachersWithSubject ?? []).find(
-        (item) => item.subjectId === deleteTarget.subjectId && item.teacherId === deleteTarget.teacherId,
+    ? (classroomFacultiesWithSubject ?? []).find(
+        (item) => item.subjectId === deleteTarget.subjectId && item.facultyId === deleteTarget.facultyId,
     ) ?? null
     : null;
 
@@ -431,36 +433,36 @@ const allStudentsSelected = selectedClassroom?.students
     ? selectedStudentIds.length === selectedClassroom.students.length && selectedClassroom.students.length > 0
     : false;
 
-// fetch subject teachers for a specific subject in a classroom
-async function fetchSubjectTeachers(subjectId: number, classroomId: number) {
-    const response = await getAPICall<subjectTeachersProps[]>(`/subjects/${subjectId}/classrooms/${classroomId}/assigned-teachers`);
-    setSubjectTeachers(response.data ?? null);
+// fetch subject faculties for a specific subject in a classroom
+async function fetchSubjectFaculties(subjectId: number, classroomId: number) {
+    const response = await getAPICall<subjectFacultiesProps[]>(`/subjects/${subjectId}/classrooms/${classroomId}/assigned-faculties`);
+    setSubjectFaculties(response.data ?? null);
 }
 
-// Handle the change event for selecting a new teacher for a subject in the edit-subject-teachers modal
-function handleEditSubjectTeacherChangeEvent(e: React.ChangeEvent<HTMLInputElement>, subjectId: number) {
+// Handle the change event for selecting a new faculty for a subject in the edit-subject-faculties modal
+function handleEditSubjectFacultyChangeEvent(e: React.ChangeEvent<HTMLInputElement>, subjectId: number) {
   const {value, checked} = e.target;
 
-  setEditSubjectTeacher(
-    checked ? { subjectId, teacherId: Number(value) } : null
+  setEditSubjectFaculty(
+    checked ? { subjectId, facultyId: Number(value) } : null
   )
 }
 
-// Handle form submission for editing subject teachers
-async function handleSubmitOfEditSubjectTeachers(e: React.FormEvent<HTMLFormElement>) {
+// Handle form submission for editing subject faculties
+async function handleSubmitOfEditSubjectFaculties(e: React.FormEvent<HTMLFormElement>) {
 e.preventDefault();
 
-if(!selectedClassroom || !editSubjectTeacher) return;
+if(!selectedClassroom || !editSubjectFaculty) return;
 
-await patchAPICall<EditSubjectTeacherProps, null>(`/classrooms/${selectedClassroom?.id}/subjects`, editSubjectTeacher);
+await patchAPICall<EditSubjectFacultyProps, null>(`/classrooms/${selectedClassroom?.id}/subjects`, editSubjectFaculty);
 handleModalClose();
-fetchClassroomTeachersWithSubject();
+fetchClassroomFacultiesWithSubject();
 }
 
 // Fetch subjects not in class
 async function subjectsNotInClassFunc() {
 if (!selectedClassroom) return;
-const response = await getAPICall<subjectNotInClassProps[]>(`/subjects/classrooms/${selectedClassroom.id}/teachers`);
+const response = await getAPICall<subjectNotInClassProps[]>(`/subjects/classrooms/${selectedClassroom.id}/faculties`);
 
 setSubjectsNotInClass(response.data ?? null);
 setSelectedSubjectIds([]);
@@ -482,21 +484,21 @@ return checked ? [...(prev ?? [])] : (prev ?? []).filter((item) => item.subjectI
 })
 }
 
-// Handle the selection of a teacher for a new classroom subject
+// Handle the selection of a faculty for a new classroom subject
 function handleNewClassroomSubjectAddedChangeEvent(e: React.ChangeEvent<HTMLInputElement>, subjectId: number) {
 if(!selectedClassroom) return;
 
 const { checked, value } = e.target;
-const teacherId = Number(value);
+const facultyId = Number(value);
 
 
 if(checked) {
 setNewClassroomSubjectAdded((prev) => {
   const existing = prev?.find((item) => item.subjectId === subjectId);
   if(existing) {
-      return prev?.map((item) => item.subjectId === subjectId ? { ...item, teacherId } : item) ?? null;
+      return prev?.map((item) => item.subjectId === subjectId ? { ...item, facultyId } : item) ?? null;
   } else {
-      return [...(prev ?? []), { classId: selectedClassroom.id, subjectId, teacherId }];
+      return [...(prev ?? []), { classId: selectedClassroom.id, subjectId, facultyId }];
   }
 })
 }else {
@@ -511,19 +513,19 @@ async function handleSubmitOfNewClassroomSubjects(e: React.FormEvent<HTMLFormEle
 e.preventDefault();
 if (!selectedClassroom) return;
 
-// A subject only lands in `newClassroomSubjectAdded` once its teacher radio
-// is picked. If a subject was checked but has no teacher, it would otherwise
+// A subject only lands in `newClassroomSubjectAdded` once its faculty radio
+// is picked. If a subject was checked but has no faculty, it would otherwise
 // be silently dropped — abort with a clear message instead.
 if (selectedSubjectIds.length === 0) {
   toast.warning("Select at least one subject to add.");
   return;
 }
-const needsTeacher = selectedSubjectIds.filter((subjectId) =>
-  !(newClassroomSubjectAdded ?? []).some((item) => item.subjectId === subjectId && item.teacherId)
+const needsFaculty = selectedSubjectIds.filter((subjectId) =>
+  !(newClassroomSubjectAdded ?? []).some((item) => item.subjectId === subjectId && item.facultyId)
 );
-if (needsTeacher.length > 0) {
+if (needsFaculty.length > 0) {
   toast.warning(
-    `Assign a teacher for ${needsTeacher.length === 1 ? "the selected subject" : `${needsTeacher.length} selected subjects`} before adding.`
+    `Assign a faculty for ${needsFaculty.length === 1 ? "the selected subject" : `${needsFaculty.length} selected subjects`} before adding.`
   );
   return;
 }
@@ -536,7 +538,7 @@ try {
   setNewClassroomSubjectAdded(null);
   setSelectedSubjectIds([]);
   setIsModalOpen(false);
-  fetchClassroomTeachersWithSubject();
+  fetchClassroomFacultiesWithSubject();
 } catch {
   // Error toast handled by API interceptor
 }
@@ -575,7 +577,7 @@ return (
                         className="classrooms__back inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
                         onClick={() => (
                             setSelectedClassroom(null),
-                            setClassroomTeachersWithSubject(null),
+                            setClassroomFacultiesWithSubject(null),
                             setPageStatus("view-students")
                         )}
                         aria-label="Back to classroom list"
@@ -847,7 +849,7 @@ return (
                         {pageStatus === "view-subjects" && (
                             <div className="classrooms__students-subjects flex items-center gap-2">
                                 <span className="classrooms__students-subjects-count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
-                                    {(classroomTeachersWithSubject ?? []).length} subject{(classroomTeachersWithSubject ?? []).length === 1 ? "" : "s"}
+                                    {(classroomFacultiesWithSubject ?? []).length} subject{(classroomFacultiesWithSubject ?? []).length === 1 ? "" : "s"}
                                 </span>
                                 <button className="classrooms__students-subjects-add inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold"
                                 onClick={subjectsNotInClassFunc}
@@ -878,7 +880,7 @@ return (
                         aria-pressed={pageStatus === "view-subjects"}
                         onClick={() => (
                             setPageStatus("view-subjects"),
-                            fetchClassroomTeachersWithSubject()
+                            fetchClassroomFacultiesWithSubject()
                         )}
                     >
                         Subject
@@ -979,21 +981,21 @@ return (
                 {/* =========================== pages status view-subjects ======================*/}
                 {pageStatus === "view-subjects" && (
                     <section className="classrooms__subjects mt-4" aria-label="Classroom subjects">
-                        {classroomTeachersWithSubject && classroomTeachersWithSubject.length > 0 ? (
+                        {classroomFacultiesWithSubject && classroomFacultiesWithSubject.length > 0 ? (
                             <div className="data-table__wrap rounded-xl border">
                                 <table className="data-table">
                                     <thead>
                                         <tr>
-                                            <th scope="col" className="data-table__th w-48">Teacher</th>
+                                            <th scope="col" className="data-table__th w-48">Faculty</th>
                                             <th scope="col" className="data-table__th w-48">Subject</th>
                                             <th scope="col" className="data-table__th data-table__th--actions w-24">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {classroomTeachersWithSubject.map((item) => (
-                                            <tr key={`${item.teacherId}-${item.subjectId}`} className="data-table__row">
+                                        {classroomFacultiesWithSubject.map((item) => (
+                                            <tr key={`${item.facultyId}-${item.subjectId}`} className="data-table__row">
                                                 <td className="data-table__td">
-                                                    <span className="data-table__value">{item.teacherFullname}</span>
+                                                    <span className="data-table__value">{item.facultyFullname}</span>
                                                     <span className="data-table__sub">{item.code} &middot; {item.unit} unit{item.unit > 1 ? "s" : ""}</span>
                                                 </td>
                                                 <td className="data-table__td">
@@ -1008,9 +1010,9 @@ return (
                                                 <td className="data-table__td data-table__td--actions">
                                                     <button className="classrooms__subjects-actions-icon inline-flex h-8 w-8 items-center justify-center rounded-lg"
                                                     onClick={() => 
-                                                        handleChangeSubjectTeacherClickEvent(item.subjectId, selectedClassroom.id)
+                                                        handleChangeSubjectFacultyClickEvent(item.subjectId, selectedClassroom.id)
                                                     }
-                                                    aria-label={`Change teacher for ${item.subjectName}`}
+                                                    aria-label={`Change faculty for ${item.subjectName}`}
                                                     >
                                                         <FiEdit />
                                                     </button>
@@ -1019,7 +1021,7 @@ return (
                                                     onClick={(e) => {
                                                         // Capture the clicked button so focus returns to it when the dialog closes
                                                         deleteTriggerRef.current = e.currentTarget;
-                                                        setDeleteTarget({ subjectId: item.subjectId, teacherId: item.teacherId, classId: selectedClassroom.id });
+                                                        setDeleteTarget({ subjectId: item.subjectId, facultyId: item.facultyId, classId: selectedClassroom.id });
                                                     }}
                                                     aria-label={`Delete ${item.subjectName} from classroom`}
                                                     >
@@ -1061,22 +1063,22 @@ return (
                         {modalStatus === "create-class" && "Create Classroom" }
                         {modalStatus === "edit-class" && "Edit Classroom" }
                         {modalStatus === "create-subject" && "Create Subject" }
-                        {modalStatus === "edit-subject-teachers" && "Assign Teacher" }
+                        {modalStatus === "edit-subject-faculties" && "Assign Faculty" }
                         {modalStatus === "assign-adviser" && "Class Adviser" }
                     </span>
                     <h3 id="classrooms-modal-title" className="classrooms-modal__title mt-0.5 text-xl font-bold">
                         {modalStatus === "create-class" && "New Classroom Section" }
                         {modalStatus === "edit-class" && "Update Classroom Section" }
                         {modalStatus === "create-subject" && "New Subject" }
-                        {modalStatus === "edit-subject-teachers" && "Change Subject Teacher" }
+                        {modalStatus === "edit-subject-faculties" && "Change Subject Faculty" }
                         {modalStatus === "assign-adviser" && "Assign Class Adviser" }
                     </h3>
                     <p className="classrooms-modal__subtitle mt-1 text-[0.8125rem]">
                         {modalStatus === "create-class" && "Fill out the form below to create a new classroom." }
                         {modalStatus === "edit-class" && `Update the section and grade level for ${editingClassroom?.section ?? "this classroom"}.` }
                         {modalStatus === "create-subject" && `Select the subjects to add to ${selectedClassroom?.section ?? "this classroom"}.` }
-                        {modalStatus === "edit-subject-teachers" && "Choose the teacher who will handle this subject in the classroom." }
-                        {modalStatus === "assign-adviser" && `Choose the adviser for ${selectedClassroom?.section ?? "this classroom"}. Each teacher advises at most one class.` }
+                        {modalStatus === "edit-subject-faculties" && "Choose the faculty who will handle this subject in the classroom." }
+                        {modalStatus === "assign-adviser" && `Choose the adviser for ${selectedClassroom?.section ?? "this classroom"}. Each faculty advises at most one class.` }
                     </p>
                 </div>
                 <button type="button" className="classrooms-modal__close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg" onClick={handleModalClose} aria-label="Close modal">
@@ -1088,7 +1090,7 @@ return (
               modalStatus === "create-class" ? handleSubmitOfCreateClassroomModalForm :
               modalStatus === "edit-class" ? handleSubmitOfEditClassroomModalForm :
               modalStatus === "create-subject" ? handleSubmitOfNewClassroomSubjects :
-              modalStatus === "edit-subject-teachers" ? handleSubmitOfEditSubjectTeachers :
+              modalStatus === "edit-subject-faculties" ? handleSubmitOfEditSubjectFaculties :
               modalStatus === "assign-adviser" ? handleSubmitOfAssignAdviser :
               () => {}
             } noValidate>
@@ -1161,41 +1163,41 @@ return (
                                         </label>
 
                                         {selectedSubjectIds.includes(st.subjectId) && (
-                                            <div className="classrooms-subject-picker__teachers border-t border-dashed px-3 pb-3 pt-2.5" aria-live="polite">
-                                                <div className="classrooms-subject-picker__teachers-head flex items-center justify-between gap-2">
-                                                    <span className="classrooms-subject-picker__teachers-title text-[0.6875rem] font-bold uppercase tracking-[0.08em]">Assign teacher</span>
-                                                    {st.teachers.length > 0 && (
-                                                        <span className="classrooms-subject-picker__teachers-count shrink-0 rounded-full border px-2 py-0.5 text-[0.6875rem] font-bold">
-                                                            {st.teachers.length} teacher{st.teachers.length === 1 ? "" : "s"}
+                                            <div className="classrooms-subject-picker__faculties border-t border-dashed px-3 pb-3 pt-2.5" aria-live="polite">
+                                                <div className="classrooms-subject-picker__faculties-head flex items-center justify-between gap-2">
+                                                    <span className="classrooms-subject-picker__faculties-title text-[0.6875rem] font-bold uppercase tracking-[0.08em]">Assign faculty</span>
+                                                    {st.faculties.length > 0 && (
+                                                        <span className="classrooms-subject-picker__faculties-count shrink-0 rounded-full border px-2 py-0.5 text-[0.6875rem] font-bold">
+                                                            {st.faculties.length} faculty{st.faculties.length === 1 ? "" : "s"}
                                                         </span>
                                                     )}
                                                 </div>
 
-                                                {st.teachers.length > 0 ? (
-                                                    <div className="classrooms-subject-picker__teachers-list mt-2 flex flex-col gap-1.5">
-                                                        {st.teachers.map((t) => (
+                                                {st.faculties.length > 0 ? (
+                                                    <div className="classrooms-subject-picker__faculties-list mt-2 flex flex-col gap-1.5">
+                                                        {st.faculties.map((t) => (
                                                             <label
-                                                                key={t.teacherId}
-                                                                className="classrooms-subject-picker__teacher-option relative flex cursor-pointer items-center gap-2.5 rounded-lg border p-2"
-                                                                htmlFor={`add-subject-teacher-${st.subjectId}-${t.teacherId}`}
+                                                                key={t.facultyId}
+                                                                className="classrooms-subject-picker__faculty-option relative flex cursor-pointer items-center gap-2.5 rounded-lg border p-2"
+                                                                htmlFor={`add-subject-faculty-${st.subjectId}-${t.facultyId}`}
                                                             >
                                                                 <input
                                                                     type="radio"
-                                                                    name={`add-subject-teacher-${st.subjectId}`}
-                                                                    id={`add-subject-teacher-${st.subjectId}-${t.teacherId}`}
-                                                                    value={t.teacherId}
+                                                                    name={`add-subject-faculty-${st.subjectId}`}
+                                                                    id={`add-subject-faculty-${st.subjectId}-${t.facultyId}`}
+                                                                    value={t.facultyId}
                                                                     onChange={(e) => handleNewClassroomSubjectAddedChangeEvent(e, st.subjectId)}
                                                                 />
                                                                 <span className="classrooms-subject-picker__info flex min-w-0 flex-col">
-                                                                    <span className="classrooms-subject-picker__name truncate text-sm font-bold">{t.teacherFullname}</span>
+                                                                    <span className="classrooms-subject-picker__name truncate text-sm font-bold">{t.facultyFullname}</span>
                                                                 </span>
                                                                 <span className="classrooms-subject-picker__check inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold" aria-hidden="true">✓</span>
                                                             </label>
                                                         ))}
                                                     </div>
                                                 ) : (
-                                                    <p className="classrooms-subject-picker__teachers-empty mt-2 rounded-lg border border-dashed bg-white p-2 text-xs">
-                                                        No teachers are currently teaching this subject.
+                                                    <p className="classrooms-subject-picker__faculties-empty mt-2 rounded-lg border border-dashed bg-white p-2 text-xs">
+                                                        No faculties are currently teaching this subject.
                                                     </p>
                                                 )}
                                             </div>
@@ -1223,11 +1225,11 @@ return (
                                 Select the class adviser for <strong className="font-bold">{selectedClassroom?.section}</strong>
                             </p>
                             <span className="classrooms-subject-picker__count shrink-0 whitespace-nowrap px-2.5 py-1 text-xs font-semibold" aria-live="polite">
-                                {allTeachers === null ? "…" : `${allTeachers.length} teacher${allTeachers.length === 1 ? "" : "s"}`}
+                                {allFaculties === null ? "…" : `${allFaculties.length} faculty${allFaculties.length === 1 ? "" : "s"}`}
                             </span>
                         </div>
 
-                        {allTeachers && allTeachers.length > 0 ? (
+                        {allFaculties && allFaculties.length > 0 ? (
                             <div className="classrooms-subject-picker__grid flex min-h-0 flex-1 flex-col gap-2.5 overflow-x-hidden overflow-y-auto pr-1">
                                 {/* Explicit "no adviser" option — radios cannot be deselected by clicking again */}
                                 <div className={`classrooms-subject-picker__field rounded-lg border ${adviserSelection === null ? "classrooms-subject-picker__field--selected" : ""}`}>
@@ -1252,26 +1254,26 @@ return (
                                         <span className="classrooms-subject-picker__check inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold" aria-hidden="true">✓</span>
                                     </label>
                                 </div>
-                                {allTeachers.map((teacher) => {
-                                    const isCurrent = selectedClassroom?.adviserId === teacher.id;
-                                    const takenSection = adviserTakenBy[teacher.id];
+                                {allFaculties.map((faculty) => {
+                                    const isCurrent = selectedClassroom?.adviserId === faculty.id;
+                                    const takenSection = adviserTakenBy[faculty.id];
                                     const isTaken = takenSection !== undefined;
                                     return (
-                                        <div key={teacher.id} className={`classrooms-subject-picker__field rounded-lg border ${isCurrent ? "classrooms-subject-picker__field--selected" : ""} ${isTaken ? "classrooms-subject-picker__field--taken" : ""}`}>
-                                            <label className={`classrooms-subject-picker__label relative flex cursor-pointer items-center gap-2.5 p-2.5 text-sm ${isTaken ? "classrooms-subject-picker__label--taken" : ""}`} htmlFor={`assign-adviser-${teacher.id}`}>
+                                        <div key={faculty.id} className={`classrooms-subject-picker__field rounded-lg border ${isCurrent ? "classrooms-subject-picker__field--selected" : ""} ${isTaken ? "classrooms-subject-picker__field--taken" : ""}`}>
+                                            <label className={`classrooms-subject-picker__label relative flex cursor-pointer items-center gap-2.5 p-2.5 text-sm ${isTaken ? "classrooms-subject-picker__label--taken" : ""}`} htmlFor={`assign-adviser-${faculty.id}`}>
                                                 <input
                                                     type="radio"
                                                     name="class-adviser"
-                                                    id={`assign-adviser-${teacher.id}`}
-                                                    value={teacher.id}
+                                                    id={`assign-adviser-${faculty.id}`}
+                                                    value={faculty.id}
                                                     disabled={isTaken}
-                                                    checked={adviserSelection === teacher.id}
-                                                    onChange={() => setAdviserSelection(teacher.id)}
+                                                    checked={adviserSelection === faculty.id}
+                                                    onChange={() => setAdviserSelection(faculty.id)}
                                                 />
                                                 <span className="classrooms-subject-picker__info flex min-w-0 flex-col">
-                                                    <span className="classrooms-subject-picker__name truncate text-sm font-bold">{teacher.fullname}</span>
+                                                    <span className="classrooms-subject-picker__name truncate text-sm font-bold">{faculty.fullname}</span>
                                                     <span className="classrooms-subject-picker__meta flex items-center gap-1.5 text-xs">
-                                                        <span className="classrooms-subject-picker__code shrink-0 rounded-full px-1.5 py-px font-mono text-[0.625rem] font-bold">{teacher.email}</span>
+                                                        <span className="classrooms-subject-picker__code shrink-0 rounded-full px-1.5 py-px font-mono text-[0.625rem] font-bold">{faculty.email}</span>
                                                         {isCurrent && (
                                                             <span className="classrooms-adviser-badge shrink-0 rounded-full px-2 py-px text-[0.625rem] font-bold">Current adviser</span>
                                                         )}
@@ -1288,55 +1290,55 @@ return (
                                     );
                                 })}
                             </div>
-                        ) : allTeachers !== null ? (
+                        ) : allFaculties !== null ? (
                             <div className="classrooms-subject-picker__empty flex flex-col items-center justify-center rounded-xl border border-dashed px-4 py-8 text-center">
                                 <span className="classrooms-subject-picker__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
                                     <FiUserCheck />
                                 </span>
-                                <p className="classrooms-subject-picker__empty-title mt-3 text-sm font-bold">No teachers available</p>
-                                <p className="classrooms-subject-picker__empty-text mt-1 text-[0.8125rem]">Create a teacher record before assigning a class adviser.</p>
+                                <p className="classrooms-subject-picker__empty-title mt-3 text-sm font-bold">No faculties available</p>
+                                <p className="classrooms-subject-picker__empty-text mt-1 text-[0.8125rem]">Create a faculty record before assigning a class adviser.</p>
                             </div>
                         ) : (
                             <div className="classrooms-subject-picker__empty flex flex-col items-center justify-center rounded-xl border border-dashed px-4 py-8 text-center">
-                                <p className="classrooms-subject-picker__empty-title mt-3 text-sm font-bold">Loading teachers…</p>
+                                <p className="classrooms-subject-picker__empty-title mt-3 text-sm font-bold">Loading faculties…</p>
                             </div>
                         )}
                     </div>
                 )}
 
-                {/* Edit Subject Teachers modal form */}
-                {modalStatus === "edit-subject-teachers" && (
+                {/* Edit Subject Faculties modal form */}
+                {modalStatus === "edit-subject-faculties" && (
                     <div className="classrooms-subject-picker flex min-h-0 flex-1 flex-col gap-3.5">
                         <div className="classrooms-subject-picker__head flex items-center justify-between gap-4">
                             <p className="classrooms-subject-picker__hint text-[0.8125rem]">
-                                Choose a teacher for <strong className="font-bold">{subjectTeachers?.[0]?.subjectName ?? "this subject"}</strong>
+                                Choose a faculty for <strong className="font-bold">{subjectFaculties?.[0]?.subjectName ?? "this subject"}</strong>
                             </p>
                             <span className="classrooms-subject-picker__count shrink-0 whitespace-nowrap px-2.5 py-1 text-xs font-semibold" aria-live="polite">
-                                {subjectTeachers === null ? "…" : `${subjectTeachers.length} teacher${subjectTeachers.length === 1 ? "" : "s"} available`}
+                                {subjectFaculties === null ? "…" : `${subjectFaculties.length} faculty${subjectFaculties.length === 1 ? "" : "s"} available`}
                             </span>
                         </div>
 
-                        {subjectTeachers && subjectTeachers.length > 0 ? (
+                        {subjectFaculties && subjectFaculties.length > 0 ? (
                             <div className="classrooms-subject-picker__grid flex min-h-0 flex-1 flex-col gap-2.5 overflow-x-hidden overflow-y-auto pr-1">
-                                {subjectTeachers.map((st) => (
-                                    <div key={st.teacherId} className="classrooms-subject-picker__field rounded-lg border">
-                                        <label className="classrooms-subject-picker__label relative flex cursor-pointer items-center gap-2.5 p-2.5 text-sm" htmlFor={`edit-teacher-${st.teacherId}`}>
+                                {subjectFaculties.map((st) => (
+                                    <div key={st.facultyId} className="classrooms-subject-picker__field rounded-lg border">
+                                        <label className="classrooms-subject-picker__label relative flex cursor-pointer items-center gap-2.5 p-2.5 text-sm" htmlFor={`edit-faculty-${st.facultyId}`}>
                                           <input
                                               type="radio"
-                                              name="subject-teachers"
-                                              id={`edit-teacher-${st.teacherId}`}
-                                              value={st.teacherId}
+                                              name="subject-faculties"
+                                              id={`edit-faculty-${st.facultyId}`}
+                                              value={st.facultyId}
                                               onChange={(e) => {
-                                                handleEditSubjectTeacherChangeEvent(e, st.subjectId);
+                                                handleEditSubjectFacultyChangeEvent(e, st.subjectId);
                                               }}
                                           />
                                             <span className="classrooms-subject-picker__info flex min-w-0 flex-col">
                                                 <span className="classrooms-subject-picker__name truncate text-sm font-bold">
-                                                  {st.teacherFullname}
+                                                  {st.facultyFullname}
                                                 </span>
                                                 <span className="classrooms-subject-picker__meta flex items-center gap-1.5 text-xs">
                                                     <span className="classrooms-subject-picker__code shrink-0 rounded-full px-1.5 py-px font-mono text-[0.625rem] font-bold">{st.subjectCode}</span>
-                                                    <span className="classrooms-subject-picker__teacher truncate">{st.subjectName} &middot; {st.subjectUnit} unit{st.subjectUnit === 1 ? "" : "s"}</span>
+                                                    <span className="classrooms-subject-picker__faculty truncate">{st.subjectName} &middot; {st.subjectUnit} unit{st.subjectUnit === 1 ? "" : "s"}</span>
                                                 </span>
                                             </span>
                                             <span className="classrooms-subject-picker__check inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold" aria-hidden="true">✓</span>
@@ -1349,8 +1351,8 @@ return (
                                 <span className="classrooms-subject-picker__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
                                     <FiUserPlus />
                                 </span>
-                                <p className="classrooms-subject-picker__empty-title mt-3 text-sm font-bold">No teachers available</p>
-                                <p className="classrooms-subject-picker__empty-text mt-1 text-[0.8125rem]">No teachers are currently teaching this subject.</p>
+                                <p className="classrooms-subject-picker__empty-title mt-3 text-sm font-bold">No faculties available</p>
+                                <p className="classrooms-subject-picker__empty-text mt-1 text-[0.8125rem]">No faculties are currently teaching this subject.</p>
                             </div>
                         )}
                     </div>
@@ -1368,7 +1370,7 @@ return (
                         {modalStatus === "create-class" && "Create Classroom"}
                         {modalStatus === "edit-class" && "Save Changes"}
                         {modalStatus === "create-subject" && "Create Subject"}
-                        {modalStatus === "edit-subject-teachers" && "Update Assigned Teachers"}
+                        {modalStatus === "edit-subject-faculties" && "Update Assigned Faculties"}
                         {modalStatus === "assign-adviser" && (assigningAdviser ? "Saving…" : adviserSelection === null ? "Remove Adviser" : "Assign Adviser")}
                     </button>
                 </footer>
@@ -1381,8 +1383,8 @@ return (
     title="Delete subject from classroom?"
     description={
         pendingDeleteSubject
-            ? `This will remove ${pendingDeleteSubject.subjectName} and its assigned teacher from ${selectedClassroom?.section ?? "this classroom"}. This cannot be undone.`
-            : "This will remove the subject and its assigned teacher from the classroom. This cannot be undone."
+            ? `This will remove ${pendingDeleteSubject.subjectName} and its assigned faculty from ${selectedClassroom?.section ?? "this classroom"}. This cannot be undone.`
+            : "This will remove the subject and its assigned faculty from the classroom. This cannot be undone."
     }
     confirmLabel="Delete"
     confirmIcon={<FiTrash2 aria-hidden="true" />}

@@ -577,7 +577,7 @@ export default function StudentManagement() {
                                                                     <tr key={subject.classSubjectId ?? subject.name} className="data-table__row">
                                                                         <td className="data-table__td">
                                                                             <span className="data-table__value">{subject.name}</span>
-                                                                            <span className="data-table__sub">{subject.teacher ?? "—"}</span>
+                                                                            <span className="data-table__sub">{subject.faculty ?? "—"}</span>
                                                                         </td>
                                                                         <td className="data-table__td data-table__td--muted">{subject.code}</td>
                                                                         <td className="data-table__td data-table__td--center">{subject.unit ?? "—"}</td>

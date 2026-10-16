@@ -8,11 +8,11 @@ import { PageHeader, PageSection, PageShell } from "../../components/PageLayout"
 import Skeleton from "../../components/Skeleton";
 
 
-import "../../style/teacherSettings.css";
+import "../../style/facultySettings.css";
 
 // ==================== Types ====================
 
-interface TeacherProfile {
+interface FacultyProfile {
     id: number;
     userId: number;
     email: string;
@@ -31,11 +31,11 @@ interface PasswordForm {
 
 // ==================== Component ====================
 
-export default function TeacherSettings() {
+export default function FacultySettings() {
     const { user } = useUser();
 
     // Profile state
-    const [profile, setProfile] = useState<TeacherProfile | null>(null);
+    const [profile, setProfile] = useState<FacultyProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
@@ -52,8 +52,8 @@ export default function TeacherSettings() {
         async function fetchProfile() {
             if (!user?.id) return;
             try {
-                const response = await getAPICall<TeacherProfile>(
-                    `/teachers/by-user/${user.id}`
+                const response = await getAPICall<FacultyProfile>(
+                    `/faculties/by-user/${user.id}`
                 );
                 setProfile(response.data ?? null);
             } catch {
@@ -73,7 +73,7 @@ export default function TeacherSettings() {
         setSaving(true);
         try {
             await patchAPICall(
-                `/teachers/${profile.id}`,
+                `/faculties/${profile.id}`,
                 {
                     email: profile.email,
                     firstname: profile.firstname,
@@ -91,7 +91,7 @@ export default function TeacherSettings() {
         }
     }
 
-    function handleProfileChange(field: keyof TeacherProfile, value: string) {
+    function handleProfileChange(field: keyof FacultyProfile, value: string) {
         setProfile((prev) => (prev ? { ...prev, [field]: value } : null));
     }
 
@@ -141,17 +141,17 @@ export default function TeacherSettings() {
     // ====================
     if (loading) {
         return (
-            <PageShell className="teacher-settings" busy>
-                <div className="teacher-settings__header">
+            <PageShell className="faculty-settings" busy>
+                <div className="faculty-settings__header">
                     <div className="skeleton__bar" style={{ width: "8rem", height: "1.5rem" }} />
                     <div className="skeleton__bar mt-2" style={{ width: "14rem", height: "0.875rem" }} />
                 </div>
-                <PageSection className="teacher-settings__card" flush>
+                <PageSection className="faculty-settings__card" flush>
                     <div className="p-5">
                         <Skeleton lines={4} gap="1rem" />
                     </div>
                 </PageSection>
-                <PageSection className="teacher-settings__card" flush>
+                <PageSection className="faculty-settings__card" flush>
                     <div className="p-5">
                         <Skeleton lines={2} gap="1rem" />
                     </div>
@@ -161,13 +161,13 @@ export default function TeacherSettings() {
     }
 
     return (
-        <PageShell className="teacher-settings">
+        <PageShell className="faculty-settings">
             {/* Header */}
             <PageHeader title="Settings" description="Manage your profile and preferences" />
 
             {/* Profile Section */}
             <PageSection
-                className="teacher-settings__card"
+                className="faculty-settings__card"
                 title="Profile Information"
                 description="Update your personal details"
                 flush
@@ -253,7 +253,7 @@ export default function TeacherSettings() {
 
             {/* Password Section */}
             <PageSection
-                className="teacher-settings__card"
+                className="faculty-settings__card"
                 title="Change Password"
                 description="Update your account password"
                 flush

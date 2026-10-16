@@ -11,7 +11,7 @@ import "../../style/developerDashboard.css";
 /*
  * Endpoints:
  *   PUT /users/:id   { currentPassword, password }   (existing shared endpoint,
- *                                                    same as AdminSettings/TeacherSettings)
+ *                                                    same as AdminSettings/FacultySettings)
  *   PUT /users/:id   { currentPassword, email }      (self-service email change —
  *                                                    current password required;
  *                                                    session ends afterwards because
