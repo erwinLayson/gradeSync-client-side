@@ -27,6 +27,7 @@ import {
 import { useLandingContent } from "../hooks/useLandingContent";
 import { useAuth } from "../hooks/useAuth";
 import { useUser } from "../hooks/useUser";
+import FullscreenLoader from "../components/FullscreenLoader";
 import "../style/landingPage.css";
 
 // ==================== Static content ====================
@@ -202,19 +203,7 @@ function LandingPage() {
   };
 
   if (loading) {
-    return (
-      <div
-        className="landing-splash"
-        role="status"
-        aria-live="polite"
-        aria-label="Checking your session"
-      >
-        <div className="landing-splash__logo" aria-hidden="true">
-          <img src={logo1} alt="" />
-        </div>
-        <p className="landing-splash__status">Loading…</p>
-      </div>
-    );
+    return <FullscreenLoader />;
   }
 
   // ?preview: the signed-in developer stays here to review their draft

@@ -1,10 +1,10 @@
 /* ============================================================
-   ProtectedRoutes — full-screen loading splash
+   FullscreenLoader — full-screen loading splash
    Tokens come from src/index.css (:root).
    ============================================================ */
 
 /* ---------- Full-screen wrapper ---------- */
-.protected-route__splash {
+.fullscreen-loader {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
@@ -15,7 +15,7 @@
 }
 
 /* ---------- Logo badge (mirrors login-card__logo / sidebar__logo) ---------- */
-.protected-route__logo {
+.fullscreen-loader__logo {
   display: flex;
   height: 3.5rem;
   width: 3.5rem;
@@ -28,14 +28,14 @@
   box-shadow: var(--shadow-sm);
 }
 
-.protected-route__logo img {
+.fullscreen-loader__logo img {
   height: 100%;
   width: 100%;
   object-fit: cover;
 }
 
 /* ---------- Loading loader ---------- */
-.protected-route__loader {
+.fullscreen-loader__loader {
   position: relative;
   display: flex;
   align-items: center;
@@ -49,7 +49,7 @@
   overflow: hidden;
 }
 
-.protected-route__loader::before {
+.fullscreen-loader__loader::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -61,11 +61,11 @@
     var(--accent-light, var(--surface-white, #ffffff)) 100%
   );
   background-size: 200% 100%;
-  animation: protected-route-shimmer 1.4s ease-in-out infinite;
+  animation: fullscreen-loader-shimmer 1.4s ease-in-out infinite;
   z-index: 0;
 }
 
-.protected-route__bounce-dot {
+.fullscreen-loader__bounce-dot {
   position: absolute;
   width: 0.75rem;
   height: 0.75rem;
@@ -74,28 +74,28 @@
   z-index: 1;
 }
 
-.protected-route__bounce-dot:nth-child(1) {
+.fullscreen-loader__bounce-dot:nth-child(1) {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  animation: protected-route-bounce-dot 1.4s ease-in-out infinite;
+  animation: fullscreen-loader-bounce-dot 1.4s ease-in-out infinite;
 }
 
-.protected-route__bounce-dot:nth-child(2) {
+.fullscreen-loader__bounce-dot:nth-child(2) {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  animation: protected-route-bounce-dot 1.4s ease-in-out infinite -0.175s;
+  animation: fullscreen-loader-bounce-dot 1.4s ease-in-out infinite -0.175s;
 }
 
-.protected-route__bounce-dot:nth-child(3) {
+.fullscreen-loader__bounce-dot:nth-child(3) {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  animation: protected-route-bounce-dot 1.4s ease-in-out infinite -0.35s;
+  animation: fullscreen-loader-bounce-dot 1.4s ease-in-out infinite -0.35s;
 }
 
-@keyframes protected-route-shimmer {
+@keyframes fullscreen-loader-shimmer {
   0% {
     background-position: 200% 0;
   }
@@ -104,7 +104,7 @@
   }
 }
 
-@keyframes protected-route-bounce-dot {
+@keyframes fullscreen-loader-bounce-dot {
   0% {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
@@ -124,21 +124,21 @@
 }
 
 /* ---------- Spinner (ring) ---------- */
-.protected-route__spin {
+.fullscreen-loader__spin {
   position: absolute;
   inset: 0;
   margin: auto;
-  animation: protected-route-spin 0.9s linear infinite;
+  animation: fullscreen-loader-spin 0.9s linear infinite;
 }
 
-@keyframes protected-route-spin {
+@keyframes fullscreen-loader-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
 /* ---------- Status text ---------- */
-.protected-route__status {
+.fullscreen-loader__status {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
@@ -146,8 +146,8 @@
 
 /* ---------- Reduce motion ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .protected-route__spin,
-  .protected-route__bounce-dot {
+  .fullscreen-loader__spin,
+  .fullscreen-loader__bounce-dot {
     animation: none;
   }
 }

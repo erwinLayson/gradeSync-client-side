@@ -1,37 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { FiLoader } from "react-icons/fi";
 
 import { useAuth } from "../hooks/useAuth";
 import { useUser } from "../hooks/useUser";
 import { getAPICall } from "../api/api";
-import logo1 from "../assets/logo1.webp";
-import "../style/protectedRoutes.css";
 
 interface ProtectedRoutesProps {
     allowedRoles: string[];
-}
-
-function RouteLoadingSplash() {
-    return (
-        <div
-            className="protected-route__splash"
-            role="status"
-            aria-live="polite"
-            aria-label="Checking your session"
-        >
-            <div className="protected-route__logo" aria-hidden="true">
-                <img src={logo1} alt="" />
-            </div>
-            <div className="protected-route__loader protected-route__bounce" aria-hidden="true">
-                <span className="protected-route__bounce-dot" />
-                <span className="protected-route__bounce-dot" />
-                <span className="protected-route__bounce-dot" />
-            </div>
-            <FiLoader className="protected-route__spin" size={22} aria-hidden="true" />
-            <p className="protected-route__status">Loading…</p>
-        </div>
-    );
 }
 
 export default function ProtectedRoutes({ allowedRoles }: ProtectedRoutesProps) {
@@ -96,8 +71,11 @@ export default function ProtectedRoutes({ allowedRoles }: ProtectedRoutesProps) 
         return () => window.clearTimeout(timer);
     }, [resolveFacultyRole]);
 
+    // The session check runs while the page is already mounted: rather than a
+    // full-screen splash, the page renders and shows its own skeleton loading
+    // state. Once the check resolves, non-members are redirected below.
     if (loading) {
-        return <RouteLoadingSplash />;
+        return <Outlet />;
     }
 
     if (!auth) {
@@ -110,10 +88,10 @@ export default function ProtectedRoutes({ allowedRoles }: ProtectedRoutesProps) 
         const resolvedFacultyRole = user.facultyRole ?? facultyRole;
 
         // Only wait for the lookup when the session did not already carry the
-        // role — otherwise a present `user.facultyRole` would leave the
-        // loading splash stuck on forever.
+        // role — otherwise a present `user.facultyRole` would leave the page
+        // waiting on a lookup that never runs.
         if (!resolvedFacultyRole && !facultyLookupComplete) {
-            return <RouteLoadingSplash />;
+            return <Outlet />;
         }
 
         if (!resolvedFacultyRole || !allowedRoles.includes(resolvedFacultyRole)) {
