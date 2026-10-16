@@ -890,7 +890,7 @@ return (
                 
                 {/* classroom table  & page status view students*/}
                 {pageStatus === "view-students" && (
-                    <div className="data-table__wrap mt-4 rounded-xl border">
+                    <div className="data-table__wrap mt-4 rounded-xl">
                         {selectedClassroom.students && selectedClassroom.students.length > 0 ? (
                             
                                 <table className="data-table min-w-[64rem]">
@@ -982,7 +982,7 @@ return (
                 {pageStatus === "view-subjects" && (
                     <section className="classrooms__subjects mt-4" aria-label="Classroom subjects">
                         {classroomFacultiesWithSubject && classroomFacultiesWithSubject.length > 0 ? (
-                            <div className="data-table__wrap rounded-xl border">
+                            <div className="data-table__wrap rounded-xl">
                                 <table className="data-table">
                                     <thead>
                                         <tr>

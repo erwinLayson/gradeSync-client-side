@@ -531,7 +531,7 @@ return (
                                     Composite Subject
                                 </span>
                             </div>
-                            <div className="data-table__wrap mt-3 rounded-xl border">
+                            <div className="data-table__wrap mt-3 rounded-xl">
                                 <table className="data-table">
                                     <thead>
                                         <tr>
@@ -578,7 +578,7 @@ return (
                         </div>
 
                         {selectedSubject.faculties && selectedSubject.faculties.length > 0 ? (
-                            <div className="data-table__wrap mt-4 rounded-xl border">
+                            <div className="data-table__wrap mt-4 rounded-xl">
                                 <table className="data-table">
                                     <thead>
                                         <tr>
