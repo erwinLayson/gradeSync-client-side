@@ -109,12 +109,19 @@ export interface UploadResultData {
   format: string;
 }
 
-// Multipart upload (POST /uploads). The FormData overrides the instance's
-// JSON content-type and axios appends the multipart boundary automatically.
+// Multipart upload (field "image"). The body is FormData; the browser sets the
+// multipart Content-Type (with boundary) when the request is sent.
 export const uploadFile = async <ResponseDataType = UploadResultData>(url: string, file: File, options?: RequestOptions) => {
   const formData = new FormData();
   formData.append("image", file);
+  // The shared instance defaults to `Content-Type: application/json`. Axios 1.x
+  // reads that header during transformRequest and, when it sees a FormData body
+  // with a JSON content type, converts the FormData into a JSON string — silently
+  // discarding the file. Overriding the content type for this request makes the
+  // transform keep the FormData intact; the browser then generates the real
+  // multipart header (boundary included) when the request is sent.
   const response = await API.post(url, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
     skipErrorToast: options?.skipErrorToast,
   })
   const body = response.data as APIResponse<ResponseDataType>

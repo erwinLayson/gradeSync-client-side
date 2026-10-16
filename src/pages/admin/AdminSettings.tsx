@@ -12,6 +12,7 @@ import { useUser } from "../../hooks/useUser";
 import { invalidateSchoolInfoCache } from "../../hooks/useSchoolInfo";
 import { getAPICall, patchAPICall, putAPICall, deleteAPICall } from "../../api/api.js";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import SignaturePad from "../../components/SignaturePad";
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import { toast } from "../../helper/toast";
 
@@ -705,6 +706,9 @@ export default function AdminSettings() {
                         </div>
                     </footer>
                 </form>
+
+                {/* Authorized signature — drawn on a canvas, stored in the database. */}
+                <SignaturePad />
             </PageSection>
 
             {/* ==================== Academic Period ==================== */}
@@ -1107,6 +1111,7 @@ export default function AdminSettings() {
                                 type="email"
                                 className="settings__input w-full rounded-lg border px-3 py-2.5 text-sm"
                                 value={user?.email}
+                                readOnly
                             />
                         </div>
                         <div className="settings__field flex flex-col gap-1.5">
