@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { FiChevronsLeft, FiChevronsRight, FiLogOut } from "react-icons/fi";
-import { DASHBOARD_LINKS, SCHOOL_NAME } from "../constant/navigation";
+import { DASHBOARD_LINKS, SCHOOL_NAME, navRoleFor, roleLabelFor } from "../constant/navigation";
 
 import { useSchoolInfo } from "../hooks/useSchoolInfo";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -64,8 +64,8 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
     }
   }
 
-  const navGroups = user ? DASHBOARD_LINKS[user.role] : DASHBOARD_LINKS.admin;
-  const roleLabel = user ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "";
+  const navGroups = user ? DASHBOARD_LINKS[navRoleFor(user)] : DASHBOARD_LINKS.admin;
+  const roleLabel = user ? roleLabelFor(user) : "";
 
   return (
     <aside

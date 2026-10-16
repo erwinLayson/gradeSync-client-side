@@ -16,7 +16,7 @@ import {
 import { FaChalkboardTeacher } from "react-icons/fa";
 
 import logo1 from "../assets/logo1.webp";
-import { DASHBOARD_PATH, SCHOOL_NAME } from "../constant/navigation";
+import { dashboardPathFor, SCHOOL_NAME } from "../constant/navigation";
 import {
   DEFAULT_LANDING_CONTENT,
   clearLandingPreview,
@@ -220,7 +220,7 @@ function LandingPage() {
   // ?preview: the signed-in developer stays here to review their draft
   // instead of being bounced to their dashboard (plan Decision #6).
   if (auth && user && !isPreview) {
-    return <Navigate to={DASHBOARD_PATH[user.role]} replace />;
+    return <Navigate to={dashboardPathFor(user)} replace />;
   }
 
   return (

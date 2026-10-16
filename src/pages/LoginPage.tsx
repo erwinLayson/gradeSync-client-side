@@ -9,7 +9,7 @@ import { Validate } from '../helper/validate'
 // Api
 import { postAPICall } from "../api/api";
 
-import { DASHBOARD_PATH } from "../constant/navigation";
+import { dashboardPathFor } from "../constant/navigation";
 import { useUser } from "../hooks/useUser";
 // Types
 import type { UserRoles } from '../constant/users'
@@ -20,11 +20,6 @@ interface LoginCredentials {
   email: string
   password: string
 }
-
-const RedirectToDashboard = (userRole: UserRoles) => {
-  const dashboardLink = DASHBOARD_PATH[userRole];
-  return dashboardLink;
-};
 
 
 function LoginPage() {
@@ -58,6 +53,10 @@ function LoginPage() {
 
       interface LoginResponse {
         role: UserRoles
+        // Present only for faculty accounts (users.role = "teacher"): the
+        // authoritative faculties.role ("teacher" | "register"). Lets a register
+        // faculty land on the register workspace instead of the teaching one.
+        facultyRole?: string | null
       }
 
       const response = await postAPICall<LoginCredentials, LoginResponse>(
@@ -82,8 +81,8 @@ function LoginPage() {
       await fetchUser()
 
       const userRole = responseData.role as UserRoles;
-      const dashboard = RedirectToDashboard(userRole)
-      
+      const dashboard = dashboardPathFor({ role: userRole, facultyRole: responseData.facultyRole })
+
       navigate(dashboard)
     } finally {
       setLoading(false)

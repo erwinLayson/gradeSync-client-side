@@ -16,6 +16,9 @@ import {
   FaUsersCog,
 } from "react-icons/fa";
 
+import { ROLES, type UserRoles } from "./users";
+import { FACULTY_ROLES } from "./faculties";
+
 
 export const DASHBOARD_PATH = {
   admin: '/admin/dashboard',
@@ -27,6 +30,32 @@ export const DASHBOARD_PATH = {
   // Registration/enrollment staff (docs/register-role-implementation-plan.md).
   register: '/register/dashboard',
 };
+
+/**
+ * The role key a user's workspace (dashboard, sidebar) is built from.
+ *
+ * Both faculty kinds authenticate as users.role = "teacher", so the user role
+ * alone cannot tell the teaching workspace from the register one. The verified
+ * `faculties.role` in the session picks the register workspace; every other role
+ * maps to itself.
+ */
+export function navRoleFor(user: { role: UserRoles; facultyRole?: string | null }): UserRoles | "register" {
+  if (user.role === ROLES.TEACHER && user.facultyRole === FACULTY_ROLES.REGISTER) {
+    return FACULTY_ROLES.REGISTER;
+  }
+  return user.role;
+}
+
+/** The dashboard a signed-in user belongs on. */
+export function dashboardPathFor(user: { role: UserRoles; facultyRole?: string | null }): string {
+  return DASHBOARD_PATH[navRoleFor(user)];
+}
+
+/** Human label for the workspace role, e.g. "Register" / "Teacher". */
+export function roleLabelFor(user: { role: UserRoles; facultyRole?: string | null }): string {
+  const role = navRoleFor(user);
+  return role.charAt(0).toUpperCase() + role.slice(1);
+}
 
 
 

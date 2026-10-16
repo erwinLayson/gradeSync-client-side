@@ -105,11 +105,17 @@ export default function ProtectedRoutes({ allowedRoles }: ProtectedRoutesProps) 
     }
 
     if (user?.role === "teacher") {
-        if (!facultyLookupComplete) {
+        // The verified session may already carry the faculty role (login
+        // response / /users/verify); fall back to the async lookup result.
+        const resolvedFacultyRole = user.facultyRole ?? facultyRole;
+
+        // Only wait for the lookup when the session did not already carry the
+        // role — otherwise a present `user.facultyRole` would leave the
+        // loading splash stuck on forever.
+        if (!resolvedFacultyRole && !facultyLookupComplete) {
             return <RouteLoadingSplash />;
         }
 
-        const resolvedFacultyRole = facultyRole ?? user.facultyRole;
         if (!resolvedFacultyRole || !allowedRoles.includes(resolvedFacultyRole)) {
             return <Navigate to="/unauthorized" replace />;
         }

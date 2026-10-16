@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { FiArrowLeft, FiLock } from "react-icons/fi";
 
 import { useUser } from "../hooks/useUser";
-import { DASHBOARD_PATH } from "../constant/navigation";
+import { dashboardPathFor } from "../constant/navigation";
 
 /**
  * Rendered by ProtectedRoutes when an authenticated user opens a route their
@@ -11,7 +11,7 @@ import { DASHBOARD_PATH } from "../constant/navigation";
  */
 export default function UnauthorizedPage() {
   const { user } = useUser();
-  const dashboardPath = user ? DASHBOARD_PATH[user.role] : "/login";
+  const dashboardPath = user ? dashboardPathFor(user) : "/login";
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6 py-12">
