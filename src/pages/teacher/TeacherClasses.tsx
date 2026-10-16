@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FiBookOpen, FiClipboard, FiClock, FiHome, FiUsers } from "react-icons/fi";
 
 import { getAPICall } from "../../api/api";
+import { PageHeader, PageSection, PageShell, StatGrid, StatTile } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
 import { useUser } from "../../hooks/useUser";
 
@@ -100,36 +101,26 @@ export default function TeacherClasses() {
     // ==================== Loading state ====================
     if (userLoading || loading) {
         return (
-            <section className="teacher-classes flex flex-col gap-5" aria-busy="true">
-                <div className="teacher-classes__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                    <div className="teacher-classes__card-head flex flex-wrap items-center justify-between gap-4 p-5">
-                        <div className="teacher-classes__card-heading min-w-0">
-                            <h3 className="teacher-classes__card-title text-base font-bold">Gradebook</h3>
-                            <p className="teacher-classes__card-subtitle mt-1 text-[0.8125rem]">Loading…</p>
-                        </div>
-                    </div>
+            <PageShell className="teacher-classes" busy>
+                <PageSection className="teacher-classes__card" title="Gradebook" description="Loading…" flush>
                     <div className="p-6">
                         <Skeleton count={2} lines={1} height="10rem" radius="0.75rem" grid="repeat(2, 1fr)" />
                     </div>
-                </div>
-            </section>
+                </PageSection>
+            </PageShell>
         );
     }
 
     // ==================== Empty state ====================
     if (!teacher || classes.length === 0) {
         return (
-            <section className="teacher-classes flex flex-col gap-5">
-                <div className="teacher-classes__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                    <div className="teacher-classes__card-head flex flex-wrap items-center justify-between gap-4 p-5">
-                        <div className="teacher-classes__card-heading min-w-0">
-                            <h3 className="teacher-classes__card-title text-base font-bold">Gradebook</h3>
-                            <p className="teacher-classes__card-subtitle mt-1 text-[0.8125rem]">
-                                {teacher ? "No classes assigned yet" : "Teacher profile not found"}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="teacher-classes__empty flex flex-col items-center justify-center px-6 py-14 text-center">
+            <PageShell className="teacher-classes">
+                <PageSection
+                    className="teacher-classes__card"
+                    title="Gradebook"
+                    description={teacher ? "No classes assigned yet" : "Teacher profile not found"}
+                >
+                    <div className="teacher-classes__empty flex flex-col items-center justify-center py-10 text-center">
                         <span className="teacher-classes__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
                             <FiHome />
                         </span>
@@ -142,93 +133,37 @@ export default function TeacherClasses() {
                                 : "Your account is not linked to a teacher record yet."}
                         </p>
                     </div>
-                </div>
-            </section>
+                </PageSection>
+            </PageShell>
         );
     }
 
     // ==================== Main content ====================
     return (
-        <section className="teacher-classes flex flex-col gap-5">
-            {/* Hero banner */}
-            <div className="teacher-classes__hero flex flex-wrap items-center justify-between gap-4 p-6">
-                <div className="teacher-classes__hero-main flex min-w-0 items-center gap-4">
-                    <div className="teacher-classes__hero-heading min-w-0">
-                        <span className="teacher-classes__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
-                            Teacher
-                        </span>
-                        <h2 className="teacher-classes__hero-name mt-1 truncate text-[1.375rem] font-bold">
-                            {teacher.fullname}
-                        </h2>
-                        <p className="teacher-classes__hero-role mt-0.5 truncate text-[0.8125rem]">
-                            {teacher.email}
-                        </p>
-                    </div>
-                </div>
-                <div className="teacher-classes__hero-badge flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border px-3.5 py-2.5">
-                    <span className="teacher-classes__hero-badge-count text-[1.375rem] font-bold leading-none">
-                        {classes.length}
-                    </span>
-                    <span className="teacher-classes__hero-badge-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                        {classes.length === 1 ? "Class" : "Classes"}
-                    </span>
-                </div>
-            </div>
+        <PageShell className="teacher-classes">
+            {/* Header */}
+            <PageHeader
+                title={teacher.fullname}
+                description={teacher.email}
+                meta={`${classes.length} ${classes.length === 1 ? "class" : "classes"}`}
+            />
 
             {/* Quick stats */}
-            <div className="teacher-classes__stats grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="teacher-classes__stat flex items-center gap-3 rounded-xl border p-4">
-                    <span className="teacher-classes__stat-icon teacher-classes__stat-icon--green inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                        <FiHome />
-                    </span>
-                    <div className="min-w-0">
-                        <span className="teacher-classes__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Classes</span>
-                        <span className="teacher-classes__stat-value mt-0.5 block text-[1.125rem] font-bold">{classes.length}</span>
-                    </div>
-                </div>
-                <div className="teacher-classes__stat flex items-center gap-3 rounded-xl border p-4">
-                    <span className="teacher-classes__stat-icon teacher-classes__stat-icon--blue inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                        <FiUsers />
-                    </span>
-                    <div className="min-w-0">
-                        <span className="teacher-classes__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Students</span>
-                        <span className="teacher-classes__stat-value mt-0.5 block text-[1.125rem] font-bold">{totalStudents}</span>
-                    </div>
-                </div>
-                <div className="teacher-classes__stat flex items-center gap-3 rounded-xl border p-4">
-                    <span className="teacher-classes__stat-icon teacher-classes__stat-icon--amber inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                        <FiBookOpen />
-                    </span>
-                    <div className="min-w-0">
-                        <span className="teacher-classes__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Subjects</span>
-                        <span className="teacher-classes__stat-value mt-0.5 block text-[1.125rem] font-bold">{totalSubjects}</span>
-                    </div>
-                </div>
-                <div className="teacher-classes__stat flex items-center gap-3 rounded-xl border p-4">
-                    <span className="teacher-classes__stat-icon teacher-classes__stat-icon--rose inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                        <FiClock />
-                    </span>
-                    <div className="min-w-0">
-                        <span className="teacher-classes__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Weekly Load</span>
-                        <span className="teacher-classes__stat-value mt-0.5 block text-[1.125rem] font-bold">{weeklyHours} hrs</span>
-                    </div>
-                </div>
-            </div>
+            <StatGrid>
+                <StatTile label="Classes" value={classes.length} icon={FiHome} />
+                <StatTile label="Students" value={totalStudents} icon={FiUsers} />
+                <StatTile label="Subjects" value={totalSubjects} icon={FiBookOpen} />
+                <StatTile label="Weekly Load" value={`${weeklyHours} hrs`} icon={FiClock} />
+            </StatGrid>
 
             {/* Class cards with gradebook buttons */}
-            <div className="teacher-classes__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                <div className="teacher-classes__card-head flex flex-wrap items-center justify-between gap-4 p-5">
-                    <div className="teacher-classes__card-heading min-w-0">
-                        <h3 className="teacher-classes__card-title text-base font-bold">Gradebook</h3>
-                        <p className="teacher-classes__card-subtitle mt-1 text-[0.8125rem]">
-                            Select a subject to open its gradebook
-                        </p>
-                    </div>
-                    <span className="teacher-classes__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
-                        {classes.length} {classes.length === 1 ? "class" : "classes"}
-                    </span>
-                </div>
-
+            <PageSection
+                className="teacher-classes__card"
+                title="Gradebook"
+                description="Select a subject to open its gradebook"
+                actions={<span className="page__meta">{`${classes.length} ${classes.length === 1 ? "class" : "classes"}`}</span>}
+                flush
+            >
                 <div className="teacher-classes__grid grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
                     {classes.map((classItem) => (
                         <article
@@ -281,7 +216,7 @@ export default function TeacherClasses() {
                         </article>
                     ))}
                 </div>
-            </div>
-        </section>
+            </PageSection>
+        </PageShell>
     );
 }

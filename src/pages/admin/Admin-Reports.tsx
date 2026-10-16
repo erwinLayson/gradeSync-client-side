@@ -12,7 +12,7 @@ import {
     FiUsers
 } from "react-icons/fi";
 
-import { PageCard } from "../../components/PageCard";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import "../../style/adminReports.css";
 
@@ -320,20 +320,19 @@ export default function AdminReports() {
     const activeReport = reportTypes.find((type) => type.id === selectedType) ?? reportTypes[0]!;
 
     return (
-        <section className="reports flex flex-col gap-5">
-            {/* ==================== Report type picker ==================== */}
-            <PageCard className="reports__card">
-                <div className="reports__header flex flex-wrap items-center justify-between gap-4 p-5">
-                    <div className="reports__heading min-w-0">
-                        <span className="reports__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Report Builder</span>
-                        <h2 className="reports__title mt-1 text-base font-bold">Choose a report type</h2>
-                        <p className="reports__subtitle mt-1 text-[0.8125rem]">Select the report you want to generate, then preview it below.</p>
-                    </div>
-                    <span className="reports__preview-badge inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-semibold">
-                        {reportTypes.length} report types
-                    </span>
-                </div>
+        <PageShell className="reports">
+            <PageHeader
+                title="Reports"
+                description="Generate and export school reports for any school year, grade level, or section."
+            />
 
+            {/* ==================== Report type picker ==================== */}
+            <PageSection
+                className="reports__card"
+                title="Choose a report type"
+                description="Select the report you want to generate, then preview it below."
+                flush
+            >
                 <div className="reports__types grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
                     {reportTypes.map((type) => {
                         const Icon = type.icon;
@@ -365,10 +364,10 @@ export default function AdminReports() {
                         );
                     })}
                 </div>
-            </PageCard>
+            </PageSection>
 
             {/* ==================== Filters ==================== */}
-            <PageCard className="reports__card">
+            <PageSection className="reports__card" title="Filters" flush>
                 <div className="reports__toolbar flex flex-wrap items-end gap-4 p-5">
                     {[
                         { label: "School Year", value: schoolYear, setter: setSchoolYear, options: SCHOOL_YEARS },
@@ -391,24 +390,16 @@ export default function AdminReports() {
                         </label>
                     ))}
                 </div>
-            </PageCard>
+            </PageSection>
 
             {/* ==================== Preview ==================== */}
-            <PageCard className="reports__card">
-                <div className="reports__preview-head flex flex-wrap items-center justify-between gap-4 p-5">
-                    <div className="min-w-0">
-                        <span className="reports__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Preview</span>
-                        <h3 className="reports__title mt-1 text-base font-bold">
-                            {activeReport.label}
-                            <span className="reports__preview-badge ml-2 inline-flex rounded-full px-2.5 py-0.5 align-middle text-[0.6875rem] font-semibold">
-                                {format}
-                            </span>
-                        </h3>
-                        <p className="reports__subtitle mt-1 text-[0.8125rem]">
-                            {schoolYear} · {gradeLevel} · {section} · {quarter} · Showing the first 6 records
-                        </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
+            <PageSection
+                className="reports__card"
+                title={`${activeReport.label} · ${format}`}
+                description={`${schoolYear} · ${gradeLevel} · ${section} · ${quarter} · Showing the first 6 records`}
+                flush
+                actions={
+                    <>
                         <button type="button" className="reports__btn reports__btn--ghost inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold">
                             <FiPrinter aria-hidden="true" />
                             Print
@@ -417,9 +408,9 @@ export default function AdminReports() {
                             <FiDownload aria-hidden="true" />
                             Download {format}
                         </button>
-                    </div>
-                </div>
-
+                    </>
+                }
+            >
                 <div className="reports__preview overflow-x-auto">
                     <PreviewTable type={selectedType} />
                 </div>
@@ -431,18 +422,15 @@ export default function AdminReports() {
                     </p>
                     <span className="reports__preview-badge inline-flex shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold">6 of 1,248</span>
                 </div>
-            </PageCard>
+            </PageSection>
 
             {/* ==================== Recent reports ==================== */}
-            <PageCard className="reports__card">
-                <div className="reports__header flex flex-wrap items-center justify-between gap-4 p-5">
-                    <div className="min-w-0">
-                        <span className="reports__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">History</span>
-                        <h3 className="reports__title mt-1 text-base font-bold">Recent reports</h3>
-                        <p className="reports__subtitle mt-1 text-[0.8125rem]">Previously generated reports, ready to download again.</p>
-                    </div>
-                </div>
-
+            <PageSection
+                className="reports__card"
+                title="Recent reports"
+                description="Previously generated reports, ready to download again."
+                flush
+            >
                 <div className="flex flex-col gap-3 p-5 pt-0">
                     {RECENT_REPORTS.map((report) => (
                         <div key={report.name} className="reports__recent-row flex items-center gap-4 p-4">
@@ -464,7 +452,7 @@ export default function AdminReports() {
                         </div>
                     ))}
                 </div>
-            </PageCard>
-        </section>
+            </PageSection>
+        </PageShell>
     );
 }

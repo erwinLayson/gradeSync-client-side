@@ -1,0 +1,281 @@
+/* ============================================================
+   Minimal page structure
+   The shared frame every authenticated page renders inside:
+   PageShell  -> .page           (vertical rhythm)
+   PageHeader -> .page__header   (flat title block, no card)
+   PageSection-> .section__*     (flat card with a titled head)
+   StatTile   -> .stat-*         (flat small stat block)
+
+   Design rules: no gradients, no glows, no shadows. Surfaces are
+   white with a single hairline border; colour is used only for
+   meaning (status), never for decoration. Tokens come from
+   src/index.css.
+   ============================================================ */
+
+/* ---------- Page shell ---------- */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ---------- Page header (flat, sits on the page background) ---------- */
+.page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.page__header-text {
+  min-width: 0;
+}
+
+.page__title {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.page__description {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.page__header-aside {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.page__meta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ---------- Sections (flat cards) ---------- */
+.section {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-white);
+  overflow: hidden;
+}
+
+.section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.section__head-text {
+  min-width: 0;
+}
+
+.section__title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.section__description {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.section__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section__body {
+  padding: 1.25rem;
+}
+
+.section__body--flush {
+  padding: 0;
+}
+
+/* ---------- Stat tiles ---------- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.75rem;
+}
+
+.stat-tile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-white);
+}
+
+.stat-tile__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-size: 1rem;
+}
+
+.stat-tile__text {
+  min-width: 0;
+}
+
+.stat-tile__label {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.stat-tile__value {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+/* ============================================================
+   Minimal flattening
+   Neutralizes the legacy decorative treatments that predate the
+   shared structure — gradient hero banners, glows, colored chips
+   and stacked shadows — so every authenticated page reads as one
+   flat surface system. Layered here (and loaded globally) so it
+   wins over the per-page stylesheets.
+   ============================================================ */
+
+/* Legacy hero banners: flat white surface, hairline border, no glow. */
+.teacher-classes__hero,
+.teacher-classes__hero-main,
+.teacher-attendance__hero,
+.teacher-dashboard__hero,
+.teacher-gradebook__hero,
+.teacher-records__hero,
+.student-dashboard__hero,
+.student-classes__hero,
+.student-classes__details-hero,
+.student-prospectus__hero,
+.tracker__hero,
+.dashboard__hero,
+.settings__hero,
+.teacher-settings__hero {
+  background: var(--surface-white) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+.teacher-classes__hero,
+.teacher-attendance__hero,
+.teacher-dashboard__hero,
+.teacher-gradebook__hero,
+.teacher-records__hero,
+.student-dashboard__hero,
+.student-classes__hero,
+.student-classes__details-hero,
+.student-prospectus__hero,
+.tracker__hero,
+.dashboard__hero,
+.settings__hero,
+.teacher-settings__hero {
+  border: 1px solid var(--neutral-border) !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+/* Glow layers are decoration only. */
+.dashboard__hero-glow,
+.dashboard__hero-glow--accent,
+.dashboard__hero-glow--leaf {
+  display: none !important;
+}
+
+/* Legacy cards: drop shadows, keep one hairline border. */
+.analytics__card,
+.analytics__kpi,
+.dashboard__quick,
+.dashboard__snapshot,
+.dashboard__status,
+.dashboard__attention-item,
+.register-dashboard__action,
+.tracker__toolbar,
+.tracker__card,
+.teacher-settings__card,
+.teacher-classes__card,
+.teacher-attendance__card,
+.teacher-dashboard__card,
+.teacher-gradebook__card,
+.teacher-records__loading,
+.teacher-records__empty {
+  box-shadow: none !important;
+}
+
+/* Decorative pills/chips read as plain muted text. */
+.analytics__chip,
+.dashboard__hero-badge,
+.reports__preview-badge,
+.register-dashboard__hero-badge,
+.settings__badge,
+.settings__hero-badge,
+.teacher-classes__count,
+.teacher-classes__hero-badge,
+.teacher-attendance__hero-badge,
+.teacher-dashboard__hero-badge,
+.teacher-gradebook__hero-badge,
+.teacher-records__hero-badge,
+.student-dashboard__hero-badge,
+.student-classes__hero-badge,
+.student-prospectus__hero-badge,
+.tracker__hero-badge,
+.tracker__current-chip {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  color: var(--text-muted) !important;
+}
+
+/* Decorative icon tints collapse to one neutral accent. */
+.teacher-classes__stat-icon,
+.teacher-attendance__stat-icon,
+.teacher-dashboard__stat-icon,
+.student-dashboard__stat-icon,
+.student-classes__stat-icon,
+.student-prospectus__stat-icon,
+.dashboard__quick-icon,
+.dashboard__snapshot-icon {
+  background: var(--primary-light) !important;
+  color: var(--primary-dark) !important;
+}
+
+@media (max-width: 639px) {
+  .page__title {
+    font-size: 1.25rem;
+  }
+}

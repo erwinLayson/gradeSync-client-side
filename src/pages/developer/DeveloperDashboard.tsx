@@ -1,15 +1,14 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
-    FiActivity,
     FiArrowRight,
-    FiCalendar,
     FiCheckCircle,
     FiServer,
     FiXCircle,
 } from "react-icons/fi";
 
 import { KpiCard } from "../../components/KpiCard";
+import { PageHeader, PageShell } from "../../components/PageLayout";
 import { SkeletonLine } from "../../components/Skeleton";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 import { useAuth } from "../../hooks/useAuth";
@@ -48,34 +47,13 @@ export default function DeveloperDashboard() {
     ];
 
     return (
-        <section className="dashboard flex flex-col gap-5">
-            {/* ==================== Hero ==================== */}
-            <div className="dashboard__hero relative overflow-hidden rounded-2xl p-6 sm:p-8">
-                <div className="dashboard__hero-glow dashboard__hero-glow--accent" aria-hidden="true" />
-                <div className="dashboard__hero-glow dashboard__hero-glow--leaf" aria-hidden="true" />
-
-                <div className="relative z-10 flex flex-wrap items-start justify-between gap-6">
-                    <div className="flex min-w-0 items-start gap-4">
-                        <span className="dashboard__hero-icon inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl" aria-hidden="true">
-                            <FiActivity />
-                        </span>
-                        <div className="min-w-0">
-                            <span className="dashboard__hero-eyebrow text-[0.6875rem] font-bold uppercase tracking-[0.14em]">Developer Overview</span>
-                            <h2 className="dashboard__hero-title mt-1 text-2xl font-extrabold tracking-tight">{greeting}, Developer</h2>
-                            <p className="dashboard__hero-subtitle mt-1 text-sm">
-                                {today} — {email ? `${email} · ` : ""}platform tools
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3">
-                        <span className="dashboard__hero-badge inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-bold">
-                            <FiCalendar aria-hidden="true" />
-                            System features
-                        </span>
-                    </div>
-                </div>
-            </div>
+        <PageShell className="dashboard">
+            {/* ==================== Header ==================== */}
+            <PageHeader
+                title={`${greeting}, Developer`}
+                description={`${today} — ${email ? `${email} · ` : ""}platform tools`}
+                meta="System features"
+            />
 
             {/* ==================== At-a-glance KPIs ==================== */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -149,6 +127,6 @@ export default function DeveloperDashboard() {
                 <FiServer aria-hidden="true" />
                 Feature flags load from the platform (mock mode active when VITE_FEATURE_FLAGS_MOCK is set).
             </p>
-        </section>
+        </PageShell>
     );
 }

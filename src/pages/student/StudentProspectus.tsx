@@ -9,6 +9,7 @@ import {
 } from "react-icons/fi";
 
 import { getAPICall } from "../../api/api";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
 import { isPassing } from "../../helper/grades";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
@@ -71,76 +72,51 @@ export default function StudentProspectus() {
     // ==================== Loading state ====================
     if (loading) {
         return (
-            <section className="student-prospectus__page flex flex-col gap-5">
+            <PageShell className="student-prospectus">
                 <div className="student-prospectus__hero flex items-center gap-4 p-6">
                     <Skeleton avatar avatarSize={56} lines={0} className="flex-1" />
                 </div>
-                <div className="rounded-2xl bg-white p-6 shadow-sm">
-                    <Skeleton lines={4} gap="1rem" />
-                </div>
-            </section>
+                <PageSection flush>
+                    <div className="p-6">
+                        <Skeleton lines={4} gap="1rem" />
+                    </div>
+                </PageSection>
+            </PageShell>
         );
     }
 
     // ==================== Empty state ====================
     if (!student || years.length === 0) {
         return (
-            <section className="student-prospectus__page flex flex-col gap-5">
-                <div className="student-prospectus__hero flex flex-wrap items-center justify-between gap-4 p-6">
-                    <div className="flex min-w-0 items-center gap-4">
-                        <div className="min-w-0">
-                            <span className="student-prospectus__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
-                                Academic Prospectus
-                            </span>
-                            <h2 className="student-prospectus__hero-name mt-1 truncate text-[1.375rem] font-bold">
-                                {student?.fullname ?? "Student"}
-                            </h2>
-                            <p className="student-prospectus__hero-role mt-0.5 truncate text-[0.8125rem]">
-                                {student ? `LRN ${student.lrn} &middot; ${student.email}` : ""}
-                            </p>
-                        </div>
+            <PageShell className="student-prospectus">
+                <PageHeader
+                    title={student?.fullname ?? "Student"}
+                    description={student ? `LRN ${student.lrn} · ${student.email}` : "Academic Prospectus"}
+                />
+                <PageSection>
+                    <div className="flex flex-col items-center justify-center py-10 text-center">
+                        <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600" aria-hidden="true">
+                            <FiBookOpen />
+                        </span>
+                        <p className="mt-3 text-sm font-bold text-neutral-800">No academic records yet</p>
+                        <p className="mt-1 text-[0.8125rem] text-neutral-500">
+                            Your report card records will appear here once you have been enrolled.
+                        </p>
                     </div>
-                </div>
-                <div className="flex flex-col items-center justify-center rounded-2xl bg-white px-6 py-14 text-center shadow-sm">
-                    <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600" aria-hidden="true">
-                        <FiBookOpen />
-                    </span>
-                    <p className="mt-3 text-sm font-bold text-neutral-800">No academic records yet</p>
-                    <p className="mt-1 text-[0.8125rem] text-neutral-500">
-                        Your report card records will appear here once you have been enrolled.
-                    </p>
-                </div>
-            </section>
+                </PageSection>
+            </PageShell>
         );
     }
 
     // ==================== Academic history ====================
     return (
-        <section className="student-prospectus__page flex flex-col gap-5">
-            {/* ==================== Hero banner ==================== */}
-            <div className="student-prospectus__hero flex flex-wrap items-center justify-between gap-4 p-6">
-                <div className="flex min-w-0 items-center gap-4">
-                    <div className="min-w-0">
-                        <span className="student-prospectus__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
-                            Academic Prospectus
-                        </span>
-                        <h2 className="student-prospectus__hero-name mt-1 truncate text-[1.375rem] font-bold">
-                            {student.fullname}
-                        </h2>
-                        <p className="student-prospectus__hero-role mt-0.5 truncate text-[0.8125rem]">
-                            LRN {student.lrn} &middot; {student.email}
-                        </p>
-                    </div>
-                </div>
-                <div className="student-prospectus__hero-badge flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border px-3.5 py-2.5">
-                    <span className="student-prospectus__hero-badge-count text-[1.375rem] font-bold leading-none">
-                        {years.length}
-                    </span>
-                    <span className="student-prospectus__hero-badge-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                        School Years
-                    </span>
-                </div>
-            </div>
+        <PageShell className="student-prospectus">
+            {/* ==================== Header ==================== */}
+            <PageHeader
+                title={student.fullname}
+                description={`LRN ${student.lrn} · ${student.email}`}
+                meta={`${years.length} school ${years.length === 1 ? "year" : "years"}`}
+            />
 
             {/* ==================== Quick stats ==================== */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -351,6 +327,6 @@ export default function StudentProspectus() {
                 <FiBookOpen className="shrink-0" aria-hidden="true" />
                 Grades are computed from the recorded assessments. Official records (Form 137) are kept by the registrar.
             </p>
-        </section>
+        </PageShell>
     );
 }

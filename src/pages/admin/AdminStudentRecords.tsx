@@ -4,7 +4,6 @@ import {
     FiCalendar,
     FiCheckCircle,
     FiClock,
-    FiClipboard,
     FiRefreshCw,
     FiSkipForward,
     FiUsers,
@@ -18,7 +17,7 @@ import { getAPICall, patchAPICall } from "../../api/api";
 import { invalidateAcademicSettingsCache, useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ModalDialog } from "../../components/ModalDialog";
-import { PageCard } from "../../components/PageCard";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
 import { toast } from "../../helper/toast";
 
@@ -330,46 +329,29 @@ export default function AdminStudentRecords() {
     // ================= Loading =================
     if (loading) {
         return (
-            <section className="tracker flex flex-col gap-5" aria-busy="true" aria-label="Loading submission tracker">
-                <div className="tracker__loading rounded-2xl bg-white p-6 shadow-sm">
-                    <Skeleton lines={6} gap="1rem" />
-                </div>
-            </section>
+            <PageShell className="tracker" busy label="Loading submission tracker">
+                <PageSection flush>
+                    <div className="tracker__loading p-6">
+                        <Skeleton lines={6} gap="1rem" />
+                    </div>
+                </PageSection>
+            </PageShell>
         );
     }
 
     return (
-        <section className="tracker flex flex-col gap-5">
-            {/* ==================== Hero banner ==================== */}
-            <div className="tracker__hero flex flex-wrap items-center justify-between gap-4 p-6">
-                <div className="tracker__hero-main flex min-w-0 items-center gap-4">
-                    <span
-                        className="tracker__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-xl"
-                        aria-hidden="true"
-                    >
-                        <FiClipboard />
-                    </span>
-                    <div className="tracker__hero-heading min-w-0">
-                        <span className="tracker__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
-                            Quarter {currentQuarter ?? "—"} in progress
-                        </span>
-                        <h2 className="tracker__hero-name mt-1 truncate text-[1.375rem] font-bold">
-                            Submission Tracker
-                        </h2>
-                        <p className="tracker__hero-role mt-0.5 truncate text-[0.8125rem]">
-                            Which classes have submitted their student records for each quarter.
-                        </p>
-                    </div>
-                </div>
-                <div className="tracker__hero-badge flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border px-3.5 py-2.5">
-                    <span className="tracker__hero-badge-count text-[1.375rem] font-bold leading-none">
-                        {selectedYear ? `SY ${selectedYear.startYear}–${selectedYear.endYear}` : "SY —"}
-                    </span>
-                    <span className="tracker__hero-badge-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                        School Year
-                    </span>
-                </div>
-            </div>
+        <PageShell className="tracker">
+            {/* ==================== Header ==================== */}
+            <PageHeader
+                title="Submission Tracker"
+                description="Which classes have submitted their student records for each quarter."
+                meta={
+                    <>
+                        Quarter {currentQuarter ?? "—"}
+                        {selectedYear ? ` · SY ${selectedYear.startYear}–${selectedYear.endYear}` : " · SY —"}
+                    </>
+                }
+            />
 
             {/* Quarter advancement is validated against the ACTIVE school year, so
                 name that year whenever it is not the one being viewed. */}
@@ -391,14 +373,12 @@ export default function AdminStudentRecords() {
             )}
 
             {/* ==================== Toolbar ==================== */}
-            <div className="tracker__toolbar flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm">
-                <div className="tracker__toolbar-heading min-w-0">
-                    <h3 className="tracker__toolbar-title text-[0.9375rem] font-bold">Class submission matrix</h3>
-                    <p className="tracker__toolbar-subtitle mt-0.5 text-[0.8125rem]">
-                        Click any quarter cell to see which students still need to be submitted.
-                    </p>
-                </div>
-                <div className="flex items-center gap-2">
+            <PageSection
+                className="tracker__toolbar"
+                title="Class submission matrix"
+                description="Click any quarter cell to see which students still need to be submitted."
+            >
+                <div className="flex flex-wrap items-center gap-2">
                     <label className="tracker__year flex items-center gap-2 rounded-lg border px-3 py-2 text-[0.8125rem] font-semibold">
                         <FiCalendar className="tracker__year-icon" aria-hidden="true" />
                         <span className="tracker__year-label">School Year</span>
@@ -426,10 +406,10 @@ export default function AdminStudentRecords() {
                         {advancing ? "Advancing…" : `Advance to Q${(currentQuarter ?? 0) + 1}`}
                     </button>
                 </div>
-            </div>
+            </PageSection>
 
             {/* ==================== Matrix ==================== */}
-            <PageCard className="tracker__card">
+            <PageSection className="tracker__card" flush>
                 {summary.length === 0 ? (
                     <div className="tracker__empty flex flex-col items-center justify-center px-6 py-20 text-center">
                         <span
@@ -578,14 +558,14 @@ export default function AdminStudentRecords() {
                         submitting student records.
                     </p>
                 </div>
-            </PageCard>
+            </PageSection>
 
             {/* ==================== Drill-down modal ==================== */}
             <ModalDialog
                 open={drilldown !== null}
                 onClose={() => setDrilldown(null)}
                 labelledById="tracker-modal-title"
-                className="tracker__modal-panel w-full max-w-[40rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+                className="tracker__modal-panel w-full max-w-[40rem] overflow-y-auto rounded-2xl border border-[var(--neutral-border)] bg-white"
             >
                 {drilldown && (
                     <>
@@ -710,6 +690,6 @@ export default function AdminStudentRecords() {
                 onConfirm={handleAdvanceQuarter}
                 onClose={() => setConfirmAdvance(false)}
             />
-        </section>
+        </PageShell>
     );
 }

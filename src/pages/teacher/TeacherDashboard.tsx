@@ -13,6 +13,7 @@ import {
 import { useTeacherOverview } from "../../hooks/useTeacherOverview";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import GenderPieChart from "../../components/GenderPieChart";
+import { PageHeader, PageSection, PageShell, StatGrid, StatTile } from "../../components/PageLayout";
 
 import "../../style/teacherDashboard.css";
 
@@ -35,14 +36,11 @@ export default function TeacherDashboard() {
     // ==================== Loading state ====================
     if (loading) {
         return (
-            <section className="teacher-dashboard flex flex-col gap-5" aria-busy="true" aria-label="Loading dashboard">
+            <PageShell className="teacher-dashboard" busy label="Loading dashboard">
                 <div className="teacher-dashboard__hero flex flex-wrap items-center justify-between gap-4 p-6">
-                    <div className="teacher-dashboard__hero-main flex min-w-0 items-center gap-4">
-                        <span className="teacher-dashboard__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-bold" aria-hidden="true" />
-                        <div className="teacher-dashboard__hero-heading min-w-0">
-                            <div className="teacher-dashboard__skeleton-bar teacher-dashboard__skeleton-bar--short" />
-                            <div className="teacher-dashboard__skeleton-bar teacher-dashboard__skeleton-bar--long mt-2" />
-                        </div>
+                    <div className="teacher-dashboard__hero-heading min-w-0">
+                        <div className="teacher-dashboard__skeleton-bar teacher-dashboard__skeleton-bar--short" />
+                        <div className="teacher-dashboard__skeleton-bar teacher-dashboard__skeleton-bar--long mt-2" />
                     </div>
                 </div>
                 <div className="teacher-dashboard__stats grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -56,24 +54,20 @@ export default function TeacherDashboard() {
                         </div>
                     ))}
                 </div>
-            </section>
+            </PageShell>
         );
     }
 
     // ==================== Error / empty state ====================
     if (error || !teacher) {
         return (
-            <section className="teacher-dashboard flex flex-col gap-5">
-                <div className="teacher-dashboard__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                    <div className="teacher-dashboard__card-head flex flex-wrap items-center justify-between gap-4 p-5">
-                        <div className="teacher-dashboard__card-heading min-w-0">
-                            <h3 className="teacher-dashboard__card-title text-base font-bold">Dashboard</h3>
-                            <p className="teacher-dashboard__card-subtitle mt-1 text-[0.8125rem]">
-                                Unable to load your dashboard data
-                            </p>
-                        </div>
-                    </div>
-                    <div className="teacher-dashboard__empty flex flex-col items-center justify-center px-6 py-14 text-center">
+            <PageShell className="teacher-dashboard">
+                <PageSection
+                    className="teacher-dashboard__card"
+                    title="Dashboard"
+                    description="Unable to load your dashboard data"
+                >
+                    <div className="teacher-dashboard__empty flex flex-col items-center justify-center py-10 text-center">
                         <span className="teacher-dashboard__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
                             <FiAlertCircle />
                         </span>
@@ -82,8 +76,8 @@ export default function TeacherDashboard() {
                             Your teacher profile may not be linked to your account yet. Contact the administrator.
                         </p>
                     </div>
-                </div>
-            </section>
+                </PageSection>
+            </PageShell>
         );
     }
 
@@ -96,74 +90,21 @@ export default function TeacherDashboard() {
 
     // ==================== Main content ====================
     return (
-        <section className="teacher-dashboard flex flex-col gap-5">
-            {/* ==================== Hero banner ==================== */}
-            <div className="teacher-dashboard__hero flex flex-wrap items-center justify-between gap-4 p-6">
-                <div className="teacher-dashboard__hero-main flex min-w-0 items-center gap-4">
-                    <div className="teacher-dashboard__hero-heading min-w-0">
-                        <span className="teacher-dashboard__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
-                            Teacher Dashboard
-                        </span>
-                        <h2 className="teacher-dashboard__hero-name mt-1 truncate text-[1.375rem] font-bold">
-                            Welcome back, {teacher.fullname.split(" ")[0]}!
-                        </h2>
-                        <p className="teacher-dashboard__hero-role mt-0.5 truncate text-[0.8125rem]">
-                            {teacher.email}
-                        </p>
-                    </div>
-                </div>
-                <div className="teacher-dashboard__hero-badge flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border px-3.5 py-2.5">
-                    <span className="teacher-dashboard__hero-badge-count text-[1.375rem] font-bold leading-none">
-                        {dateLabel}
-                    </span>
-                    <span className="teacher-dashboard__hero-badge-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                        {dayName} &middot; {yearLabel}
-                    </span>
-                </div>
-            </div>
+        <PageShell className="teacher-dashboard">
+            {/* ==================== Header ==================== */}
+            <PageHeader
+                title={`Welcome back, ${teacher.fullname.split(" ")[0]}!`}
+                description={teacher.email}
+                meta={`${dateLabel} · ${dayName} · ${yearLabel}`}
+            />
 
             {/* ==================== Quick stats ==================== */}
-            <div className="teacher-dashboard__stats grid grid-cols-2 gap-3 lg:grid-cols-4">
-                <div className="teacher-dashboard__stat flex items-center gap-3 rounded-xl border p-4">
-                    <span className="teacher-dashboard__stat-icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                        <FiHome />
-                    </span>
-                    <div className="min-w-0">
-                        <span className="teacher-dashboard__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Advised Classes</span>
-                        <span className="teacher-dashboard__stat-value mt-0.5 block text-[1.125rem] font-bold">{adviserClasses?.length}</span>
-                    </div>
-                </div>
-
-                <div className="teacher-dashboard__stat flex items-center gap-3 rounded-xl border p-4">
-                    <span className="teacher-dashboard__stat-icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                        <FiUsers />
-                    </span>
-                    <div className="min-w-0">
-                        <span className="teacher-dashboard__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Advised Students</span>
-                        <span className="teacher-dashboard__stat-value mt-0.5 block text-[1.125rem] font-bold">{totalStudents}</span>
-                    </div>
-                </div>
-
-                <div className="teacher-dashboard__stat flex items-center gap-3 rounded-xl border p-4">
-                    <span className="teacher-dashboard__stat-icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                        <FiBookOpen />
-                    </span>
-                    <div className="min-w-0">
-                        <span className="teacher-dashboard__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Subjects Taught</span>
-                        <span className="teacher-dashboard__stat-value mt-0.5 block text-[1.125rem] font-bold">{totalSubjects}</span>
-                    </div>
-                </div>
-
-                <div className="teacher-dashboard__stat flex items-center gap-3 rounded-xl border p-4">
-                    <span className="teacher-dashboard__stat-icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                        <FiClock />
-                    </span>
-                    <div className="min-w-0">
-                        <span className="teacher-dashboard__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">Weekly Load</span>
-                        <span className="teacher-dashboard__stat-value mt-0.5 block text-[1.125rem] font-bold">{weeklyHours} hrs</span>
-                    </div>
-                </div>
-            </div>
+            <StatGrid>
+                <StatTile label="Advised Classes" value={adviserClasses?.length} icon={FiHome} />
+                <StatTile label="Advised Students" value={totalStudents} icon={FiUsers} />
+                <StatTile label="Subjects Taught" value={totalSubjects} icon={FiBookOpen} />
+                <StatTile label="Weekly Load" value={`${weeklyHours} hrs`} icon={FiClock} />
+            </StatGrid>
 
             {/* ==================== Quick actions + Adviser Classes ==================== */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -386,6 +327,6 @@ export default function TeacherDashboard() {
                     </div>
                 </div>
             )}
-        </section>
+        </PageShell>
     );
 }

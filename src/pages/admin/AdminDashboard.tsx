@@ -19,7 +19,7 @@ import {
 import { getAPICall } from "../../api/api";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { KpiCard, type KpiTrend } from "../../components/KpiCard";
-import { PageCard } from "../../components/PageCard";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import { SkeletonLine } from "../../components/Skeleton";
 import type { DashboardSummary } from "../../constant/dashboard";
 
@@ -158,24 +158,17 @@ export default function AdminDashboard() {
     // ==================== Loading state ====================
     if (loading && summary === null) {
         return (
-            <section className="dashboard flex flex-col gap-5" aria-busy="true">
-                {/* Hero skeleton */}
-                <PageCard className="dashboard__hero relative p-4 sm:p-6">
-                    <div className="relative z-10 flex flex-wrap items-start justify-between gap-6">
-                        <div className="flex min-w-0 items-start gap-4">
-                            <SkeletonLine width="3.5rem" height="3.5rem" radius="var(--radius-lg)" />
-                            <div className="flex flex-col gap-2">
-                                <SkeletonLine width="7rem" height="0.75rem" />
-                                <SkeletonLine width="14rem" height="1.5rem" />
-                                <SkeletonLine width="18rem" height="0.875rem" />
-                            </div>
+            <PageShell className="dashboard" busy>
+                {/* Header skeleton */}
+                <PageSection flush>
+                    <div className="flex flex-wrap items-start justify-between gap-4 p-5">
+                        <div className="flex flex-col gap-2">
+                            <SkeletonLine width="14rem" height="1.5rem" />
+                            <SkeletonLine width="18rem" height="0.875rem" />
                         </div>
-                        <div className="flex gap-3">
-                            <SkeletonLine width="8rem" height="2rem" radius="9999px" />
-                            <SkeletonLine width="7rem" height="2rem" radius="9999px" />
-                        </div>
+                        <SkeletonLine width="8rem" height="2rem" radius="9999px" />
                     </div>
-                </PageCard>
+                </PageSection>
 
                 {/* KPI skeletons */}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -203,85 +196,54 @@ export default function AdminDashboard() {
                         </div>
                     ))}
                 </div>
-            </section>
+            </PageShell>
         );
     }
 
     // ==================== Error state ====================
     if (error && summary === null) {
         return (
-            <section className="dashboard flex flex-col gap-5">
-                <PageCard className="dashboard__hero relative p-6 sm:p-8">
-                    <div className="relative z-10 flex flex-col items-center justify-center gap-4 py-8 text-center">
-                        <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-2xl text-white">
+            <PageShell className="dashboard">
+                <PageSection>
+                    <div className="flex flex-col items-center justify-center gap-4 py-4 text-center">
+                        <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--primary-light)] text-2xl text-[var(--primary-dark)]">
                             <FiAlertCircle />
                         </span>
                         <div>
-                            <h2 className="text-lg font-bold text-white">Unable to load dashboard data</h2>
-                            <p className="mt-1 text-sm text-white/70">Please check your connection and try again.</p>
+                            <h2 className="text-lg font-bold text-neutral-800">Unable to load dashboard data</h2>
+                            <p className="mt-1 text-sm text-neutral-500">Please check your connection and try again.</p>
                         </div>
                         <button
                             type="button"
                             onClick={handleRetry}
-                            className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-white/15 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/25"
+                            className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--neutral-border)] px-4 py-2.5 text-sm font-semibold text-neutral-700 transition-colors hover:border-[var(--primary)]"
                         >
                             <FiRefreshCw aria-hidden="true" />
                             Retry
                         </button>
                     </div>
-                </PageCard>
-            </section>
+                </PageSection>
+            </PageShell>
         );
     }
 
     // ==================== Render ====================
     return (
-        <section className="dashboard flex flex-col gap-5" aria-busy={loading}>
-            {/* ==================== Hero ==================== */}
-            <PageCard className="dashboard__hero relative p-4 sm:p-6">
-                <div className="dashboard__hero-glow dashboard__hero-glow--accent" aria-hidden="true" />
-                <div className="dashboard__hero-glow dashboard__hero-glow--leaf" aria-hidden="true" />
-
-                <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
-                    <div className="flex min-w-0 items-start gap-4">
-                        <span className="dashboard__hero-icon inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl" aria-hidden="true">
-                            <FiActivity />
-                        </span>
-                        <div className="min-w-0">
-                            <span className="dashboard__hero-eyebrow text-[0.6875rem] font-bold uppercase tracking-[0.14em]">Admin Overview</span>
-                            <h2 className="dashboard__hero-title mt-1 text-xl font-extrabold tracking-tight">{greeting}, Admin</h2>
-                            <p className="dashboard__hero-subtitle mt-1 text-sm">
-                                Here&apos;s the current academic status of your school.
-                            </p>
-                            {academicContext && (
-                                <p className="dashboard__hero-academic mt-1.5 text-xs font-bold tracking-wide">
-                                    {academicContext}
-                                </p>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3">
-                        <span className="layout__date hidden items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold sm:inline-flex">
-                            <FiCalendar aria-hidden="true" />
-                            {today}
-                        </span>
-                        {loading ? (
-                            <span
-                                className="dashboard__hero-badge inline-flex items-center gap-2 rounded-full px-3.5 py-2"
-                                aria-hidden="true"
-                            >
-                                <SkeletonLine width="5.5rem" height="0.875rem" radius="9999px" />
-                            </span>
-                        ) : (
-                            <span className={`dashboard__hero-badge ${enrollmentOpen === false ? "dashboard__hero-badge--closed" : "dashboard__hero-badge--open"} inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-bold`}>
-                                {enrollmentOpen === false ? <FiXCircle aria-hidden="true" /> : <FiCheckCircle aria-hidden="true" />}
-                                {enrollmentOpen === false ? "Enrollment Closed" : "Enrollment Open"}
-                            </span>
-                        )}
-                    </div>
-                </div>
-            </PageCard>
+        <PageShell className="dashboard" busy={loading}>
+            {/* ==================== Header ==================== */}
+            <PageHeader
+                title={`${greeting}, Admin`}
+                description="Here&apos;s the current academic status of your school."
+                meta={
+                    [
+                        academicContext,
+                        enrollmentOpen === null ? null : enrollmentOpen ? "Enrollment open" : "Enrollment closed",
+                        `Today · ${today}`,
+                    ]
+                        .filter(Boolean)
+                        .join(" · ")
+                }
+            />
 
             {/* ==================== KPI cards ==================== */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -325,7 +287,7 @@ export default function AdminDashboard() {
 
             {/* ==================== Attention Required ==================== */}
             {summary && summary.attentionItems.length > 0 && (
-                <PageCard className="analytics__card">
+                <PageSection className="analytics__card" flush>
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Attention Required</span>
@@ -368,11 +330,11 @@ export default function AdminDashboard() {
                             </div>
                         ))}
                     </div>
-                </PageCard>
+                </PageSection>
             )}
 
             {summary && summary.attentionItems.length === 0 && !loading && (
-                <PageCard className="analytics__card">
+                <PageSection className="analytics__card" flush>
                     <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
                         <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#EAF5EE] text-xl text-[#176B3A]">
                             <FiCheckCircle />
@@ -382,12 +344,12 @@ export default function AdminDashboard() {
                             <p className="mt-0.5 text-[0.8125rem] text-neutral-500">No administrative issues require attention right now.</p>
                         </div>
                     </div>
-                </PageCard>
+                </PageSection>
             )}
 
             {/* ==================== Academic Progress ==================== */}
             {summary && (gradeSubmissionPercent !== null || summary.academicProgress.classesWithoutAdviser > 0) && (
-                <PageCard className="analytics__card">
+                <PageSection className="analytics__card" flush>
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Academic Progress</span>
@@ -445,12 +407,12 @@ export default function AdminDashboard() {
                             </div>
                         )}
                     </div>
-                </PageCard>
+                </PageSection>
             )}
 
             {/* ==================== Enrollment status + At a Glance ==================== */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                <PageCard className="analytics__card">
+                <PageSection className="analytics__card" flush>
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Enrollment</span>
@@ -549,9 +511,9 @@ export default function AdminDashboard() {
                             </div>
                         )}
                     </div>
-                </PageCard>
+                </PageSection>
 
-                <PageCard className="analytics__card">
+                <PageSection className="analytics__card" flush>
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Snapshot</span>
@@ -611,14 +573,14 @@ export default function AdminDashboard() {
                             );
                         })}
                     </div>
-                </PageCard>
+                </PageSection>
             </div>
 
             {/* ==================== Students per School Year ==================== */}
             {summary && (
                 <StudentsPerSchoolYearCard loading={loading} />
             )}
-        </section>
+        </PageShell>
     );
 }
 
@@ -664,7 +626,7 @@ function StudentsPerSchoolYearCard({ loading: parentLoading }: { loading: boolea
         : "0,120 0,120";
 
     return (
-        <PageCard className="analytics__card">
+        <PageSection className="analytics__card" flush>
             <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                 <div className="min-w-0">
                     <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Enrollment</span>
@@ -743,6 +705,6 @@ function StudentsPerSchoolYearCard({ loading: parentLoading }: { loading: boolea
                     </p>
                 </div>
             )}
-        </PageCard>
+        </PageSection>
     );
 }

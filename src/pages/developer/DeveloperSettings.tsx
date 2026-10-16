@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FiEye, FiEyeOff, FiLock, FiMail, FiUser, FiAlertCircle, FiCheckCircle } from "react-icons/fi";
 
 import { putAPICall } from "../../api/api";
+import { PageShell } from "../../components/PageLayout";
 import { useAuth } from "../../hooks/useAuth";
 import { useUser } from "../../hooks/useUser";
 import "../../style/analyticsReports.css";
@@ -114,9 +115,9 @@ export default function DeveloperSettings() {
     }
 
     return (
-        <section className="flex flex-col gap-5">
+        <PageShell>
             {/* ==================== Account card ==================== */}
-            <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <div className="analytics__card section overflow-hidden">
                 <div className="border-b p-5">
                     <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Configuration</span>
                     <h3 className="analytics__title mt-1 text-base font-bold">Developer Settings</h3>
@@ -140,7 +141,7 @@ export default function DeveloperSettings() {
             </div>
 
             {/* ==================== Email card ==================== */}
-            <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <div className="analytics__card section overflow-hidden">
                 <div className="border-b p-5">
                     <h3 className="text-base font-bold text-neutral-800">Change Email</h3>
                     <p className="mt-1 text-[0.8125rem] text-neutral-500">
@@ -212,7 +213,7 @@ export default function DeveloperSettings() {
             </div>
 
             {/* ==================== Password card ==================== */}
-            <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <div className="analytics__card section overflow-hidden">
                 <div className="border-b p-5">
                     <h3 className="text-base font-bold text-neutral-800">Change Password</h3>
                     <p className="mt-1 text-[0.8125rem] text-neutral-500">
@@ -303,6 +304,6 @@ export default function DeveloperSettings() {
                     </button>
                 </form>
             </div>
-        </section>
+        </PageShell>
     );
 }

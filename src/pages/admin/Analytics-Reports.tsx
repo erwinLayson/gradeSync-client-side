@@ -14,7 +14,7 @@ import {
 
 import { getAPICall } from "../../api/api";
 import { KpiCard } from "../../components/KpiCard";
-import { PageCard } from "../../components/PageCard";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import { SkeletonLine } from "../../components/Skeleton";
 import "../../style/skeleton.css";
 import "../../style/analyticsReports.css";
@@ -203,19 +203,16 @@ export default function AnalyticsReports() {
     const failedCount = Math.max(0, gradedEnrollments - passingCount);
 
     return (
-        <section className="analytics flex flex-col gap-5">
+        <PageShell className="analytics">
             {/* ==================== Header ==================== */}
-            <PageCard variant="flat" className="analytics__card">
-                <div className="analytics__header flex flex-wrap items-center justify-between gap-4 p-5">
-                    <div className="min-w-0">
-                        <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">School Performance</span>
-                        <h2 className="analytics__title mt-1 text-base font-bold">Reports &amp; Analytics</h2>
-                        <p className="analytics__subtitle mt-1 text-[0.8125rem]">High-level snapshot of enrollment, grades, attendance, and subject performance.</p>
-                    </div>
-                    <label className="flex flex-col gap-1.5">
-                        <span className="analytics__subtitle text-[0.6875rem] font-bold uppercase tracking-[0.08em]">School Year</span>
+            <PageHeader
+                title="Reports & Analytics"
+                description="High-level snapshot of enrollment, grades, attendance, and subject performance."
+                actions={
+                    <label className="flex items-center gap-2">
+                        <span className="page__meta">School Year</span>
                         <select
-                            className="analytics__select rounded-lg border px-3 py-2.5 text-sm"
+                            className="analytics__select rounded-lg border px-3 py-2 text-sm"
                             value={schoolYearId ?? ""}
                             onChange={(event) => setSchoolYearId(Number(event.target.value))}
                         >
@@ -225,8 +222,8 @@ export default function AnalyticsReports() {
                             ))}
                         </select>
                     </label>
-                </div>
-            </PageCard>
+                }
+            />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {kpis.map((kpi) => (
                     <KpiCard
@@ -250,7 +247,7 @@ export default function AnalyticsReports() {
 
             {/* ==================== Enrollment bars + passing donut ==================== */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                <PageCard variant="flat" className="analytics__card">
+                <PageSection className="analytics__card" flush>
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Enrollment</span>
@@ -313,9 +310,9 @@ export default function AnalyticsReports() {
                             </div>
                         </div>
                     )}
-                </PageCard>
+                </PageSection>
 
-                <PageCard variant="flat" className="analytics__card">
+                <PageSection className="analytics__card" flush>
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Grades</span>
@@ -373,12 +370,12 @@ export default function AnalyticsReports() {
                             </div>
                         </div>
                     )}
-                </PageCard>
+                </PageSection>
             </div>
 
             {/* ==================== Subject bars + attendance trend ==================== */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                <PageCard variant="flat" className="analytics__card">
+                <PageSection className="analytics__card" flush>
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Academics</span>
@@ -412,9 +409,9 @@ export default function AnalyticsReports() {
                             ))}
                         </div>
                     )}
-                </PageCard>
+                </PageSection>
 
-                <PageCard variant="flat" className="analytics__card">
+                <PageSection className="analytics__card" flush>
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Attendance</span>
@@ -487,12 +484,12 @@ export default function AnalyticsReports() {
                             </div>
                         </div>
                     )}
-                </PageCard>
+                </PageSection>
             </div>
 
             {/* ==================== Top performers + subject summary ==================== */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                <PageCard variant="flat" className="analytics__card">
+                <PageSection className="analytics__card" flush>
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Achievers</span>
@@ -552,9 +549,9 @@ export default function AnalyticsReports() {
                             </table>
                         </div>
                     )}
-                </PageCard>
+                </PageSection>
 
-                <PageCard variant="flat" className="analytics__card">
+                <PageSection className="analytics__card" flush>
                     <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
                         <div className="min-w-0">
                             <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Summary</span>
@@ -605,14 +602,14 @@ export default function AnalyticsReports() {
                             </tbody>
                         </table>
                     </div>
-                </PageCard>
+                </PageSection>
             </div>
 
             <p className="analytics__subtitle flex items-center gap-2 px-1 text-[0.75rem]">
                 <FiBarChart2 aria-hidden="true" />
                 Live data from the GradeSync database{schoolYearId !== undefined && schoolYears.length > 0 ? ` · ${formatSchoolYear(schoolYears.find((y) => y.id === schoolYearId) ?? schoolYears[0]!)}` : ""}.
             </p>
-        </section>
+        </PageShell>
     );
 }
 

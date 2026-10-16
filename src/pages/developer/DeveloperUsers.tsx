@@ -9,11 +9,13 @@ import {
     FiServer,
     FiShield,
     FiUserCheck,
+    FiUserPlus,
     FiUserX,
     FiUsers,
 } from "react-icons/fi";
 
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { PageShell } from "../../components/PageLayout";
 import { ModalDialog } from "../../components/ModalDialog";
 import { SkeletonLine } from "../../components/Skeleton";
 import { getAPICall, patchAPICall, postAPICall } from "../../api/api";
@@ -43,6 +45,7 @@ const ROLE_FILTERS: Array<{ label: string; value: UserRoles | "all" }> = [
     { label: "Admins", value: ROLES.ADMIN },
     { label: "Teachers", value: ROLES.TEACHER },
     { label: "Students", value: ROLES.STUDENT },
+    { label: "Registrars", value: ROLES.REGISTER },
     { label: "Developers", value: ROLES.DEVELOPER },
 ];
 
@@ -50,6 +53,7 @@ const ROLE_META: Record<UserRoles, { label: string; icon: typeof FiShield }> = {
     [ROLES.ADMIN]: { label: "Admin", icon: FiShield },
     [ROLES.TEACHER]: { label: "Teacher", icon: FiBookOpen },
     [ROLES.STUDENT]: { label: "Student", icon: FiUsers },
+    [ROLES.REGISTER]: { label: "Register", icon: FiUserPlus },
     [ROLES.DEVELOPER]: { label: "Developer", icon: FiServer },
 };
 
@@ -270,9 +274,9 @@ export default function DeveloperUsers() {
     const loading = accounts === null;
 
     return (
-        <section className="flex flex-col gap-5">
+        <PageShell>
             {/* ==================== Header card ==================== */}
-            <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <div className="analytics__card section overflow-hidden">
                 <div className="flex flex-wrap items-center justify-between gap-3 p-5">
                     <div className="min-w-0">
                         <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Platform</span>
@@ -289,7 +293,7 @@ export default function DeveloperUsers() {
             </div>
 
             {/* ==================== Role login switches ==================== */}
-            <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <div className="analytics__card section overflow-hidden">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b p-5">
                     <div className="min-w-0">
                         <h4 className="text-sm font-bold text-neutral-800">Role login switches</h4>
@@ -361,7 +365,7 @@ export default function DeveloperUsers() {
             </div>
 
             {/* ==================== Filters + list ==================== */}
-            <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <div className="analytics__card section overflow-hidden">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b p-5">
                     <div className="min-w-0">
                         <h4 className="text-sm font-bold text-neutral-800">All accounts</h4>
@@ -645,6 +649,6 @@ export default function DeveloperUsers() {
                     Live account data — changes apply immediately. You cannot deactivate your own account or remove the last active developer.
                 </p>
             )}
-        </section>
+        </PageShell>
     );
 }

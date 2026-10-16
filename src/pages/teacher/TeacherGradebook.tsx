@@ -23,6 +23,7 @@ import { deleteAPICall, getAPICall, patchAPICall, postAPICall, putAPICall } from
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ModalDialog } from "../../components/ModalDialog";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
 import { toast } from "../../helper/toast";
 import { computeFlatQuarterGradePreview, isPassing } from "../../helper/grades";
@@ -548,16 +549,18 @@ export default function TeacherGradebook() {
 
     if (loading) {
         return (
-            <section className="teacher-gradebook flex flex-col gap-5">
-                <div className="teacher-gradebook__card overflow-hidden rounded-2xl bg-white p-5 shadow-sm">
-                    <Skeleton lines={5} gap="1rem" />
-                </div>
-            </section>
+            <PageShell className="teacher-gradebook" busy>
+                <PageSection className="teacher-gradebook__card" flush>
+                    <div className="p-5">
+                        <Skeleton lines={5} gap="1rem" />
+                    </div>
+                </PageSection>
+            </PageShell>
         );
     }
 
     return (
-        <section className="teacher-gradebook flex flex-col gap-5">
+        <PageShell className="teacher-gradebook">
             {/* ==================== Back button ==================== */}
             <button
                 type="button"
@@ -569,37 +572,13 @@ export default function TeacherGradebook() {
                 <span className="text-sm font-bold">Back to Classes</span>
             </button>
 
-            {/* ==================== Hero banner ==================== */}
+            {/* ==================== Header ==================== */}
             {gradeBookDetails && (
-                <div className="teacher-gradebook__hero flex flex-wrap items-center justify-between gap-4 p-6">
-                    <div className="teacher-gradebook__hero-main flex min-w-0 items-center gap-4">
-                        <span
-                            className="teacher-gradebook__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-xl"
-                            aria-hidden="true"
-                        >
-                            <FiBookOpen />
-                        </span>
-                        <div className="teacher-gradebook__hero-heading min-w-0">
-                            <span className="teacher-gradebook__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
-                                Grade {gradeBookDetails.classLevel} &middot; {gradeBookDetails.classSection}
-                            </span>
-                            <h2 className="teacher-gradebook__hero-name mt-1 truncate text-[1.375rem] font-bold">
-                                {gradeBookDetails.subjectName}
-                            </h2>
-                            <p className="teacher-gradebook__hero-role mt-0.5 truncate text-[0.8125rem]">
-                                {gradeBookDetails.subjectCode}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="teacher-gradebook__hero-badge flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border px-3.5 py-2.5">
-                        <span className="teacher-gradebook__hero-badge-count text-[1.375rem] font-bold leading-none">
-                            Q{quarter}
-                        </span>
-                        <span className="teacher-gradebook__hero-badge-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                            Quarter
-                        </span>
-                    </div>
-                </div>
+                <PageHeader
+                    title={gradeBookDetails.subjectName}
+                    description={gradeBookDetails.subjectCode}
+                    meta={`Grade ${gradeBookDetails.classLevel} · ${gradeBookDetails.classSection} · Q${quarter}`}
+                />
             )}
 
             {/* ==================== Quarter tabs + actions ==================== */}
@@ -1236,6 +1215,6 @@ export default function TeacherGradebook() {
                 onConfirm={handleDeleteAssessment}
                 onClose={() => setDeletingAssessment(null)}
             />
-        </section>
+        </PageShell>
     );
 }

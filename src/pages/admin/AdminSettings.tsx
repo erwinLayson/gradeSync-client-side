@@ -1,24 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import {
-    FiCalendar,
     FiCheck,
     FiChevronDown,
-    FiHome,
     FiInfo,
-    FiLock,
-    FiPercent,
     FiRefreshCw,
     FiSave,
-    FiSettings,
     FiTrash2,
-    FiUsers,
 } from "react-icons/fi";
 
 import { useUser } from "../../hooks/useUser";
 import { invalidateSchoolInfoCache } from "../../hooks/useSchoolInfo";
 import { getAPICall, patchAPICall, putAPICall, deleteAPICall } from "../../api/api.js";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { PageCard } from "../../components/PageCard";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import { toast } from "../../helper/toast";
 
 import type { SchoolInfoProps } from "../../constant/schoolInfo.js";
@@ -98,20 +92,12 @@ function BulkEnrollmentSection({ savedSection, handleSave }: BulkEnrollmentProps
     }
 
     return (
-        <PageCard className="settings__card">
-            <div className="settings__head flex flex-wrap items-center justify-between gap-4 border-b p-5">
-                <div className="flex items-start gap-3">
-                    <span className="settings__icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
-                        <FiUsers />
-                    </span>
-                    <div className="min-w-0">
-                        <h3 className="settings__title text-base font-bold">Bulk Enrollment Management</h3>
-                        <p className="settings__subtitle mt-1 text-[0.8125rem]">Clear all student enrollments across classrooms in the active school year.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div className="p-5">
+        <PageSection
+            className="settings__card"
+            title="Bulk Enrollment Management"
+            description="Clear all student enrollments across classrooms in the active school year."
+        >
+            <div>
                 <div className="flex flex-col gap-4 rounded-xl border border-dashed border-red-200 bg-red-50 p-5">
                     <div className="flex items-start gap-3">
                         <FiTrash2 className="mt-0.5 shrink-0 text-red-600" aria-hidden="true" />
@@ -166,7 +152,7 @@ function BulkEnrollmentSection({ savedSection, handleSave }: BulkEnrollmentProps
                 onConfirm={handleClearAll}
                 onClose={() => setConfirmOpen(false)}
             />
-        </PageCard>
+        </PageSection>
     );
 }
 
@@ -379,8 +365,6 @@ export default function AdminSettings() {
     // has no quarter field — advancement belongs to the Submission Tracker — and
     // echoing a loaded quarter back on every unrelated save would silently
     // rewind the quarter if it had been advanced in another tab in the meantime.
-    const settingsRowIdRef = useRef<number | null>(null);
-
     const [academicForm, setAcademicForm] = useState({
         enrollmentOpen: true,
         submissionsLocked: false
@@ -554,42 +538,21 @@ export default function AdminSettings() {
     }
 
     return (
-        <section className="settings flex flex-col gap-5">
-            {/* ==================== Hero header ==================== */}
-            <div className="settings__hero relative overflow-hidden rounded-2xl p-6 sm:p-8">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-start gap-4">
-                        <span className="settings__hero-icon inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xl" aria-hidden="true">
-                            <FiSettings />
-                        </span>
-                        <div className="min-w-0">
-                            <span className="settings__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Configuration</span>
-                            <h2 className="settings__hero-title mt-1 text-xl font-bold sm:text-2xl">School Settings</h2>
-                            <p className="settings__hero-sub mt-1 text-[0.8125rem]">Manage school information, the academic year, and grading defaults.</p>
-                        </div>
-                    </div>
-                    <span className="settings__hero-badge inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold">
-                        <FiCalendar aria-hidden="true" />
-                        {selectedSchoolYear ? `SY ${selectedSchoolYear.startYear}–${selectedSchoolYear.endYear}` : "SY —"}
-                    </span>
-                </div>
-            </div>
+        <PageShell className="settings">
+            {/* ==================== Header ==================== */}
+            <PageHeader
+                title="School Settings"
+                description="Manage school information, the academic year, and grading defaults."
+                meta={selectedSchoolYear ? `SY ${selectedSchoolYear.startYear}–${selectedSchoolYear.endYear}` : "SY —"}
+            />
 
             {/* ==================== School Information ==================== */}
-            <PageCard className="settings__card">
-                <div className="settings__head flex flex-wrap items-center justify-between gap-4 border-b p-5">
-                    <div className="flex items-start gap-3">
-                        <span className="settings__icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
-                            <FiHome />
-                        </span>
-                        <div className="min-w-0">
-                            <h3 className="settings__title text-base font-bold">School Information</h3>
-                            <p className="settings__subtitle mt-1 text-[0.8125rem]">Official details shown on reports, forms, and the sidebar.</p>
-                        </div>
-                    </div>
-                    <span className="settings__badge inline-flex shrink-0 rounded-full px-2.5 py-1 text-[0.6875rem] font-semibold">Live</span>
-                </div>
-
+            <PageSection
+                className="settings__card"
+                title="School Information"
+                description="Official details shown on reports, forms, and the sidebar."
+                flush
+            >
                 <form className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2" onSubmit={handleSaveSchool}>
                     <div className="settings__field flex flex-col gap-1.5">
                         <label htmlFor="settings-school-id" className="settings__field-label text-[0.6875rem] font-bold uppercase tracking-[0.08em]">School ID</label>
@@ -709,24 +672,15 @@ export default function AdminSettings() {
                         </div>
                     </footer>
                 </form>
-            </PageCard>
+            </PageSection>
 
             {/* ==================== Academic Period ==================== */}
-            <PageCard className="settings__card">
-                <div className="settings__head flex flex-wrap items-center justify-between gap-4 border-b p-5">
-                    <div className="flex items-start gap-3">
-                        <span className="settings__icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
-                            <FiCalendar />
-                        </span>
-                        <div className="min-w-0">
-                            <h3 className="settings__title text-base font-bold">Academic Period</h3>
-                            <p className="settings__subtitle mt-1 text-[0.8125rem]">Configure the number of grading quarters for the school year.</p>
-                        </div>
-                    </div>
-                    <span className="settings__badge inline-flex shrink-0 rounded-full px-2.5 py-1 text-[0.6875rem] font-semibold">School-wide</span>
-                </div>
-
-                <div className="p-5">
+            <PageSection
+                className="settings__card"
+                title="Academic Period"
+                description="Configure the number of grading quarters for the school year."
+            >
+                <div>
                     <p className="settings__field-label mb-3 text-[0.6875rem] font-bold uppercase tracking-[0.08em]">Grading Periods</p>
                     <div className="flex flex-col gap-3">
                         <label className={`settings__radio-label flex cursor-pointer items-center gap-3 rounded-lg border p-3 ${numQuarters === 3 ? "settings__radio-label--active border-[var(--primary)] bg-[var(--primary-light)]" : "border-[var(--neutral-border)]"}`}>
@@ -803,22 +757,15 @@ export default function AdminSettings() {
                         </div>
                     </div>
                 )}
-            </PageCard>
+            </PageSection>
 
             {/* ==================== Academic Year ==================== */}
-            <PageCard className="settings__card">
-                <div className="settings__head flex flex-wrap items-center justify-between gap-4 border-b p-5">
-                    <div className="flex items-start gap-3">
-                        <span className="settings__icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
-                            <FiCalendar />
-                        </span>
-                        <div className="min-w-0">
-                            <h3 className="settings__title text-base font-bold">Academic Year</h3>
-                            <p className="settings__subtitle mt-1 text-[0.8125rem]">Set the active school year and quarter used across the system.</p>
-                        </div>
-                    </div>
-                </div>
-
+            <PageSection
+                className="settings__card"
+                title="Academic Year"
+                description="Set the active school year and quarter used across the system."
+                flush
+            >
                 <form className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3" onSubmit={handleSaveAcademic}>
                     <div className="settings__field flex flex-col gap-1.5">
                         <label htmlFor="settings-school-year" className="settings__field-label text-[0.6875rem] font-bold uppercase tracking-[0.08em]">School Year</label>
@@ -921,23 +868,15 @@ export default function AdminSettings() {
                         </div>
                     </footer>
                 </form>
-            </PageCard>
+            </PageSection>
 
             {/* ==================== Grading Weights ==================== */}
-            <PageCard className="settings__card">
-                <div className="settings__head flex flex-wrap items-center justify-between gap-4 border-b p-5">
-                    <div className="flex items-start gap-3">
-                        <span className="settings__icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
-                            <FiPercent />
-                        </span>
-                        <div className="min-w-0">
-                            <h3 className="settings__title text-base font-bold">Grading Weights</h3>
-                            <p className="settings__subtitle mt-1 text-[0.8125rem]">DepEd DO 8, s. 2015 defaults applied to new class subjects.</p>
-                        </div>
-                    </div>
-                    <span className="settings__badge inline-flex shrink-0 rounded-full px-2.5 py-1 text-[0.6875rem] font-semibold">Default profile</span>
-                </div>
-
+            <PageSection
+                className="settings__card"
+                title="Grading Weights"
+                description="DepEd DO 8, s. 2015 defaults applied to new class subjects."
+                flush
+            >
                 <form onSubmit={handleSaveWeights}>
                     <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
                         <div className="settings__field flex flex-col gap-1.5">
@@ -1085,23 +1024,15 @@ export default function AdminSettings() {
                         </div>
                     </footer>
                 </form>
-            </PageCard>
+            </PageSection>
 
             {/* ==================== Login Credentials ==================== */}
-            <PageCard className="settings__card">
-                <div className="settings__head flex flex-wrap items-center justify-between gap-4 border-b p-5">
-                    <div className="flex items-start gap-3">
-                        <span className="settings__icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
-                            <FiLock />
-                        </span>
-                        <div className="min-w-0">
-                            <h3 className="settings__title text-base font-bold">Login Credentials</h3>
-                            <p className="settings__subtitle mt-1 text-[0.8125rem]">Update the email and password you use to sign in to your admin account.</p>
-                        </div>
-                    </div>
-                    <span className="settings__badge inline-flex shrink-0 rounded-full px-2.5 py-1 text-[0.6875rem] font-semibold">Admin account</span>
-                </div>
-
+            <PageSection
+                className="settings__card"
+                title="Login Credentials"
+                description="Update the email and password you use to sign in to your admin account."
+                flush
+            >
                 <form onSubmit={handleSaveCredentials}>
                     <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2">
                         <div className="settings__field flex flex-col gap-1.5">
@@ -1171,9 +1102,9 @@ export default function AdminSettings() {
                         </div>
                     </footer>
                 </form>
-            </PageCard>
+            </PageSection>
             {/* ==================== Bulk Enrollment Management ==================== */}
             <BulkEnrollmentSection savedSection={savedSection} handleSave={handleSave} />
-        </section>
+        </PageShell>
     );
 }

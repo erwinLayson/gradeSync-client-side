@@ -14,6 +14,7 @@ import { useSearchParams } from "react-router-dom";
 
 import { getAPICall, postAPICall } from "../../api/api";
 import { ModalDialog } from "../../components/ModalDialog";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useUser } from "../../hooks/useUser";
@@ -658,28 +659,26 @@ export default function TeacherAttendance() {
     // ==================== Loading ====================
     if (userLoading || loading) {
         return (
-            <section className="teacher-attendance flex flex-col gap-5" aria-busy="true" aria-label="Loading attendance">
-                <div className="teacher-attendance__card overflow-hidden rounded-2xl bg-white p-5 shadow-sm">
-                    <Skeleton lines={6} gap="1rem" />
-                </div>
-            </section>
+            <PageShell className="teacher-attendance" busy label="Loading attendance">
+                <PageSection className="teacher-attendance__card" flush>
+                    <div className="p-5">
+                        <Skeleton lines={6} gap="1rem" />
+                    </div>
+                </PageSection>
+            </PageShell>
         );
     }
 
     // ==================== Empty states ====================
     if (!teacher || subjects.length === 0) {
         return (
-            <section className="teacher-attendance flex flex-col gap-5">
-                <div className="teacher-attendance__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                    <div className="teacher-attendance__card-head flex flex-wrap items-center justify-between gap-4 p-5">
-                        <div className="teacher-attendance__card-heading min-w-0">
-                            <h3 className="teacher-attendance__card-title text-base font-bold">Class Attendance</h3>
-                            <p className="teacher-attendance__card-subtitle mt-1 text-[0.8125rem]">
-                                {teacher ? "No subjects assigned yet" : "Teacher profile not found"}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="teacher-attendance__sheet-wrap flex flex-col items-center justify-center px-6 py-14 text-center">
+            <PageShell className="teacher-attendance">
+                <PageSection
+                    className="teacher-attendance__card"
+                    title="Class Attendance"
+                    description={teacher ? "No subjects assigned yet" : "Teacher profile not found"}
+                >
+                    <div className="teacher-attendance__sheet-wrap flex flex-col items-center justify-center py-10 text-center">
                         <span className="teacher-attendance__stat-icon inline-flex h-12 w-12 items-center justify-center rounded-full text-lg" aria-hidden="true">
                             <FiUsers />
                         </span>
@@ -692,43 +691,19 @@ export default function TeacherAttendance() {
                                 : "Your account is not linked to a teacher record yet. Contact the administrator."}
                         </p>
                     </div>
-                </div>
-            </section>
+                </PageSection>
+            </PageShell>
         );
     }
 
     return (
-        <section className="teacher-attendance flex flex-col gap-5">
-            {/* ==================== Hero banner ==================== */}
-            <div className="teacher-attendance__hero flex flex-wrap items-center justify-between gap-4 p-6">
-                <div className="teacher-attendance__hero-main flex min-w-0 items-center gap-4">
-                    <span
-                        className="teacher-attendance__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-xl"
-                        aria-hidden="true"
-                    >
-                        <FiUsers />
-                    </span>
-                    <div className="teacher-attendance__hero-heading min-w-0">
-                        <span className="teacher-attendance__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
-                            {heroEyebrow}
-                        </span>
-                        <h2 className="teacher-attendance__hero-name mt-1 truncate text-[1.375rem] font-bold">
-                            {heroName}
-                        </h2>
-                        <p className="teacher-attendance__hero-role mt-0.5 truncate text-[0.8125rem]">
-                            {heroRole}
-                        </p>
-                    </div>
-                </div>
-                <div className="teacher-attendance__hero-badge flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border px-3.5 py-2.5">
-                    <span className="teacher-attendance__hero-badge-count text-[1.375rem] font-bold leading-none">
-                        {matrixLoading ? "…" : gridDates.length}
-                    </span>
-                    <span className="teacher-attendance__hero-badge-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                        Days Recorded
-                    </span>
-                </div>
-            </div>
+        <PageShell className="teacher-attendance">
+            {/* ==================== Header ==================== */}
+            <PageHeader
+                title={heroName}
+                description={heroRole}
+                meta={`${heroEyebrow}${matrixLoading ? "" : ` · ${gridDates.length} days recorded`}`}
+            />
 
                 <>
                     {/* ==================== Toolbar: subject + school year + quarter + date range ==================== */}
@@ -1283,6 +1258,6 @@ export default function TeacherAttendance() {
                         </form>
                     </ModalDialog>
                 </>
-        </section>
+        </PageShell>
     );
 }

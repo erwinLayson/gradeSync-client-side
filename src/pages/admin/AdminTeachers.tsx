@@ -10,7 +10,7 @@ import { getAPICall, postAPICall, patchAPICall, deleteAPICall } from "../../api/
 
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { EmptyState } from "../../components/EmptyState";
-import { PageCard } from "../../components/PageCard";
+import { PageSection, PageShell } from "../../components/PageLayout";
 import { ModalDialog } from "../../components/ModalDialog";
 import Skeleton from "../../components/Skeleton";
 
@@ -190,12 +190,8 @@ export default function AdminTeachers() {
         : 0;
     if (teachersLoading) {
         return (
-            <section className="teachers flex flex-col gap-5">
-                <PageCard
-        className="teachers__card"
-        ariaBusy={true}
-        ariaLabel="Loading teachers"
-                >
+            <PageShell className="teachers" busy label="Loading teachers">
+                <PageSection className="teachers__card" flush>
                     <div className="teachers__header flex flex-wrap items-center justify-between gap-4 p-5">
                         <div className="teachers__heading min-w-0">
                             <h2 className="teachers__title text-base font-bold">Teacher Records</h2>
@@ -205,16 +201,14 @@ export default function AdminTeachers() {
                     <div className="p-6">
                         <Skeleton count={4} lines={1} height="2.5rem" gap="0.75rem" />
                     </div>
-                </PageCard>
-            </section>
+                </PageSection>
+            </PageShell>
         );
     }
 
     return (
-        <section className="teachers flex flex-col gap-5">
-            <PageCard
-        className="teachers__card"
-            >
+        <PageShell className="teachers">
+            <PageSection className="teachers__card" flush>
                 <div className="teachers__header flex flex-wrap items-center justify-between gap-4 p-5">
                     <div className="teachers__heading min-w-0">
                         <h2 className="teachers__title text-base font-bold">Teacher Records</h2>
@@ -432,7 +426,7 @@ export default function AdminTeachers() {
                         </section>
                     </div>
                 )}
-            </PageCard>
+            </PageSection>
 
             {/* ==================== Create / Edit Teacher modal ==================== */}
             <ModalDialog
@@ -556,6 +550,6 @@ export default function AdminTeachers() {
                 onConfirm={handleConfirmDelete}
                 onClose={closeDeleteConfirm}
             />
-        </section>
+        </PageShell>
     );
 }

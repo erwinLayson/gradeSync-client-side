@@ -8,6 +8,7 @@ import {
 } from "react-icons/fi";
 
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { PageShell } from "../../components/PageLayout";
 import { SkeletonLine } from "../../components/Skeleton";
 import { patchAPICall } from "../../api/api";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
@@ -108,9 +109,9 @@ export default function DeveloperFeatures() {
     const enabledCount = featureRows.filter((row) => flags[row.key]).length;
 
     return (
-        <section className="flex flex-col gap-5">
+        <PageShell>
             {/* ==================== Header card ==================== */}
-            <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <div className="analytics__card section overflow-hidden">
                 <div className="flex flex-wrap items-center justify-between gap-3 p-5">
                     <div className="min-w-0">
                         <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Platform</span>
@@ -127,7 +128,7 @@ export default function DeveloperFeatures() {
             </div>
 
             {/* ==================== Search + list ==================== */}
-            <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+            <div className="analytics__card section overflow-hidden">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b p-5">
                     <div className="min-w-0">
                         <h4 className="text-sm font-bold text-neutral-800">System features</h4>
@@ -243,6 +244,6 @@ export default function DeveloperFeatures() {
                         : "Live flags — changes persist and apply to all users."}
                 </p>
             )}
-        </section>
+        </PageShell>
     );
 }

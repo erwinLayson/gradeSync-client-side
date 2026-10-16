@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { FiBookOpen, FiGrid, FiHome, FiList, FiUsers } from "react-icons/fi";
 import { getAPICall } from "../../api/api";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useUser } from "../../hooks/useUser";
@@ -162,36 +163,26 @@ export default function TeacherMyClass() {
     // Loading state
     if (userLoading || loading) {
         return (
-            <section className="teacher-classes flex flex-col gap-5" aria-busy="true">
-                <div className="teacher-classes__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                    <div className="teacher-classes__card-head flex flex-wrap items-center justify-between gap-4 p-5">
-                        <div className="teacher-classes__card-heading min-w-0">
-                            <h3 className="teacher-classes__card-title text-base font-bold">My Class</h3>
-                            <p className="teacher-classes__card-subtitle mt-1 text-[0.8125rem]">Loading…</p>
-                        </div>
-                    </div>
+            <PageShell className="teacher-classes" busy>
+                <PageSection className="teacher-classes__card" title="My Class" description="Loading…" flush>
                     <div className="p-6">
                         <Skeleton count={2} lines={1} height="10rem" radius="0.75rem" grid="repeat(2, 1fr)" />
                     </div>
-                </div>
-            </section>
+                </PageSection>
+            </PageShell>
         );
     }
 
     // Not an adviser
     if (!adviserClass || !adviserClass.classroom) {
         return (
-            <section className="teacher-classes flex flex-col gap-5">
-                <div className="teacher-classes__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                    <div className="teacher-classes__card-head flex flex-wrap items-center justify-between gap-4 p-5">
-                        <div className="teacher-classes__card-heading min-w-0">
-                            <h3 className="teacher-classes__card-title text-base font-bold">My Class</h3>
-                            <p className="teacher-classes__card-subtitle mt-1 text-[0.8125rem]">
-                                You are not assigned as a class adviser
-                            </p>
-                        </div>
-                    </div>
-                    <div className="teacher-classes__empty flex flex-col items-center justify-center px-6 py-14 text-center">
+            <PageShell className="teacher-classes">
+                <PageSection
+                    className="teacher-classes__card"
+                    title="My Class"
+                    description="You are not assigned as a class adviser"
+                >
+                    <div className="teacher-classes__empty flex flex-col items-center justify-center py-10 text-center">
                         <span className="teacher-classes__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full" aria-hidden="true">
                             <FiHome />
                         </span>
@@ -200,8 +191,8 @@ export default function TeacherMyClass() {
                             You are not assigned as a class adviser yet.
                         </p>
                     </div>
-                </div>
-            </section>
+                </PageSection>
+            </PageShell>
         );
     }
 
@@ -209,34 +200,13 @@ export default function TeacherMyClass() {
     const students = roster?.students ?? [];
 
     return (
-        <section className="teacher-classes flex flex-col gap-5">
-            {/* Hero banner */}
-            <div className="teacher-classes__hero flex flex-wrap items-center justify-between gap-4 p-6">
-                <div className="teacher-classes__hero-main flex min-w-0 items-center gap-4">
-                    <span className="teacher-classes__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-bold" aria-hidden="true">
-                        <FiHome />
-                    </span>
-                    <div className="teacher-classes__hero-heading min-w-0">
-                        <span className="teacher-classes__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
-                            Advised Class
-                        </span>
-                        <h2 className="teacher-classes__hero-name mt-1 truncate text-[1.375rem] font-bold">
-                            Grade {classroom.gradeLevel} — {classroom.section}
-                        </h2>
-                        <p className="teacher-classes__hero-role mt-0.5 truncate text-[0.8125rem]">
-                            Classroom #{classroom.id}
-                        </p>
-                    </div>
-                </div>
-                <div className="teacher-classes__hero-badge flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border px-3.5 py-2.5">
-                    <span className="teacher-classes__hero-badge-count text-[1.375rem] font-bold leading-none">
-                        {students.length}
-                    </span>
-                    <span className="teacher-classes__hero-badge-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                        Students
-                    </span>
-                </div>
-            </div>
+        <PageShell className="teacher-classes">
+            {/* Header */}
+            <PageHeader
+                title={`Grade ${classroom.gradeLevel} — ${classroom.section}`}
+                description={`Classroom #${classroom.id}`}
+                meta={`${students.length} students`}
+            />
 
             {/* Quick stats */}
             <div className="teacher-classes__stats grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -507,6 +477,6 @@ export default function TeacherMyClass() {
                     </div>
                 </section>
             )}
-        </section>
+        </PageShell>
     );
 }

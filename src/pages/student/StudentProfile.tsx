@@ -1,12 +1,8 @@
 import { useEffect, useState } from "react";
-import {
-    FiCheck,
-    FiInfo,
-    FiSave,
-    FiUser,
-} from "react-icons/fi";
+import { FiCheck, FiSave } from "react-icons/fi";
 
 import { getAPICall, patchAPICall } from "../../api/api.js";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
 
 import type { StudentDetailsProps, StudentDetailsUpdateProps } from "../../constant/studentDetails.js";
@@ -111,42 +107,23 @@ export default function StudentProfile() {
     const fieldClass = "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-800 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:opacity-60";
 
     return (
-        <section className="flex flex-col gap-5">
+        <PageShell className="student-profile">
             {/* ============ Header ============ */}
-            <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white p-6 shadow-sm">
-                <div className="flex items-center gap-4">
-                    <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl text-blue-600" aria-hidden="true">
-                        <FiUser />
-                    </span>
-                    <div>
-                        <p className="text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-neutral-400">
-                            Student Information
-                        </p>
-                        <h2 className="mt-1 text-xl font-extrabold tracking-tight text-neutral-900">
-                            My Profile
-                        </h2>
-                        <p className="mt-1 text-sm text-neutral-500">
-                            Your personal details and guardian information.
-                        </p>
-                    </div>
-                </div>
-                <p className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3.5 py-2 text-xs font-bold text-blue-700">
-                    <FiInfo aria-hidden="true" />
-                    Basic info is managed by the school — only the Additional Information section can be edited here.
-                </p>
-            </header>
+            <PageHeader
+                title="My Profile"
+                description="Your personal details and guardian information. Basic info is managed by the school — only the Additional Information section can be edited here."
+            />
 
             {loading ? (
-                <div className="rounded-2xl bg-white p-6 shadow-sm">
-                    <Skeleton lines={6} gap="1rem" />
-                </div>
+                <PageSection flush>
+                    <div className="p-6">
+                        <Skeleton lines={6} gap="1rem" />
+                    </div>
+                </PageSection>
             ) : (
                 <>
                     {/* ============ Read-only student info ============ */}
-                    <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-                        <div className="border-b px-6 py-4">
-                            <h3 className="text-base font-bold text-neutral-900">Basic Information</h3>
-                        </div>
+                    <PageSection className="student-profile__card" title="Basic Information" flush>
                         <dl className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
                             <div className="flex flex-col gap-1">
                                 <dt className="text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-neutral-400">Full Name</dt>
@@ -169,13 +146,10 @@ export default function StudentProfile() {
                                 <dd className="text-sm font-semibold text-neutral-800">{student?.sex ?? "—"}</dd>
                             </div>
                         </dl>
-                    </div>
+                    </PageSection>
 
                     {/* ============ Editable additional information ============ */}
-                    <form className="overflow-hidden rounded-2xl bg-white shadow-sm" onSubmit={handleSubmit}>
-                        <div className="border-b px-6 py-4">
-                            <h3 className="text-base font-bold text-neutral-900">Additional Information</h3>
-                        </div>
+                    <PageSection as="form" className="student-profile__card" title="Additional Information" flush onSubmit={handleSubmit}>
 
                         <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
                             <div className="flex flex-col gap-1.5">
@@ -313,9 +287,9 @@ export default function StudentProfile() {
                                 </button>
                             </div>
                         </footer>
-                    </form>
+                    </PageSection>
                 </>
             )}
-        </section>
+        </PageShell>
     );
 }

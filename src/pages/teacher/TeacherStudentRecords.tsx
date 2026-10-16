@@ -15,6 +15,7 @@ import {
 import { getAPICall, postAPICall } from "../../api/api";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ModalDialog } from "../../components/ModalDialog";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { toast } from "../../helper/toast";
@@ -203,19 +204,22 @@ export default function TeacherStudentRecords() {
     // ================= Loading =================
     if (loading) {
         return (
-            <section className="teacher-records flex flex-col gap-5" aria-busy="true" aria-label="Loading student records">
-                <div className="teacher-records__loading rounded-2xl bg-white p-6 shadow-sm">
-                    <Skeleton lines={6} gap="1rem" />
-                </div>
-            </section>
+            <PageShell className="teacher-records" busy label="Loading student records">
+                <PageSection className="teacher-records__loading" flush>
+                    <div className="p-6">
+                        <Skeleton lines={6} gap="1rem" />
+                    </div>
+                </PageSection>
+            </PageShell>
         );
     }
 
     // ================= Not an adviser / no data =================
     if (loadFailed || !records) {
         return (
-            <section className="teacher-records flex flex-col gap-5">
-                <div className="teacher-records__empty flex flex-col items-center justify-center rounded-2xl border bg-white px-6 py-20 text-center shadow-sm">
+            <PageShell className="teacher-records">
+                <PageSection className="teacher-records__empty">
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
                     <span className="teacher-records__empty-icon inline-flex h-14 w-14 items-center justify-center rounded-2xl text-2xl" aria-hidden="true">
                         <FiFileText />
                     </span>
@@ -226,41 +230,21 @@ export default function TeacherStudentRecords() {
                         You are not assigned as a class adviser yet. Once the administrator assigns you to a
                         class, its student records will appear here for quarterly submission.
                     </p>
-                </div>
-            </section>
+                    </div>
+                </PageSection>
+            </PageShell>
         );
     }
 
     // ================= Main =================
     return (
-        <section className="teacher-records flex flex-col gap-5">
-            {/* ==================== Hero banner ==================== */}
-            <div className="teacher-records__hero flex flex-wrap items-center justify-between gap-4 p-6">
-                <div className="teacher-records__hero-main flex min-w-0 items-center gap-4">
-                    <span className="teacher-records__hero-avatar inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-xl" aria-hidden="true">
-                        <FiFileText />
-                    </span>
-                    <div className="teacher-records__hero-heading min-w-0">
-                        <span className="teacher-records__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
-                            Class Adviser &middot; Grade {records.gradeLevel}
-                        </span>
-                        <h2 className="teacher-records__hero-name mt-1 truncate text-[1.375rem] font-bold">
-                            {records.section}
-                        </h2>
-                        <p className="teacher-records__hero-role mt-0.5 truncate text-[0.8125rem]">
-                            {records.adviserFullname ?? "No adviser assigned"}
-                        </p>
-                    </div>
-                </div>
-                <div className="teacher-records__hero-badge flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border px-3.5 py-2.5">
-                    <span className="teacher-records__hero-badge-count text-[1.375rem] font-bold leading-none">
-                        Q{quarter}
-                    </span>
-                    <span className="teacher-records__hero-badge-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                        Quarter
-                    </span>
-                </div>
-            </div>
+        <PageShell className="teacher-records">
+            {/* ==================== Header ==================== */}
+            <PageHeader
+                title={records.section}
+                description={records.adviserFullname ?? "No adviser assigned"}
+                meta={`Grade ${records.gradeLevel} · Q${quarter}`}
+            />
 
             {/* ==================== Submissions locked banner ==================== */}
             {submissionsLocked && (
@@ -665,6 +649,6 @@ export default function TeacherStudentRecords() {
                 onConfirm={handleReopen}
                 onClose={() => setReopenTarget(null)}
             />
-        </section>
+        </PageShell>
     );
 }

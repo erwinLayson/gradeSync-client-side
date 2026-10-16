@@ -33,6 +33,12 @@ import StudentProfile from './pages/student/StudentProfile'
 import StudentClassroom from './pages/student/studentClassroom'
 import StudentProspectus from './pages/student/StudentProspectus'
 
+// Register (registration/enrollment staff) Pages
+import RegisterDashboard from './pages/register/RegisterDashboard'
+import RegisterStudents from './pages/register/RegisterStudents'
+import RegisterEnrollments from './pages/register/RegisterEnrollments'
+import RegisterSettings from './pages/register/RegisterSettings'
+
 // Developer Pages
 import DeveloperDashboard from './pages/developer/DeveloperDashboard'
 import DeveloperFeatures from './pages/developer/DeveloperFeatures'
@@ -112,6 +118,18 @@ function App() {
               <Route path="/student/profile" element={<StudentProfile />} />
               <Route path="/student/classrooms" element={<StudentClassroom />} />
               <Route path="/student/prospectus" element={<StudentProspectus />} />
+            </Route>
+
+            {/* Register Routes (registration/enrollment staff) */}
+            <Route
+              element={
+                <ProtectedRoutes allowedRoles={[ROLES.REGISTER]} />
+              }
+            >
+              <Route path="/register/dashboard" element={<RegisterDashboard />} />
+              <Route path="/register/students" element={<RegisterStudents />} />
+              <Route path="/register/enrollments" element={<RegisterEnrollments />} />
+              <Route path="/register/settings" element={<RegisterSettings />} />
             </Route>
 
             {/* Developer Routes */}

@@ -22,6 +22,8 @@ export const DASHBOARD_PATH = {
   teacher: '/teacher/dashboard',
   student: '/student/dashboard',
   developer: '/developer/dashboard',
+  // Registration/enrollment staff (docs/register-role-implementation-plan.md).
+  register: '/register/dashboard',
 };
 
 
@@ -99,6 +101,28 @@ export const DASHBOARD_LINKS = {
         { label: "My Classrooms", path: "/student/classrooms", icon: FaChalkboardTeacher },
         { label: "Prospectus", path: "/student/prospectus", icon: FaScroll },
       ],
+    }
+  ],
+
+  register: [
+    {
+      title: "Main",
+      sections: [
+        { label: "Dashboard", path: "/register/dashboard", icon: FaHome },
+      ]
+    },
+    {
+      title: "Academics",
+      sections: [
+        { label: "Students", path: "/register/students", icon: FaUserGraduate },
+        { label: "Enrollments", path: "/register/enrollments", icon: FaClipboardList },
+      ]
+    },
+    {
+      title: "Configuration",
+      sections: [
+        { label: "Settings", path: "/register/settings", icon: FaCog },
+      ]
     }
   ],
 

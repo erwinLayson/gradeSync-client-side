@@ -12,6 +12,7 @@ import {
 } from "react-icons/fi";
 
 import { getAPICall } from "../../api/api";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
 import { isPassing } from "../../helper/grades";
 
@@ -96,43 +97,36 @@ export default function StudentDashboard() {
     // ==================== Loading ====================
     if (loading) {
         return (
-            <section className="student-dashboard__page flex flex-col gap-5">
+            <PageShell className="student-dashboard">
                 <div className="student-dashboard__hero flex items-center gap-4 p-6">
                     <Skeleton avatar avatarSize={56} lines={0} className="flex-1" />
                 </div>
-                <div className="rounded-2xl bg-white p-6 shadow-sm">
-                    <Skeleton lines={4} gap="1rem" />
-                </div>
-            </section>
+                <PageSection flush>
+                    <div className="p-6">
+                        <Skeleton lines={4} gap="1rem" />
+                    </div>
+                </PageSection>
+            </PageShell>
         );
     }
 
     // ==================== Empty state ====================
     if (!student || !currentClass) {
         return (
-            <section className="student-dashboard__page flex flex-col gap-5">
-                <div className="student-dashboard__hero flex flex-wrap items-center justify-between gap-4 p-6">
-                    <div className="flex min-w-0 items-center gap-4">
-                        <div className="min-w-0">
-                            <span className="student-dashboard__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
-                                Welcome back
-                            </span>
-                            <h2 className="student-dashboard__hero-name mt-1 truncate text-[1.375rem] font-bold">
-                                {student?.fullname ?? "Student"}
-                            </h2>
-                        </div>
+            <PageShell className="student-dashboard">
+                <PageHeader title={student?.fullname ?? "Student"} description="Welcome back" />
+                <PageSection>
+                    <div className="flex flex-col items-center justify-center py-10 text-center">
+                        <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600" aria-hidden="true">
+                            <FiHome />
+                        </span>
+                        <p className="mt-3 text-sm font-bold text-neutral-800">No classes found</p>
+                        <p className="mt-1 text-[0.8125rem] text-neutral-500">
+                            You are not enrolled in any class yet. Contact the registrar if you believe this is a mistake.
+                        </p>
                     </div>
-                </div>
-                <div className="flex flex-col items-center justify-center rounded-2xl bg-white px-6 py-14 text-center shadow-sm">
-                    <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600" aria-hidden="true">
-                        <FiHome />
-                    </span>
-                    <p className="mt-3 text-sm font-bold text-neutral-800">No classes found</p>
-                    <p className="mt-1 text-[0.8125rem] text-neutral-500">
-                        You are not enrolled in any class yet. Contact the registrar if you believe this is a mistake.
-                    </p>
-                </div>
-            </section>
+                </PageSection>
+            </PageShell>
         );
     }
 
@@ -146,31 +140,13 @@ export default function StudentDashboard() {
     const totalDays = quarterAttendance?.totalDays ?? 0;
 
     return (
-        <section className="student-dashboard__page flex flex-col gap-5">
-            {/* ==================== Hero banner ==================== */}
-            <div className="student-dashboard__hero flex flex-wrap items-center justify-between gap-4 p-6">
-                <div className="flex min-w-0 items-center gap-4">
-                    <div className="min-w-0">
-                        <span className="student-dashboard__hero-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
-                            Welcome back
-                        </span>
-                        <h2 className="student-dashboard__hero-name mt-1 truncate text-[1.375rem] font-bold">
-                            {student.fullname}
-                        </h2>
-                        <p className="student-dashboard__hero-role mt-0.5 truncate text-[0.8125rem]">
-                            LRN {student.lrn} &middot; Grade {currentClass.gradeLevel} &middot; {currentClass.section}
-                        </p>
-                    </div>
-                </div>
-                <div className="student-dashboard__hero-badge flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border px-3.5 py-2.5">
-                    <span className="student-dashboard__hero-badge-count text-[1.375rem] font-bold leading-none">
-                        {currentClass.schoolYear}
-                    </span>
-                    <span className="student-dashboard__hero-badge-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                        School Year
-                    </span>
-                </div>
-            </div>
+        <PageShell className="student-dashboard">
+            {/* ==================== Header ==================== */}
+            <PageHeader
+                title={student.fullname}
+                description={`LRN ${student.lrn} · Grade ${currentClass.gradeLevel} · ${currentClass.section}`}
+                meta={`SY ${currentClass.schoolYear}`}
+            />
 
             {/* ==================== Quick stats ==================== */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -339,6 +315,6 @@ export default function StudentDashboard() {
                     </button>
                 </section>
             </div>
-        </section>
+        </PageShell>
     );
 }

@@ -15,6 +15,7 @@ import {
 import type { IconType } from "react-icons";
 
 import { patchAPICall, uploadFile } from "../../api/api";
+import { PageShell } from "../../components/PageLayout";
 import { SkeletonLine } from "../../components/Skeleton";
 import { invalidateLandingContentCache, useLandingContent } from "../../hooks/useLandingContent";
 import {
@@ -289,7 +290,7 @@ interface SectionCardProps {
 function SectionCard({ sectionKey, dirty, saving, error, savedAt, children, onSave, onReset }: SectionCardProps) {
     const meta = SECTION_META[sectionKey];
     return (
-        <section className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+        <div className="analytics__card section overflow-hidden">
             <header className="flex flex-wrap items-center justify-between gap-3 border-b p-5">
                 <div className="min-w-0">
                     <h3 className="text-base font-bold text-neutral-800">{meta.label}</h3>
@@ -334,7 +335,7 @@ function SectionCard({ sectionKey, dirty, saving, error, savedAt, children, onSa
                     {error}
                 </p>
             )}
-        </section>
+        </div>
     );
 }
 
@@ -911,17 +912,17 @@ function LandingContentEditor() {
 
     if (loading || !draft) {
         return (
-            <section className="flex flex-col gap-5" aria-busy="true">
+            <PageShell busy>
                 <SkeletonLine width="100%" height="7rem" radius="1rem" />
                 <SkeletonLine width="100%" height="14rem" radius="1rem" />
                 <SkeletonLine width="100%" height="14rem" radius="1rem" />
-            </section>
+            </PageShell>
         );
     }
 
     return (
-        <section className="flex flex-col gap-5">
-            <div className="analytics__card overflow-hidden rounded-2xl bg-white shadow-sm">
+        <PageShell>
+            <div className="analytics__card section overflow-hidden">
                 <div className="flex flex-wrap items-center justify-between gap-3 p-5">
                     <div className="min-w-0">
                         <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Platform</span>
@@ -979,7 +980,7 @@ function LandingContentEditor() {
                     {key === "cta" && <CtaEditor value={draft.cta} patch={(partial) => patchSection("cta", partial)} />}
                 </SectionCard>
             ))}
-        </section>
+        </PageShell>
     );
 }
 

@@ -13,6 +13,7 @@ import {
 import { EmptyState } from "../../components/EmptyState";
 import { ModalDialog } from "../../components/ModalDialog";
 import { PageCard } from "../../components/PageCard";
+import { PageShell } from "../../components/PageLayout";
 import { SkeletonLine } from "../../components/Skeleton";
 import { getAPICall, postAPICall } from "../../api/api";
 import { WIPE_DOMAINS, formatCount, type WipeDomain, type WipeDomainMeta } from "./dataWipeMeta";
@@ -140,7 +141,7 @@ export default function DeveloperDataWipe() {
         status?.reduce((sum, row) => sum + row.rows, 0) ?? 0;
 
     return (
-        <section className="flex flex-col gap-5">
+        <PageShell>
             {/* ==================== Header card ==================== */}
             <PageCard className="analytics__card">
                 <div className="flex flex-wrap items-center justify-between gap-3 p-5">
@@ -438,7 +439,7 @@ export default function DeveloperDataWipe() {
                 <FiFile className="shrink-0" aria-hidden="true" />
                 No in-app backup is kept. The documented recovery path is a pre-wipe <code className="data-wipe__code">mysqldump</code> snapshot.
             </p>
-        </section>
+        </PageShell>
     );
 }
 ;

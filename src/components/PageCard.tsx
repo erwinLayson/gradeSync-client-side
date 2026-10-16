@@ -5,7 +5,7 @@ type PageCardElement = "div" | "section" | "form" | "article";
 
 interface PageCardProps {
   children: ReactNode;
-  /** Visual variant. "flat" adds the neutral border used by detail/panel cards. */
+  /** Kept for callers; both variants render the same flat hairline card. */
   variant?: "default" | "flat";
   /** Optional page-specific extra classes (BEM hook, padding, layout). */
   className?: string;
@@ -20,10 +20,12 @@ interface PageCardProps {
 }
 
 /**
- * Shared page card shell — the `overflow-hidden rounded-2xl bg-white shadow-sm`
- * banner repeated on every page. Purely presentational; header/hero content
- * stays the consumer's responsibility. Page-specific BEM classes go in
- * `className` (e.g. `analytics__card`, `settings__card`).
+ * Shared page card shell — a flat white surface with a single hairline
+ * border, no shadow or gradient. Purely presentational; header content stays
+ * the consumer's responsibility. Page-specific BEM classes go in `className`
+ * (e.g. `analytics__card`, `settings__card`). New pages should prefer
+ * `PageSection` from `./PageLayout`; this primitive remains for the existing
+ * per-page card markup.
  */
 export function PageCard({
   children,
@@ -34,9 +36,12 @@ export function PageCard({
   as = "div",
   onSubmit,
 }: PageCardProps) {
-  const classes = `overflow-hidden rounded-2xl bg-white shadow-sm${
-    variant === "flat" ? " border" : ""
-  }${className ? ` ${className}` : ""}`;
+  // Both variants share one flat treatment; `variant` is retained so existing
+  // callers keep compiling.
+  void variant;
+  const classes = `overflow-hidden rounded-2xl border border-[var(--neutral-border)] bg-white${
+    className ? ` ${className}` : ""
+  }`;
 
   if (as === "form") {
     return (

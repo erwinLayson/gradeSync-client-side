@@ -15,7 +15,7 @@ import type { Teacher } from "../../constant/teachers";
 
 // Components
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { PageCard } from "../../components/PageCard";
+import { PageSection, PageShell } from "../../components/PageLayout";
 import { EmptyState } from "../../components/EmptyState";
 import { ModalDialog } from "../../components/ModalDialog";
 
@@ -338,13 +338,8 @@ async function fetchSubjects() {
 
 // Render loading state
 if (loading) {
-    return (
-        <section className="subjects flex flex-col gap-5">
-            <PageCard
-        className="subjects__card"
-        ariaBusy={true}
-        ariaLabel="Loading subjects"
-            >
+    return (        <PageShell className="subjects" busy label="Loading subjects">
+            <PageSection className="subjects__card" flush>
                 <div className="subjects__header flex flex-wrap items-center justify-between gap-4 p-5">
                     <div className="subjects__heading min-w-0">
                         <h2 className="subjects__title text-base font-bold">Subject Records</h2>
@@ -354,16 +349,14 @@ if (loading) {
                 <div className="p-6">
                     <Skeleton count={4} lines={1} height="9.5rem" radius="0.75rem" grid="repeat(2, 1fr)" />
                 </div>
-            </PageCard>
-        </section>
+            </PageSection>
+        </PageShell>
     );
 }
 
 return (
-    <section className="subjects flex flex-col gap-5">
-        <PageCard
-    className="subjects__card"
-        >
+    <PageShell className="subjects">
+        <PageSection className="subjects__card" flush>
             <div className="subjects__header flex flex-wrap items-center justify-between gap-4 p-5">
                 <div className="subjects__heading min-w-0">
                     <h2 className="subjects__title text-base font-bold">Subject Records</h2>
@@ -634,7 +627,7 @@ return (
                     </section>
                 </div>
             )}
-        </PageCard>
+        </PageSection>
 
 
         {/* Create/Edit/Assign subject Modal */}
@@ -903,7 +896,6 @@ return (
             onConfirm={handleConfirmDeleteSubject}
             onClose={closeDeleteConfirm}
             triggerRef={deleteTriggerRef}
-        />
-    </section>
-);
+        />    </PageShell>
+    );
 }

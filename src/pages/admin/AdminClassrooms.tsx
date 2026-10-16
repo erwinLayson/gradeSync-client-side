@@ -32,7 +32,7 @@ import useClassroom from "../../hooks/useClassroom.js";
 
 // Components
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { PageCard } from "../../components/PageCard";
+import { PageSection, PageShell } from "../../components/PageLayout";
 import { EmptyState } from "../../components/EmptyState";
 import { ModalDialog } from "../../components/ModalDialog";
 
@@ -546,12 +546,8 @@ try {
 // Loading State
 if (loading) {
 return (
-<section className="classrooms flex flex-col gap-5">
-    <PageCard
-    className="classrooms__card"
-    ariaBusy={true}
-    ariaLabel="Loading classrooms"
-    >
+<PageShell className="classrooms" busy label="Loading classrooms">
+    <PageSection className="classrooms__card" flush>
         <div className="classrooms__header flex flex-wrap items-center justify-between gap-4 p-5">
             <div className="classrooms__heading min-w-0">
                 <h2 className="classrooms__title text-base font-bold">Classroom Records</h2>
@@ -561,17 +557,15 @@ return (
         <div className="p-6">
             <Skeleton count={4} lines={1} height="9.5rem" radius="0.75rem" grid="repeat(2, 1fr)" />
         </div>
-    </PageCard>
-</section>
+    </PageSection>
+</PageShell>
 );
 }
 
 return (
-<section className="classrooms flex flex-col gap-5">
+<PageShell className="classrooms">
 {/* classroom list  */}
-<PageCard
-    className="classrooms__card"
->
+<PageSection className="classrooms__card" flush>
     <div className="classrooms__header flex flex-wrap items-center justify-between gap-4 p-5">
         <div className="classrooms__heading min-w-0">
             <div className="flex gap-2 items-center">
@@ -1052,7 +1046,7 @@ return (
         </div>
     )}
 
-</PageCard>
+</PageSection>
 
 {/* classroom Modal */}
 <ModalDialog
@@ -1471,6 +1465,6 @@ return (
     onConfirm={handleConfirmClearClass}
     onClose={() => setClearClassConfirm(false)}
 />
-</section>
+</PageShell>
 );
 }

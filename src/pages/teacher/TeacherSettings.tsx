@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
-import {
-    FiSave,
-    FiUser,
-    FiAlertCircle,
-} from "react-icons/fi";
+import { FiSave } from "react-icons/fi";
 
 import { useUser } from "../../hooks/useUser";
 import { getAPICall, patchAPICall, putAPICall } from "../../api/api";
 import { toast } from "../../helper/toast";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
 
 
@@ -144,43 +141,37 @@ export default function TeacherSettings() {
     // ====================
     if (loading) {
         return (
-            <section className="teacher-settings flex flex-col gap-5">
+            <PageShell className="teacher-settings" busy>
                 <div className="teacher-settings__header">
                     <div className="skeleton__bar" style={{ width: "8rem", height: "1.5rem" }} />
                     <div className="skeleton__bar mt-2" style={{ width: "14rem", height: "0.875rem" }} />
                 </div>
-                <div className="teacher-settings__card overflow-hidden rounded-2xl bg-white p-5 shadow-sm">
-                    <Skeleton lines={4} gap="1rem" />
-                </div>
-                <div className="teacher-settings__card overflow-hidden rounded-2xl bg-white p-5 shadow-sm">
-                    <Skeleton lines={2} gap="1rem" />
-                </div>
-            </section>
+                <PageSection className="teacher-settings__card" flush>
+                    <div className="p-5">
+                        <Skeleton lines={4} gap="1rem" />
+                    </div>
+                </PageSection>
+                <PageSection className="teacher-settings__card" flush>
+                    <div className="p-5">
+                        <Skeleton lines={2} gap="1rem" />
+                    </div>
+                </PageSection>
+            </PageShell>
         );
     }
 
     return (
-        <section className="teacher-settings flex flex-col gap-5">
+        <PageShell className="teacher-settings">
             {/* Header */}
-            <div className="teacher-settings__header">
-                <h1 className="teacher-settings__title text-2xl font-bold">Settings</h1>
-                <p className="teacher-settings__subtitle text-sm text-neutral-500">
-                    Manage your profile and preferences
-                </p>
-            </div>
+            <PageHeader title="Settings" description="Manage your profile and preferences" />
 
             {/* Profile Section */}
-            <div className="teacher-settings__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                <div className="teacher-settings__card-header flex items-center gap-3 border-b p-5">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
-                        <FiUser size={20} />
-                    </span>
-                    <div>
-                        <h2 className="text-base font-bold">Profile Information</h2>
-                        <p className="text-sm text-neutral-500">Update your personal details</p>
-                    </div>
-                </div>
-
+            <PageSection
+                className="teacher-settings__card"
+                title="Profile Information"
+                description="Update your personal details"
+                flush
+            >
                 <form onSubmit={handleSaveProfile} className="p-5">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         {/* First Name */}
@@ -258,20 +249,15 @@ export default function TeacherSettings() {
                         </button>
                     </div>
                 </form>
-            </div>
+            </PageSection>
 
             {/* Password Section */}
-            <div className="teacher-settings__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                <div className="teacher-settings__card-header flex items-center gap-3 border-b p-5">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
-                        <FiAlertCircle size={20} />
-                    </span>
-                    <div>
-                        <h2 className="text-base font-bold">Change Password</h2>
-                        <p className="text-sm text-neutral-500">Update your account password</p>
-                    </div>
-                </div>
-
+            <PageSection
+                className="teacher-settings__card"
+                title="Change Password"
+                description="Update your account password"
+                flush
+            >
                 <form onSubmit={handleChangePassword} className="p-5">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         {/* Current Password */}
@@ -325,9 +311,9 @@ export default function TeacherSettings() {
                         </button>
                     </div>
                 </form>
-            </div>
+            </PageSection>
 
 
-        </section>
+        </PageShell>
     );
 }
