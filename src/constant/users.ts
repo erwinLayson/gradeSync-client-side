@@ -6,19 +6,6 @@ export interface User {
     facultyRole?: string
 }
 
-export interface CreateUserProps {
-    email:string,
-    password: string,
-    role: string
-}
-
-export interface UserResponseProps {
-    id: number,
-    email: string,
-    role: UserRoles
-    password: string
-}
-
 export const ROLES = {
     ADMIN: "admin",
     TEACHER: "teacher",

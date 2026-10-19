@@ -82,8 +82,3 @@ export interface StudentClassesData {
     classes: StudentClass[];
 }
 
-export const TYPE_LABELS: Record<AssessmentType, string> = {
-    written_work: "Written Work",
-    performance_task: "Performance Task",
-    quarterly_assessment: "Quarterly Assessment",
-};

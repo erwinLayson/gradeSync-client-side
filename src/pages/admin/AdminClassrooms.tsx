@@ -39,7 +39,6 @@ import { ModalDialog } from "../../components/ModalDialog";
 // Main component
 export default function AdminClassrooms() {
 // Classsroom data states
-// const [classrooms, setClassrooms] = useState<ClassroomResponseProps[] | null>(null);
 const {classrooms, refetchClassroom, loading, setLoading} = useClassroom<ClassroomResponseProps[]>()
 const [classroomFacultiesWithSubject, setClassroomFacultiesWithSubject] = useState<ClassroomFacultiesWithSubjectProps[] | null>(null);
 const [newClassroom, setNewClassroom] = useState<Omit<ClassroomResponseProps, "id" | "gradeLevel" | "totalStudent"> & { gradeLevel: string }>({
