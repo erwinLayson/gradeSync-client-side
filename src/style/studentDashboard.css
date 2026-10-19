@@ -1,16 +1,17 @@
 /* ============================================================
    StudentDashboard — component stylesheet
-   (hybrid approach: tokens here, layout as Tailwind utilities)
+   Matches the ModuLearn dashboard design pattern styled with
+   GradeSync's original forest green (#176B3A) color palette.
    ============================================================ */
 
-.student-dashboard__page {
+.student-dashboard {
   animation: student-dashboard-in var(--transition-slow) ease-out forwards;
 }
 
 @keyframes student-dashboard-in {
   from {
     opacity: 0;
-    transform: translateY(0.5rem);
+    transform: translateY(0.375rem);
   }
   to {
     opacity: 1;
@@ -18,169 +19,298 @@
   }
 }
 
-/* ---------- Hero banner ---------- */
-.student-dashboard__hero {
-  background: var(--gradient-brand);
-  color: var(--text-on-dark);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
+/* ---------- Header ---------- */
+.student-dashboard__header {
+  margin-bottom: 1.5rem;
 }
 
-.student-dashboard__hero-avatar {
-  color: var(--text-on-dark);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
-  border: 1px solid var(--border-on-dark);
-  box-shadow: 0 12px 24px -8px rgb(0 0 0 / 0.45);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+.student-dashboard__title {
+  font-size: 1.625rem;
+  font-weight: 700;
+  color: var(--text-dark, #1f2937);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
-.student-dashboard__hero-eyebrow {
-  color: var(--text-on-dark-muted);
+.student-dashboard__subtitle {
+  margin-top: 0.375rem;
+  font-size: 0.875rem;
+  color: var(--text-muted, #6b7280);
 }
 
-.student-dashboard__hero-name {
-  letter-spacing: -0.01em;
-  color: var(--text-on-dark);
+.student-dashboard__subtitle-highlight {
+  font-weight: 600;
+  color: var(--text-dark, #1f2937);
 }
 
-.student-dashboard__hero-role {
-  color: var(--text-on-dark-soft);
+/* ---------- 4 Stat Cards Row ---------- */
+.student-dashboard__stats-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.75rem;
 }
 
-.student-dashboard__hero-badge {
-  border-color: var(--border-on-dark);
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+@media (min-width: 640px) {
+  .student-dashboard__stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-.student-dashboard__hero-badge-count {
-  color: var(--text-on-dark);
+@media (min-width: 1024px) {
+  .student-dashboard__stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
-.student-dashboard__hero-badge-label {
-  color: var(--text-on-dark-muted);
-}
-
-/* ---------- Quick stats ---------- */
-.student-dashboard__stat {
-  border-color: var(--neutral-border);
-  background: var(--surface-white);
-  box-shadow: var(--shadow-sm);
+.student-dashboard__stat-card {
+  background: var(--surface-white, #ffffff);
+  border-radius: 0.875rem;
+  border: 1px solid var(--neutral-border, #e5e7eb);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  padding: 1.25rem 1.25rem 1.125rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 7.25rem;
+  border-left-width: 4px;
   transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
-.student-dashboard__stat:hover {
+.student-dashboard__stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--primary);
+  box-shadow: 0 8px 20px -4px rgba(23, 107, 58, 0.08);
+}
+
+/* Card 1: GradeSync Signature Forest Green */
+.student-dashboard__stat-card--primary {
+  border-left-color: var(--primary, #176B3A);
+}
+
+/* Card 2: GradeSync Accent Warm Gold */
+.student-dashboard__stat-card--accent {
+  border-left-color: var(--accent, #D4A72C);
+}
+
+/* Card 3: GradeSync Deep Forest Navy */
+.student-dashboard__stat-card--dark {
+  border-left-color: var(--primary-dark, #0D4F2B);
+}
+
+/* Card 4: GradeSync Mid-Green Status */
+.student-dashboard__stat-card--status {
+  border-left-color: var(--primary-mid, #1A7E43);
 }
 
 .student-dashboard__stat-icon {
-  box-shadow: var(--shadow-sm);
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
 }
 
-.student-dashboard__stat-icon--green {
-  color: #065f46;
-  background: #d1fae5;
+.student-dashboard__stat-icon--primary {
+  background: var(--primary-light, #EAF5EE);
+  color: var(--primary, #176B3A);
 }
 
-.student-dashboard__stat-icon--blue {
-  color: #1d4ed8;
-  background: #dbeafe;
+.student-dashboard__stat-icon--accent {
+  background: var(--accent-light, #FDF8EC);
+  color: #b45309;
 }
 
-.student-dashboard__stat-icon--amber {
-  color: #92400e;
-  background: #fef3c7;
+.student-dashboard__stat-icon--dark {
+  background: #f1f5f9;
+  color: #334155;
 }
 
-.student-dashboard__stat-icon--rose {
-  color: #be185d;
-  background: #fce7f3;
-}
-
-.student-dashboard__stat-icon--violet {
-  color: #5b21b6;
-  background: #ede9fe;
+.student-dashboard__stat-icon--status {
+  background: var(--primary-light, #EAF5EE);
+  color: var(--primary-mid, #1A7E43);
 }
 
 .student-dashboard__stat-label {
-  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  margin-top: 0.875rem;
+  margin-bottom: 0.25rem;
 }
 
 .student-dashboard__stat-value {
-  color: var(--text-dark);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-dark, #1f2937);
+  line-height: 1.25;
 }
 
-/* ---------- Panel cards ---------- */
-.student-dashboard__panel {
-  border: 1px solid var(--neutral-border);
-  background: var(--surface-white);
-  box-shadow: var(--shadow-sm);
-  border-radius: var(--radius-lg);
+.student-dashboard__status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--primary-light, #EAF5EE);
+  color: var(--primary, #176B3A);
+  border: 1px solid rgba(23, 107, 58, 0.22);
+  width: fit-content;
 }
 
-.student-dashboard__subject-row {
-  border-bottom: 1px solid var(--neutral-border);
-  transition: background var(--transition-base);
+/* ---------- Main Container: Attendance by Subject ---------- */
+.student-dashboard__section-card {
+  background: var(--surface-white, #ffffff);
+  border-radius: 1rem;
+  border: 1px solid var(--neutral-border, #e5e7eb);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  padding: 1.5rem;
 }
 
-.student-dashboard__subject-row:last-child {
-  border-bottom: none;
+.student-dashboard__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
 }
 
-.student-dashboard__subject-row:hover {
-  background: #f8fafc;
+.student-dashboard__section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #334155;
 }
 
-.student-dashboard__subject-icon {
-  color: var(--primary);
-  background: rgba(37, 99, 235, 0.08);
+/* ---------- Subject Cards Grid ---------- */
+.student-dashboard__subjects-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1.25rem;
 }
 
-.student-dashboard__grade-good {
-  color: #065f46;
-  background: #d1fae5;
+@media (min-width: 640px) {
+  .student-dashboard__subjects-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-.student-dashboard__grade-warn {
-  color: #92400e;
-  background: #fef3c7;
+@media (min-width: 1024px) {
+  .student-dashboard__subjects-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
-.student-dashboard__grade-ng {
-  color: #6b7280;
-  background: #f3f4f6;
-}
-
-/* ---------- Quick links ---------- */
-.student-dashboard__link {
-  border: 1px solid var(--neutral-border);
-  background: var(--surface-white);
-  box-shadow: var(--shadow-sm);
+.student-dashboard__subject-card {
+  background: var(--surface-white, #ffffff);
+  border-radius: 0.75rem;
+  border: 1px solid var(--neutral-border, #e5e7eb);
+  border-top: 3px solid var(--primary, #176B3A);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  padding: 1.25rem 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
   transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
-.student-dashboard__link:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--primary);
+.student-dashboard__subject-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -4px rgba(23, 107, 58, 0.12);
+  border-color: rgba(23, 107, 58, 0.35);
+  border-top-color: var(--primary-dark, #0D4F2B);
 }
 
-.student-dashboard__link-icon {
-  color: var(--primary);
-  background: rgba(37, 99, 235, 0.08);
-  border: 1px solid rgba(37, 99, 235, 0.15);
+.student-dashboard__subject-head {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
 }
 
-.student-dashboard__link-arrow {
-  color: var(--text-muted);
-  transition: transform var(--transition-base), color var(--transition-base);
+.student-dashboard__subject-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.625rem;
+  background: var(--primary-light, #EAF5EE);
+  color: var(--primary, #176B3A);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
 }
 
-.student-dashboard__link:hover .student-dashboard__link-arrow {
-  transform: translateX(3px);
-  color: var(--primary);
+.student-dashboard__subject-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.student-dashboard__subject-name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-dark, #1f2937);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-dashboard__subject-sub {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.2rem;
+}
+
+/* ---------- Metrics Row ---------- */
+.student-dashboard__metrics-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  padding-top: 0.25rem;
+  gap: 0.5rem;
+}
+
+.student-dashboard__metric {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-size: 0.6875rem;
+}
+
+.student-dashboard__metric-label {
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.student-dashboard__metric-value {
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--text-dark, #1f2937);
+}
+
+.student-dashboard__metric-value--present {
+  color: var(--primary, #176B3A);
+}
+
+.student-dashboard__metric-value--absent {
+  color: var(--error, #EF4444);
+}
+
+.student-dashboard__metric-value--rate-good {
+  color: var(--primary, #176B3A);
+}
+
+.student-dashboard__metric-value--rate-low {
+  color: var(--error, #EF4444);
 }

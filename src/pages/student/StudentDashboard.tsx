@@ -4,31 +4,15 @@ import {
     FiAward,
     FiBookOpen,
     FiCalendar,
-    FiCheck,
-    FiChevronRight,
     FiHome,
     FiUser,
-    FiUsers,
 } from "react-icons/fi";
 
 import { getAPICall } from "../../api/api";
-import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
+import { PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
-import { isPassing } from "../../helper/grades";
 
-import type { StudentClass, StudentClassesData, AttendanceQuarter } from "../../constant/studentClasses";
-
-interface ClassAttendance {
-    enrollmentId: number;
-    classId: number;
-    schoolYearId: number;
-    schoolYear: string;
-    attendance: AttendanceQuarter[];
-}
-
-interface ClassAttendanceResponse {
-    classes: ClassAttendance[];
-}
+import type { StudentClass, StudentClassesData } from "../../constant/studentClasses";
 
 import "../../style/studentDashboard.css";
 
@@ -42,13 +26,6 @@ interface AcademicSettingsData {
     submissionsLocked: boolean | number;
 }
 
-// ==================== Helpers ====================
-
-function gradeClass(final: number | null): string {
-    if (final === null) return "student-dashboard__grade-ng";
-    return isPassing(final) ? "student-dashboard__grade-good" : "student-dashboard__grade-warn";
-}
-
 // ==================== Component ====================
 
 export default function StudentDashboard() {
@@ -56,7 +33,6 @@ export default function StudentDashboard() {
     const [loading, setLoading] = useState(true);
     const [student, setStudent] = useState<StudentClassesData["student"] | null>(null);
     const [currentClass, setCurrentClass] = useState<StudentClass | null>(null);
-    const [classAttendance, setClassAttendance] = useState<ClassAttendance | null>(null);
     const [currentQuarter, setCurrentQuarter] = useState(1);
 
     useEffect(() => {
@@ -75,15 +51,6 @@ export default function StudentDashboard() {
 
                 const quarter = settingsRes.data?.currentQuarter ?? 1;
                 setCurrentQuarter(quarter);
-
-                // Fetch class-level attendance from class_daily_attendance
-                const attendanceRes = await getAPICall<ClassAttendanceResponse>(
-                    `/students/attendance?quarter=${quarter}`,
-                    { toast: false }
-                );
-                if (cancelled) return;
-                const attClasses = attendanceRes.data?.classes ?? [];
-                setClassAttendance(attClasses[0] ?? null);
             } catch {
                 // Error toast handled by API interceptor
             } finally {
@@ -98,14 +65,26 @@ export default function StudentDashboard() {
     if (loading) {
         return (
             <PageShell className="student-dashboard">
-                <div className="student-dashboard__hero flex items-center gap-4 p-6">
-                    <Skeleton avatar avatarSize={56} lines={0} className="flex-1" />
+                <div className="student-dashboard__header">
+                    <Skeleton lines={2} gap="0.5rem" className="max-w-md" />
                 </div>
-                <PageSection flush>
-                    <div className="p-6">
-                        <Skeleton lines={4} gap="1rem" />
+                <div className="student-dashboard__stats-grid">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="student-dashboard__stat-card student-dashboard__stat-card--primary">
+                            <Skeleton lines={2} gap="0.5rem" />
+                        </div>
+                    ))}
+                </div>
+                <div className="student-dashboard__section-card">
+                    <Skeleton lines={1} className="w-48 mb-6" />
+                    <div className="student-dashboard__subjects-grid">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <div key={i} className="student-dashboard__subject-card">
+                                <Skeleton lines={3} gap="0.75rem" />
+                            </div>
+                        ))}
                     </div>
-                </PageSection>
+                </div>
             </PageShell>
         );
     }
@@ -114,207 +93,180 @@ export default function StudentDashboard() {
     if (!student || !currentClass) {
         return (
             <PageShell className="student-dashboard">
-                <PageHeader title={student?.fullname ?? "Student"} description="Welcome back" />
-                <PageSection>
-                    <div className="flex flex-col items-center justify-center py-10 text-center">
-                        <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600" aria-hidden="true">
+                <div className="student-dashboard__header">
+                    <h1 className="student-dashboard__title">Student Dashboard</h1>
+                    <p className="student-dashboard__subtitle">Welcome back, {student?.fullname ?? "Student"}</p>
+                </div>
+                <div className="student-dashboard__section-card">
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600 text-xl" aria-hidden="true">
                             <FiHome />
                         </span>
-                        <p className="mt-3 text-sm font-bold text-neutral-800">No classes found</p>
-                        <p className="mt-1 text-[0.8125rem] text-neutral-500">
+                        <p className="mt-3 text-base font-bold text-neutral-800">No classes found</p>
+                        <p className="mt-1 text-sm text-neutral-500 max-w-sm">
                             You are not enrolled in any class yet. Contact the registrar if you believe this is a mistake.
                         </p>
                     </div>
-                </PageSection>
+                </div>
             </PageShell>
         );
     }
 
     // ==================== Derived data ====================
-    const subjects = currentClass.subjects;
+    const subjects = currentClass.subjects ?? [];
     const totalSubjects = subjects.length;
-
-    // Use class_daily_attendance for accurate class-level attendance
-    const quarterAttendance = classAttendance?.attendance.find((a) => a.quarter === currentQuarter);
-    const presentDays = quarterAttendance?.presentDays ?? 0;
-    const totalDays = quarterAttendance?.totalDays ?? 0;
 
     return (
         <PageShell className="student-dashboard">
             {/* ==================== Header ==================== */}
-            <PageHeader
-                title={student.fullname}
-                description={`LRN ${student.lrn} · Grade ${currentClass.gradeLevel} · ${currentClass.section}`}
-                meta={`SY ${currentClass.schoolYear}`}
-            />
+            <header className="student-dashboard__header">
+                <h1 className="student-dashboard__title">Student Dashboard</h1>
+                <p className="student-dashboard__subtitle">
+                    Welcome back, <span className="student-dashboard__subtitle-highlight">{student.fullname}</span>. School Year: <span className="student-dashboard__subtitle-highlight">{currentClass.schoolYear}</span>
+                </p>
+            </header>
 
-            {/* ==================== Quick stats ==================== */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {/* General Average */}
-                <div className="student-dashboard__stat flex items-center gap-3 rounded-xl border p-4">
-                    <span className="student-dashboard__stat-icon student-dashboard__stat-icon--green inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                        <FiAward />
+            {/* ==================== 4 Stat Cards ==================== */}
+            <div className="student-dashboard__stats-grid">
+                {/* 1. MY CLASS */}
+                <div className="student-dashboard__stat-card student-dashboard__stat-card--primary">
+                    <span className="student-dashboard__stat-icon student-dashboard__stat-icon--primary" aria-hidden="true">
+                        <FiBookOpen />
                     </span>
-                    <div className="min-w-0">
-                        <span className="student-dashboard__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                            General Average
-                        </span>
-                        <span className="student-dashboard__stat-value mt-0.5 block text-[1.125rem] font-bold">
-                            {currentClass.generalAverage !== null
-                                ? Math.round(currentClass.generalAverage)
-                                : "—"}
+                    <div>
+                        <span className="student-dashboard__stat-label block">MY CLASS</span>
+                        <span className="student-dashboard__stat-value block">
+                            Grade {currentClass.gradeLevel} - {currentClass.section}
                         </span>
                     </div>
                 </div>
 
-                {/* Subjects */}
-                <div className="student-dashboard__stat flex items-center gap-3 rounded-xl border p-4">
-                    <span className="student-dashboard__stat-icon student-dashboard__stat-icon--blue inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                        <FiBookOpen />
+                {/* 2. SUBJECTS */}
+                <div className="student-dashboard__stat-card student-dashboard__stat-card--accent">
+                    <span className="student-dashboard__stat-icon student-dashboard__stat-icon--accent" aria-hidden="true">
+                        <FiAward />
                     </span>
-                    <div className="min-w-0">
-                        <span className="student-dashboard__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                            Subjects
-                        </span>
-                        <span className="student-dashboard__stat-value mt-0.5 block text-[1.125rem] font-bold">
+                    <div>
+                        <span className="student-dashboard__stat-label block">SUBJECTS</span>
+                        <span className="student-dashboard__stat-value block">
                             {totalSubjects}
                         </span>
                     </div>
                 </div>
 
-                {/* Attendance */}
-                <div className="student-dashboard__stat flex items-center gap-3 rounded-xl border p-4">
-                    <span className="student-dashboard__stat-icon student-dashboard__stat-icon--amber inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                        <FiUsers />
+                {/* 3. ADVISER */}
+                <div className="student-dashboard__stat-card student-dashboard__stat-card--dark">
+                    <span className="student-dashboard__stat-icon student-dashboard__stat-icon--dark" aria-hidden="true">
+                        <FiUser />
                     </span>
-                    <div className="min-w-0">
-                        <span className="student-dashboard__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                            Attendance (Q{currentQuarter})
-                        </span>
-                        <span className="student-dashboard__stat-value mt-0.5 block text-[1.125rem] font-bold">
-                            {totalDays > 0 ? (
-                                <>
-                                    <FiCheck className="inline text-emerald-600" aria-hidden="true" /> {presentDays}
-                                    {" / "}
-                                    {totalDays} days
-                                </>
-                            ) : (
-                                "No records"
-                            )}
+                    <div>
+                        <span className="student-dashboard__stat-label block">ADVISER</span>
+                        <span className="student-dashboard__stat-value block truncate" title={currentClass.adviser ?? undefined}>
+                            {currentClass.adviser ?? "—"}
                         </span>
                     </div>
                 </div>
 
-                {/* School Year */}
-                <div className="student-dashboard__stat flex items-center gap-3 rounded-xl border p-4">
-                    <span className="student-dashboard__stat-icon student-dashboard__stat-icon--violet inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
+                {/* 4. STATUS */}
+                <div className="student-dashboard__stat-card student-dashboard__stat-card--status">
+                    <span className="student-dashboard__stat-icon student-dashboard__stat-icon--status" aria-hidden="true">
                         <FiCalendar />
                     </span>
-                    <div className="min-w-0">
-                        <span className="student-dashboard__stat-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                            School Year
-                        </span>
-                        <span className="student-dashboard__stat-value mt-0.5 block text-[1.125rem] font-bold">
-                            {currentClass.schoolYear}
+                    <div>
+                        <span className="student-dashboard__stat-label block">STATUS</span>
+                        <span className="student-dashboard__status-pill">
+                            Active
                         </span>
                     </div>
                 </div>
             </div>
 
-            {/* ==================== Subjects + quick links ==================== */}
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-                {/* My subjects */}
-                <section className="student-dashboard__panel overflow-hidden rounded-2xl lg:col-span-2" aria-label="My subjects">
-                    <div className="border-b px-5 py-4">
-                        <h3 className="text-[0.9375rem] font-bold text-neutral-900">My Subjects</h3>
-                        <p className="mt-1 text-[0.8125rem] text-neutral-500">
-                            Your subjects this school year with the latest final grade.
-                        </p>
-                    </div>
+            {/* ==================== Attendance by Subject ==================== */}
+            <section className="student-dashboard__section-card" aria-label="Attendance by Subject">
+                <div className="student-dashboard__section-header">
+                    <h2 className="student-dashboard__section-title">ATTENDANCE BY SUBJECT</h2>
+                </div>
 
-                    <div className="flex flex-col">
-                        {subjects.map((subject) => (
-                            <div key={subject.classSubjectId ?? subject.name} className="student-dashboard__subject-row flex flex-wrap items-center justify-between gap-3 px-5 py-4">
-                                <div className="flex min-w-0 items-center gap-3">
-                                    <span className="student-dashboard__subject-icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                                        <FiBookOpen />
-                                    </span>
-                                    <div className="min-w-0">
-                                        <p className="truncate text-sm font-bold text-neutral-900">{subject.name}</p>
-                                        <p className="mt-0.5 truncate text-xs text-neutral-400">
-                                            {subject.code} &middot; {subject.faculty ?? "—"}
-                                        </p>
+                {subjects.length === 0 ? (
+                    <p className="text-sm text-slate-500 py-8 text-center">No subjects found for this class.</p>
+                ) : (
+                    <div className="student-dashboard__subjects-grid">
+                        {subjects.map((subject) => {
+                            const att = subject.attendance?.find((a) => a.quarter === currentQuarter);
+                            const total = att?.totalDays ?? 0;
+                            const present = att?.presentDays ?? 0;
+                            const absent = Math.max(0, total - present);
+                            const rate = att?.percentage !== null && att?.percentage !== undefined
+                                ? Math.round(att.percentage)
+                                : (total > 0 ? Math.round((present / total) * 100) : 0);
+
+                            return (
+                                <div
+                                    key={subject.classSubjectId ?? subject.name}
+                                    className="student-dashboard__subject-card"
+                                    onClick={() => navigate("/student/classrooms")}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            navigate("/student/classrooms");
+                                        }
+                                    }}
+                                >
+                                    <div className="student-dashboard__subject-head">
+                                        <span className="student-dashboard__subject-icon" aria-hidden="true">
+                                            <FiBookOpen />
+                                        </span>
+                                        <div className="student-dashboard__subject-info">
+                                            <h3 className="student-dashboard__subject-name" title={subject.name}>
+                                                {subject.name}
+                                            </h3>
+                                            <p
+                                                className="student-dashboard__subject-sub"
+                                                title={`Grade ${currentClass.gradeLevel} - ${currentClass.section}${subject.faculty ? ` • ${subject.faculty}` : ""}`}
+                                            >
+                                                Grade {currentClass.gradeLevel} - {currentClass.section}
+                                                {subject.faculty ? ` • ${subject.faculty}` : ""}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="student-dashboard__metrics-row">
+                                        <div className="student-dashboard__metric">
+                                            <span className="student-dashboard__metric-label">TOTAL</span>
+                                            <span className="student-dashboard__metric-value">{total}</span>
+                                        </div>
+                                        <div className="student-dashboard__metric">
+                                            <span className="student-dashboard__metric-label">PRESENT</span>
+                                            <span className="student-dashboard__metric-value student-dashboard__metric-value--present">
+                                                {present}
+                                            </span>
+                                        </div>
+                                        <div className="student-dashboard__metric">
+                                            <span className="student-dashboard__metric-label">ABSENT</span>
+                                            <span className="student-dashboard__metric-value student-dashboard__metric-value--absent">
+                                                {absent}
+                                            </span>
+                                        </div>
+                                        <div className="student-dashboard__metric">
+                                            <span className="student-dashboard__metric-label">RATE</span>
+                                            <span
+                                                className={`student-dashboard__metric-value ${
+                                                    rate > 0
+                                                        ? "student-dashboard__metric-value--rate-good"
+                                                        : "student-dashboard__metric-value--rate-low"
+                                                }`}
+                                            >
+                                                {rate}%
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${gradeClass(subject.final)}`}>
-                                    {subject.final === null ? "No grade" : Math.round(subject.final)}
-                                </span>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
-                </section>
-
-                {/* Quick links */}
-                <section className="flex flex-col gap-4" aria-label="Quick links">
-                    <div className="min-w-0">
-                        <h3 className="text-[0.9375rem] font-bold text-neutral-900">Quick Access</h3>
-                        <p className="mt-1 text-[0.8125rem] text-neutral-500">
-                            Jump straight to what you need.
-                        </p>
-                    </div>
-
-                    <button
-                        type="button"
-                        className="student-dashboard__link flex w-full cursor-pointer items-center gap-3 rounded-xl p-4 text-left"
-                        onClick={() => navigate("/student/classrooms")}
-                    >
-                        <span className="student-dashboard__link-icon inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
-                            <FiHome />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                            <p className="text-sm font-bold text-neutral-900">My Classes</p>
-                            <p className="mt-0.5 truncate text-[0.8125rem] text-neutral-500">
-                                Subjects, activities, scores &amp; attendance
-                            </p>
-                        </div>
-                        <FiChevronRight className="student-dashboard__link-arrow shrink-0" aria-hidden="true" />
-                    </button>
-
-                    <button
-                        type="button"
-                        className="student-dashboard__link flex w-full cursor-pointer items-center gap-3 rounded-xl p-4 text-left"
-                        onClick={() => navigate("/student/prospectus")}
-                    >
-                        <span className="student-dashboard__link-icon inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
-                            <FiAward />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                            <p className="text-sm font-bold text-neutral-900">Prospectus</p>
-                            <p className="mt-0.5 truncate text-[0.8125rem] text-neutral-500">
-                                Your academic history by school year
-                            </p>
-                        </div>
-                        <FiChevronRight className="student-dashboard__link-arrow shrink-0" aria-hidden="true" />
-                    </button>
-
-                    <button
-                        type="button"
-                        className="student-dashboard__link flex w-full cursor-pointer items-center gap-3 rounded-xl p-4 text-left"
-                        onClick={() => navigate("/student/profile")}
-                    >
-                        <span className="student-dashboard__link-icon inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg" aria-hidden="true">
-                            <FiUser />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                            <p className="text-sm font-bold text-neutral-900">My Profile</p>
-                            <p className="mt-0.5 truncate text-[0.8125rem] text-neutral-500">
-                                Personal and guardian information
-                            </p>
-                        </div>
-                        <FiChevronRight className="student-dashboard__link-arrow shrink-0" aria-hidden="true" />
-                    </button>
-                </section>
-            </div>
+                )}
+            </section>
         </PageShell>
     );
 }
