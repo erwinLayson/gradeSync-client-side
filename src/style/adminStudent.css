@@ -334,6 +334,17 @@
   cursor: not-allowed;
 }
 
+.students__action-btn--view {
+  color: var(--text-dark);
+}
+
+.students__action-btn--view:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--accent-light);
+  box-shadow: var(--shadow-sm);
+}
+
 .students__action-btn--edit {
   color: var(--primary-dark);
 }

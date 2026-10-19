@@ -211,7 +211,7 @@ export default function StudentPastGradesModal({
 // Compact API view used by this modal. Kept separate from the broader
 // StudentClassesData type because the enrollment screen only needs the
 // submitted/frozen snapshot, not the full live gradebook payload.
-interface PastGradesView {
+export interface PastGradesView {
     student: {
         id: number;
         lrn: string;
@@ -221,7 +221,7 @@ interface PastGradesView {
     classes: PastClass[];
 }
 
-interface PastClass {
+export interface PastClass {
     enrollmentId: number;
     classId: number;
     section: string;
@@ -233,7 +233,7 @@ interface PastClass {
     generalAverage: number | null;
 }
 
-interface PastSubject {
+export interface PastSubject {
     name: string;
     code: string;
     unit: number | null;

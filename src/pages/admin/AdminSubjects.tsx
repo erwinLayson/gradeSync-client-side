@@ -15,7 +15,7 @@ import type { Faculty } from "../../constant/faculties";
 
 // Components
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { PageSection, PageShell } from "../../components/PageLayout";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import { EmptyState } from "../../components/EmptyState";
 import { ModalDialog } from "../../components/ModalDialog";
 
@@ -356,48 +356,46 @@ if (loading) {
 
 return (
     <PageShell className="subjects">
-        <PageSection className="subjects__card" flush>
-            <div className="subjects__header flex flex-wrap items-center justify-between gap-4 p-5">
-                <div className="subjects__heading min-w-0">
-                    <h2 className="subjects__title text-base font-bold">Subject Records</h2>
-                    <p className="subjects__subtitle mt-1 text-[0.8125rem]">Manage school subjects</p>
-                </div>
-                <div className="subjects__actions flex flex-wrap items-center gap-2">
-                    {selectedSubject ? (
-                        <button onClick={() => setSelectedSubject(null)} className="subjects__back inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold" aria-label="Back to subject list">
-                            <FiArrowLeft /> <span className="text-sm font-bold">Back to List</span>
+        <PageHeader
+            title={selectedSubject ? `Subjects — ${selectedSubject.name}` : "Subjects"}
+            description={selectedSubject ? `Viewing details for ${selectedSubject.name}` : "Manage school subjects and assigned faculties."}
+            actions={
+                selectedSubject ? (
+                    <button onClick={() => setSelectedSubject(null)} className="subjects__back inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold" aria-label="Back to subject list">
+                        <FiArrowLeft /> <span className="text-sm font-bold">Back to List</span>
+                    </button>
+                ) : (
+                    <>
+                    <span className="subjects__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
+                    {subjects?.length ?? 0} {subjects?.length === 1 ? "subject" : "subjects"}
+                    </span>
+                        <button
+                            ref={triggerRef}
+                            type="button"
+                            className="subjects__add inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold"
+                            onClick={() => (
+                                setModalStatus("create"),
+                                setIsModalOpen(true)
+                            )}
+                            aria-label="Open create subject form"
+                        >
+                            <FiPlus aria-hidden="true" />
+                            <span className="hidden md:block">Add Subject</span>
                         </button>
-                      ) : (
-                        <>
-                        <span className="subjects__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
-                        {subjects?.length ?? 0} {subjects?.length === 1 ? "subject" : "subjects"}
-                        </span>
-                            <button
-                                ref={triggerRef}
-                                type="button"
-                                className="subjects__add inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold"
-                                onClick={() => (
-                                    setModalStatus("create"),
-                                    setIsModalOpen(true)
-                                )}
-                                aria-label="Open create subject form"
-                            >
-                                <FiPlus aria-hidden="true" />
-                                <span className="hidden md:block">Add Subject</span>
-                            </button>
-                            <button
-                                type="button"
-                                className="subjects__refresh inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
-                                onClick={() => fetchSubjects()}
-                                aria-label="Refresh subject list"
-                            >
-                                <span className="subjects__refresh-icon" aria-hidden="true">⟳</span>
-                                <span className="hidden md:block">Refresh</span>
-                            </button>
-                        </>
-                    )}
-                </div>
-            </div>
+                        <button
+                            type="button"
+                            className="subjects__refresh inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
+                            onClick={() => fetchSubjects()}
+                            aria-label="Refresh subject list"
+                        >
+                            <span className="subjects__refresh-icon" aria-hidden="true">⟳</span>
+                            <span className="hidden md:block">Refresh</span>
+                        </button>
+                    </>
+                )
+            }
+        />
+        <PageSection className="subjects__card" flush>
             
             {/* This is a simple grid of subject cards */}
             {!selectedSubject && (

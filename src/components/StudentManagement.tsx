@@ -9,6 +9,7 @@ import {
     FiChevronDown,
     FiChevronRight,
     FiEdit2,
+    FiEye,
     FiPlus,
     FiPrinter,
     FiSearch,
@@ -450,16 +451,7 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
             sortKey: "name",
             renderCell: (student) => (
                 <div className="students__name-cell">
-                    <Link
-                        to={`${basePath}/${student.id}`}
-                        state={{ listSearch: location.search }}
-                        className="students__name-link"
-                        onClick={(event) => event.stopPropagation()}
-                        aria-label={`View details for ${student.fullname}`}
-                        title="View student details"
-                    >
-                        <span className="students__name">{student.fullname}</span>
-                    </Link>
+                    <span className="students__name">{student.fullname}</span>
                     {student.status === "inactive" && (
                         <span className="students__status-chip" title="This student has been soft-deleted">Inactive</span>
                     )}
@@ -470,10 +462,19 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
         {
             headers: "Actions",
             accessor: "id",
-            width: "6rem",
+            width: "8rem",
             align: "actions",
             renderCell: (student) => (
                 <div className="students__row-actions">
+                    <button
+                        type="button"
+                        className="students__action-btn students__action-btn--view"
+                        onClick={() => openStudentDetails(student)}
+                        aria-label={`View details for ${student.fullname}`}
+                        title="View student info"
+                    >
+                        <FiEye aria-hidden="true" />
+                    </button>
                     <button
                         type="button"
                         className="students__action-btn students__action-btn--edit"
@@ -897,7 +898,6 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
                             columns={columns}
                             data={students}
                             rowKey={(student) => student.id}
-                            onRowClick={openStudentDetails}
                             sortKey={sort}
                             sortDir={dir}
                             onSortChange={toggleSort}

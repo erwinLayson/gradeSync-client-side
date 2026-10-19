@@ -12,7 +12,7 @@ import { getAPICall, postAPICall, patchAPICall, deleteAPICall } from "../../api/
 
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { EmptyState } from "../../components/EmptyState";
-import { PageSection, PageShell } from "../../components/PageLayout";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import { ModalDialog } from "../../components/ModalDialog";
 import Skeleton from "../../components/Skeleton";
 
@@ -238,13 +238,11 @@ export default function AdminFaculties() {
     if (facultiesLoading) {
         return (
             <PageShell className="faculties" busy label="Loading faculties">
+                <PageHeader
+                    title="Faculty"
+                    description="Manage faculty accounts for your school."
+                />
                 <PageSection className="faculties__card" flush>
-                    <div className="faculties__header flex flex-wrap items-center justify-between gap-4 p-5">
-                        <div className="faculties__heading min-w-0">
-                            <h2 className="faculties__title text-base font-bold">Faculty Records</h2>
-                            <p className="faculties__subtitle mt-1 text-[0.8125rem]">Loading teaching staff…</p>
-                        </div>
-                    </div>
                     <div className="p-6">
                         <Skeleton count={4} lines={1} height="2.5rem" gap="0.75rem" />
                     </div>
@@ -255,56 +253,59 @@ export default function AdminFaculties() {
 
     return (
         <PageShell className="faculties">
-            <PageSection className="faculties__card" flush>
-                <div className="faculties__header flex flex-wrap items-center justify-between gap-4 p-5">
-                    <div className="faculties__heading min-w-0">
-                        <h2 className="faculties__title text-base font-bold">Faculty Records</h2>
-                        <p className="faculties__subtitle mt-1 text-[0.8125rem]">
-                            {selectedFaculty ? `Viewing subjects for ${selectedFaculty.fullname}` : "Manage teaching staff"}
-                        </p>
-                    </div>
-                    <div className="faculties__actions flex flex-wrap items-center gap-2">
-                        {selectedFaculty ? (
+            {/* ==================== Page Header ==================== */}
+            <PageHeader
+                title={selectedFaculty ? `Faculty — ${selectedFaculty.fullname}` : "Faculty"}
+                description={
+                    selectedFaculty
+                        ? `Viewing assigned subjects for ${selectedFaculty.fullname}`
+                        : "Manage faculty accounts for your school."
+                }
+                actions={
+                    selectedFaculty ? (
+                        <button
+                            type="button"
+                            className="faculties__back inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
+                            onClick={() => {
+                                setSelectedFaculty(null);
+                                setFacultySubjectsDetails(null);
+                            }}
+                            aria-label="Back to faculty list"
+                        >
+                            <FiArrowLeft aria-hidden="true" />
+                            <span className="text-sm font-bold">Back to List</span>
+                        </button>
+                    ) : (
+                        <>
+                            <span className="faculties__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
+                                {faculties?.length ?? 0} {faculties?.length === 1 ? "faculty member" : "faculty members"}
+                            </span>
+                            <button
+                                ref={triggerRef}
+                                type="button"
+                                className="faculties__add inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold"
+                                onClick={openCreateModal}
+                                aria-label="Open create faculty form"
+                            >
+                                <FiPlus aria-hidden="true" />
+                                Add Faculty
+                            </button>
                             <button
                                 type="button"
-                                className="faculties__back inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
-                                onClick={() => {
-                                    setSelectedFaculty(null);
-                                    setFacultySubjectsDetails(null);
-                                }}
-                                aria-label="Back to faculty list"
+                                className="faculties__refresh inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
+                                onClick={() => fetchFaculties("/faculties")}
+                                aria-label="Refresh faculty list"
                             >
-                                <FiArrowLeft aria-hidden="true" />
-                                <span className="text-sm font-bold">Back to List</span>
+                                <span className="faculties__refresh-icon" aria-hidden="true">⟳</span>
+                                Refresh
                             </button>
-                        ) : (
-                            <>
-                                <span className="faculties__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
-                                    {faculties?.length ?? 0} {faculties?.length === 1 ? "faculty member" : "faculty members"}
-                                </span>
-                                <button
-                                    ref={triggerRef}
-                                    type="button"
-                                    className="faculties__add inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold"
-                                    onClick={openCreateModal}
-                                    aria-label="Open create faculty form"
-                                >
-                                    <FiPlus aria-hidden="true" />
-                                    Add Faculty
-                                </button>
-                                <button
-                                    type="button"
-                                    className="faculties__refresh inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
-                                    onClick={() => fetchFaculties("/faculties")}
-                                    aria-label="Refresh faculty list"
-                                >
-                                    <span className="faculties__refresh-icon" aria-hidden="true">⟳</span>
-                                    Refresh
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </div>
+                        </>
+                    )
+                }
+            />
+
+            {/* ==================== Table Card ==================== */}
+            <PageSection className="faculties__card" flush>
 
                 {/* ================= Faculties Table ================= */}
                 {!selectedFaculty && faculties &&  (

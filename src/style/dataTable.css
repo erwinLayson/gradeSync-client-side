@@ -61,7 +61,7 @@
 
 /* ---------- Head ---------- */
 .data-table__th {
-  padding: 0.625rem 1rem;
+  padding: 0.75rem 1rem;
   text-align: left;
   font-size: 0.625rem;
   font-weight: 700;
@@ -71,8 +71,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--text-muted);
-  background: var(--surface-white);
-  border-bottom: 1px solid var(--neutral-border);
+  background: var(--surface-bg);
+  border-bottom: 2px solid var(--neutral-border);
 }
 
 .data-table__th--num,
@@ -140,7 +140,7 @@
 
 /* ---------- Body ---------- */
 .data-table__td {
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1rem;
   color: var(--text-body);
   vertical-align: middle;
   border-bottom: 1px solid var(--neutral-border);
@@ -156,7 +156,7 @@
 }
 
 .data-table__row:hover {
-  background: var(--accent-light);
+  background: var(--surface-bg);
 }
 
 .data-table__row--clickable {

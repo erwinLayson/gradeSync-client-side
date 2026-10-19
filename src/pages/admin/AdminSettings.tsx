@@ -5,16 +5,14 @@ import {
     FiInfo,
     FiRefreshCw,
     FiSave,
-    FiTrash2,
 } from "react-icons/fi";
 
 import { useUser } from "../../hooks/useUser";
 import { invalidateSchoolInfoCache } from "../../hooks/useSchoolInfo";
-import { getAPICall, patchAPICall, putAPICall, deleteAPICall } from "../../api/api.js";
+import { getAPICall, patchAPICall, putAPICall } from "../../api/api.js";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import SignaturePad from "../../components/SignaturePad";
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
-import { toast } from "../../helper/toast";
 
 import type { SchoolInfoProps } from "../../constant/schoolInfo.js";
 import type { GradeWeights } from "../../constant/gradingWeights.js";
@@ -46,119 +44,6 @@ interface SchoolYear {
     status?: "ongoing" | "completed" | string;
 }
 
-// ==================== Bulk Enrollment Management ====================
-interface BulkEnrollmentProps {
-    savedSection: string | null;
-    handleSave: (section: string) => void;
-}
-
-function BulkEnrollmentSection({ savedSection, handleSave }: BulkEnrollmentProps) {
-    const [loading, setLoading] = useState(true);
-    const [clearing, setClearing] = useState(false);
-    const [confirmOpen, setConfirmOpen] = useState(false);
-    const [totalEnrollments, setTotalEnrollments] = useState(0);
-
-    useEffect(() => {
-        let cancelled = false;
-        async function loadCount() {
-            try {
-                const response = await getAPICall<{ count: number }>("/enrollments/active-count", { toast: false });
-                if (!cancelled && response.data) {
-                    setTotalEnrollments(response.data.count);
-                }
-            } catch {
-                // Non-critical
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        }
-        loadCount();
-        return () => { cancelled = true; };
-    }, []);
-
-    async function handleClearAll() {
-        if (clearing) return;
-        setClearing(true);
-        try {
-            const response = await deleteAPICall<null, { totalCleared: number; classroomsCleared: number }>("/enrollments/clear-all");
-            const result = response.data;
-            if (result) {
-                toast.success(`${result.totalCleared} student(s) cleared from ${result.classroomsCleared} classroom(s).`);
-                setTotalEnrollments(0);
-                handleSave("enrollment-clear");
-            }
-            setConfirmOpen(false);
-        } catch {
-            // Error toast handled by API interceptor
-        } finally {
-            setClearing(false);
-        }
-    }
-
-    return (
-        <PageSection
-            className="settings__card"
-            title="Bulk Enrollment Management"
-            description="Clear all student enrollments across classrooms in the active school year."
-        >
-            <div>
-                <div className="flex flex-col gap-4 rounded-xl border border-dashed border-red-200 bg-red-50 p-5">
-                    <div className="flex items-start gap-3">
-                        <FiTrash2 className="mt-0.5 shrink-0 text-red-600" aria-hidden="true" />
-                        <div className="min-w-0">
-                            <p className="text-[0.9375rem] font-bold text-red-800">Clear All Classrooms</p>
-                            <p className="mt-1 text-[0.8125rem] leading-relaxed text-red-700">
-                                {loading ? (
-                                    "Loading enrollment count…"
-                                ) : totalEnrollments > 0 ? (
-                                    <>This will clear <strong>{totalEnrollments}</strong> enrolled student(s) from all active classrooms. Their scores, attendance, submission records, and assessments will be removed. Enrollments will be marked as completed.</>
-                                ) : (
-                                    "No active enrollments found. All classrooms are already empty."
-                                )}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <button
-                            type="button"
-                            className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-red-300 bg-white px-4 py-2.5 text-[0.8125rem] font-bold text-red-700 shadow-sm transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-                            disabled={loading || clearing || totalEnrollments === 0}
-                            onClick={() => setConfirmOpen(true)}
-                        >
-                            {clearing ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiTrash2 aria-hidden="true" />}
-                            {clearing ? "Clearing…" : "Clear All Classrooms"}
-                        </button>
-
-                        {savedSection === "enrollment-clear" && (
-                            <span className="settings__saved inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold">
-                                <FiCheck aria-hidden="true" />
-                                Done
-                            </span>
-                        )}
-                    </div>
-                </div>
-
-                <p className="settings__note mt-4 flex items-center gap-2 text-[0.8125rem]">
-                    <FiInfo className="settings__note-icon" aria-hidden="true" />
-                    This action affects the active school year only. Historical data and frozen grade records are preserved.
-                </p>
-            </div>
-
-            <ConfirmDialog
-                open={confirmOpen}
-                title="Clear all classrooms?"
-                description={`This will remove all ${totalEnrollments} enrolled student(s) from every active classroom. Scores, attendance, submission records, and assessments will be deleted. Enrollments will be marked as completed. This cannot be undone from this page.`}
-                confirmLabel={clearing ? "Clearing…" : "Clear All"}
-                confirmIcon={clearing ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiTrash2 aria-hidden="true" />}
-                tone="danger"
-                pending={clearing}
-                onConfirm={handleClearAll}
-                onClose={() => setConfirmOpen(false)}
-            />
-        </PageSection>
-    );
-}
 
 export default function AdminSettings() {
     const { user } = useUser();
@@ -425,6 +310,7 @@ export default function AdminSettings() {
     // refused server-side with 409; this control is what an admin uses to let
     // the school year roll over.
     const [schoolYearStatusSaving, setSchoolYearStatusSaving] = useState(false);
+    const [confirmCompleteOpen, setConfirmCompleteOpen] = useState(false);
 
     async function handleToggleSchoolYearStatus(target: SchoolYear) {
         if (schoolYearStatusSaving || !target) return;
@@ -440,6 +326,7 @@ export default function AdminSettings() {
             if (refreshed) {
                 setSchoolYears(refreshed);
             }
+            setConfirmCompleteOpen(false);
         } catch {
             // Error toast is handled by the axios interceptor in api.ts
         } finally {
@@ -841,7 +728,14 @@ export default function AdminSettings() {
                             <button
                                 type="button"
                                 className="rounded-lg border px-3 py-2 text-[0.75rem] font-semibold disabled:cursor-not-allowed disabled:opacity-60"
-                                onClick={() => selectedSchoolYear && handleToggleSchoolYearStatus(selectedSchoolYear)}
+                                onClick={() => {
+                                    if (!selectedSchoolYear) return;
+                                    if (selectedSchoolYear.status === "completed") {
+                                        handleToggleSchoolYearStatus(selectedSchoolYear);
+                                    } else {
+                                        setConfirmCompleteOpen(true);
+                                    }
+                                }}
                                 disabled={schoolYearStatusSaving || academicLoading || !selectedSchoolYear}
                             >
                                 {schoolYearStatusSaving
@@ -852,7 +746,7 @@ export default function AdminSettings() {
                             </button>
                         </div>
                         <p className="text-[0.75rem] leading-relaxed text-[var(--neutral-text-muted, #6b7280)]">
-                            Faculty roles can only be changed after the current school year has been officially completed.
+                            Completing a school year clears all active classroom rosters, marks student enrollments as completed, and unlocks faculty roles for the next term.
                         </p>
                     </div>
                     <div className="settings__field flex flex-col gap-1.5">
@@ -1172,8 +1066,18 @@ export default function AdminSettings() {
                     </footer>
                 </form>
             </PageSection>
-            {/* ==================== Bulk Enrollment Management ==================== */}
-            <BulkEnrollmentSection savedSection={savedSection} handleSave={handleSave} />
+            {/* School Year Completion Confirmation Dialog */}
+            <ConfirmDialog
+                open={confirmCompleteOpen}
+                title={selectedSchoolYear ? `Complete SY ${selectedSchoolYear.startYear}–${selectedSchoolYear.endYear}?` : "Complete school year?"}
+                description="Completing this school year will finalize the term. It will verify that all student quarterly grades have been submitted, clear active student rosters across all classrooms, and mark enrollments as completed. Faculty roles will be unlocked for the next school year. Permanent grade records and submission audit trails are preserved."
+                confirmLabel={schoolYearStatusSaving ? "Completing…" : "Complete School Year"}
+                confirmIcon={schoolYearStatusSaving ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiCheck aria-hidden="true" />}
+                tone="danger"
+                pending={schoolYearStatusSaving}
+                onConfirm={() => selectedSchoolYear && handleToggleSchoolYearStatus(selectedSchoolYear)}
+                onClose={() => setConfirmCompleteOpen(false)}
+            />
         </PageShell>
     );
 }

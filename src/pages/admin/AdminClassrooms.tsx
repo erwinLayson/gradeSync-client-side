@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FiPlus, FiX, FiArrowLeft, FiEdit, FiTrash2, FiHome, FiUsers, FiBookOpen, FiUserPlus, FiUserCheck, FiRefreshCw, FiMoreVertical, FiEye } from "react-icons/fi";
+import { FiPlus, FiX, FiArrowLeft, FiEdit, FiTrash2, FiHome, FiUsers, FiBookOpen, FiUserPlus, FiUserCheck, FiMoreVertical, FiEye } from "react-icons/fi";
 
 import { 
     getAPICall, 
@@ -32,7 +32,7 @@ import useClassroom from "../../hooks/useClassroom.js";
 
 // Components
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { PageSection, PageShell } from "../../components/PageLayout";
+import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import { EmptyState } from "../../components/EmptyState";
 import { ModalDialog } from "../../components/ModalDialog";
 
@@ -88,9 +88,7 @@ const [removeTarget, setRemoveTarget] = useState<{ enrollmentId: number; student
 const [bulkRemoveOpen, setBulkRemoveOpen] = useState(false);
 const removeTriggerRef = useRef<HTMLButtonElement>(null);
 
-// Clear all students from classroom states
-const [clearClassConfirm, setClearClassConfirm] = useState(false);
-const [clearingClass, setClearingClass] = useState(false);
+
 
 // Card dropdown menu state
 const [cardMenuOpen, setCardMenuOpen] = useState<number | null>(null);
@@ -407,26 +405,7 @@ async function handleConfirmBulkRemove() {
     }
 }
 
-// Clear all students from the selected classroom
-async function handleConfirmClearClass() {
-    if (!selectedClassroom || clearingClass) return;
 
-    setClearingClass(true);
-    try {
-        await deleteAPICall(`/classrooms/${selectedClassroom.id}/enrollments/clear`);
-        toast.success(`All students cleared from ${selectedClassroom.section}.`);
-        // Refresh the classroom data
-        const response = await getAPICall<ClassroomWithStudentsProps>(`/class/${selectedClassroom.id}/students`);
-        setSelectedClassroom(response.data ?? null);
-        setSelectedStudentIds([]);
-        setClearClassConfirm(false);
-        refetchClassroom();
-    } catch {
-        // Error toast handled by API interceptor
-    } finally {
-        setClearingClass(false);
-    }
-}
 
 // Derived: select-all state
 const allStudentsSelected = selectedClassroom?.students
@@ -549,13 +528,11 @@ try {
 if (loading) {
 return (
 <PageShell className="classrooms" busy label="Loading classrooms">
+    <PageHeader
+        title="Classrooms"
+        description="Manage school classrooms and sections."
+    />
     <PageSection className="classrooms__card" flush>
-        <div className="classrooms__header flex flex-wrap items-center justify-between gap-4 p-5">
-            <div className="classrooms__heading min-w-0">
-                <h2 className="classrooms__title text-base font-bold">Classroom Records</h2>
-                <p className="classrooms__subtitle mt-1 text-[0.8125rem]">Loading classrooms…</p>
-            </div>
-        </div>
         <div className="p-6">
             <Skeleton count={4} lines={1} height="9.5rem" radius="0.75rem" grid="repeat(2, 1fr)" />
         </div>
@@ -567,76 +544,57 @@ return (
 return (
 <PageShell className="classrooms">
 {/* classroom list  */}
-<PageSection className="classrooms__card" flush>
-    <div className="classrooms__header flex flex-wrap items-center justify-between gap-4 p-5">
-        <div className="classrooms__heading min-w-0">
-            <div className="flex gap-2 items-center">
-                {selectedClassroom && (
-                    <button
-                        type="button"
-                        className="classrooms__back inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
-                        onClick={() => (
-                            setSelectedClassroom(null),
-                            setClassroomFacultiesWithSubject(null),
-                            setPageStatus("view-students")
-                        )}
-                        aria-label="Back to classroom list"
-                    >
-                        <FiArrowLeft />
-                    </button>
-                )}
-                <h2 className="classrooms__title text-base font-bold">Classroom Records</h2>
-            </div>
-            <p className="classrooms__subtitle mt-1 text-[0.8125rem]">Manage school classrooms</p>
-        </div>
-        <div className="classrooms__actions flex flex-wrap items-center gap-2">
-            
-
-            {selectedClassroom ? (
-                <div className="flex items-center gap-2">
-                    {(selectedClassroom.students?.length ?? 0) > 0 && (
-                        <button
-                            type="button"
-                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3.5 py-2 text-[0.8125rem] font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-                            disabled={clearingClass}
-                            onClick={() => setClearClassConfirm(true)}
-                        >
-                            {clearingClass ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiTrash2 aria-hidden="true" />}
-                            {clearingClass ? "Clearing…" : `Clear All (${selectedClassroom.students.length})`}
-                        </button>
-                    )}
-                </div>
-            ) : (
-            <>
-                <span className="classrooms__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">{classrooms?.length ?? 0} {classrooms?.length === 1 ? "classroom" : "classrooms"}</span>
+<PageHeader
+    title={selectedClassroom ? `Classroom — Grade ${selectedClassroom.gradeLevel} ${selectedClassroom.section}` : "Classrooms"}
+    description={selectedClassroom ? `Viewing details for Grade ${selectedClassroom.gradeLevel} – ${selectedClassroom.section}` : "Manage school classrooms and sections."}
+    actions={
+        selectedClassroom ? (
+            <div className="flex items-center gap-2">
                 <button
-                    ref={triggerRef}
                     type="button"
-                    className="classrooms__add inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold"
+                    className="classrooms__back inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
                     onClick={() => (
-                        setIsModalOpen(true),
-                        setModalStatus("create-class")
+                        setSelectedClassroom(null),
+                        setClassroomFacultiesWithSubject(null),
+                        setPageStatus("view-students")
                     )}
-                    aria-label="Open create classroom form"
+                    aria-label="Back to classroom list"
                 >
-                    <FiPlus aria-hidden="true" />
-                    <span className="hidden md:block">Add Classroom</span>
+                    <FiArrowLeft />
+                    <span className="text-sm font-bold">Back to List</span>
                 </button>
 
-                <button
-                    type="button"
-                    className="classrooms__refresh inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
-                    onClick={() => refetchClassroom()}
-                    aria-label="Refresh classroom list"
-                >
-                    <span className="classrooms__refresh-icon" aria-hidden="true">⟳</span>
-                    <span className="hidden md:block">Refresh</span>
-                </button>
-                
-            </>
-        )}
-        </div>
-    </div>
+            </div>
+        ) : (
+        <>
+            <span className="classrooms__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">{classrooms?.length ?? 0} {classrooms?.length === 1 ? "classroom" : "classrooms"}</span>
+            <button
+                ref={triggerRef}
+                type="button"
+                className="classrooms__add inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold"
+                onClick={() => (
+                    setIsModalOpen(true),
+                    setModalStatus("create-class")
+                )}
+                aria-label="Open create classroom form"
+            >
+                <FiPlus aria-hidden="true" />
+                <span className="hidden md:block">Add Classroom</span>
+            </button>
+
+            <button
+                type="button"
+                className="classrooms__refresh inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
+                onClick={() => refetchClassroom()}
+                aria-label="Refresh classroom list"
+            >
+                <span className="classrooms__refresh-icon" aria-hidden="true">⟳</span>
+                <span className="hidden md:block">Refresh</span>
+            </button>
+        </>
+    )}
+/>
+<PageSection className="classrooms__card" flush>
 
     {/*=================== Classroom Card ========================*/}
     {!selectedClassroom && (
@@ -1453,20 +1411,6 @@ return (
     triggerRef={removeTriggerRef}
 />
 
-{/* Clear all students from classroom confirmation dialog */}
-<ConfirmDialog
-    open={clearClassConfirm}
-    title={`Clear all students from ${selectedClassroom?.section ?? "this classroom"}?`}
-    description={`This will remove all ${selectedClassroom?.students?.length ?? 0} student(s) from ${selectedClassroom?.section ?? "this classroom"}. Scores, attendance, and submission records will be deleted. Enrollments will be marked as completed. This cannot be undone from this page.`}
-    confirmLabel={clearingClass ? "Clearing…" : "Clear All Students"}
-    confirmIcon={clearingClass ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiTrash2 aria-hidden="true" />}
-    icon={<FiTrash2 aria-hidden="true" />}
-    tone="danger"
-    pending={clearingClass}
-    pendingLabel="Clearing…"
-    onConfirm={handleConfirmClearClass}
-    onClose={() => setClearClassConfirm(false)}
-/>
 </PageShell>
 );
 }

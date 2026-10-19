@@ -88,20 +88,10 @@ body:has(.layout),
 
 .layout__title {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--primary-dark);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.layout__subtitle {
-  margin: 0.125rem 0 0;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

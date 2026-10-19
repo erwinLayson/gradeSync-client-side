@@ -20,8 +20,6 @@ export default function MasterLayout() {
     setMobileSidebarOpen(false);
   }
 
-  const rawTitle = pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ") || "Dashboard";
-  const pageTitle = rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1);
   const today = new Date().toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",
@@ -64,8 +62,7 @@ export default function MasterLayout() {
               </button>
             )}
             <div className="layout__heading">
-              <h1 className="layout__title">{pageTitle}</h1>
-              <p className="layout__subtitle">{schoolName || SCHOOL_NAME}</p>
+              <h1 className="layout__title">{schoolName || SCHOOL_NAME}</h1>
             </div>
           </div>
           <span className="layout__date">{today}</span>

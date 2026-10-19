@@ -1,22 +1,21 @@
 import {
-  FiArrowRight,
   FiBookOpen,
   FiCalendar,
   FiCheck,
   FiCheckCircle,
+  FiChevronDown,
+  FiChevronRight,
   FiFileText,
-  FiInbox,
   FiLock,
-  FiMail,
   FiPrinter,
   FiSearch,
-  FiUserPlus,
   FiUsers,
+  FiX,
 } from "react-icons/fi";
 
 import "../style/adminEnrollments.css";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { API, getAPICall, postAPICall } from "../api/api";
 
@@ -26,8 +25,8 @@ import useSubjects from "../hooks/useSubject.ts";
 
 // Components
 import { ConfirmDialog } from "./ConfirmDialog";
-import { PageHeader, PageSection, PageShell } from "./PageLayout";
-import StudentPastGradesModal from "../pages/admin/StudentPastGradesModal";
+import { PageHeader, PageShell } from "./PageLayout";
+import StudentPastGradesModal, { type PastGradesView } from "../pages/admin/StudentPastGradesModal";
 
 // Types
 import type {
@@ -40,7 +39,6 @@ interface SchoolYear {
   id: number;
   startYear: string;
   endYear: string;
-  // Authoritative completion marker — see plan §7.
   status?: "ongoing" | "completed" | string;
 }
 
@@ -54,12 +52,12 @@ interface AcademicSettingsData {
 export interface EnrollmentWorkspaceProps {
   /**
    * Admin-only: create a new school year from the header. Register must not be
-   * able to create/activate school years (docs/register-role-implementation-plan.md §6.2).
+   * able to create/activate school years.
    */
   allowSchoolYearCreation?: boolean;
   /**
-   * Admin-only: inspect a candidate's already-submitted past grades before
-   * enrolling. Register does not get the past-submitted-grades view.
+   * Inspect a candidate's already-submitted past grades before enrolling.
+   * Both Admin and Register have access to past grades.
    */
   allowPastGrades?: boolean;
   /** Print the SF10 / Form-137 student record for the selected student. */
@@ -69,33 +67,38 @@ export interface EnrollmentWorkspaceProps {
 const CAPACITY = 40;
 
 const STEPS = [
-  { label: "Find Student", hint: "Search the registry" },
-  { label: "Assign Section", hint: "Classroom + subjects" },
-  { label: "Review & Enroll", hint: "Confirm details" },
+  { id: 1, label: "School Year" },
+  { id: 2, label: "Student" },
+  { id: 3, label: "Grade Level" },
+  { id: 4, label: "Class" },
+  { id: 5, label: "Subjects" },
 ] as const;
 
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 0 || !parts[0]) return "S";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 /**
- * Shared enrollment wizard used by the Admin and Register workspaces.
- *
- * Admin keeps the full flow (school-year creation, past-submitted-grades view).
- * Register reuses the same enrollment flow with the Admin-only actions removed
- * and SF10 printing added. Creating students is not part of this workspace —
- * that lives on the shared student registry page (`StudentManagement`, served
- * at /register/students for the Register role).
+ * Shared enrollment workspace matching the reference design layout.
+ * Retains the green theme palette and all existing logic.
  */
 export default function EnrollmentWorkspace({
   allowSchoolYearCreation = false,
-  allowPastGrades = false,
+  allowPastGrades = true,
   allowSf10Print = false,
 }: EnrollmentWorkspaceProps) {
-  // ============ Step 1 — student search ============
+  // ============ Student Search ============
   const [students, setStudents] = useState<StudentResponseProps[] | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<StudentResponseProps | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchDebounced, setSearchDebounced] = useState("");
 
-  // ============ Step 2 — classrooms & subjects ============
+  // ============ Classrooms, Subjects & Grade Level ============
   const { classrooms, loading, setLoading, refetchClassroom } = useClassroom<ClassroomResponseProps[]>();
+  const [selectedGradeLevel, setSelectedGradeLevel] = useState<number | null>(null);
   const [selectedClassroom, setSelectedClassroom] = useState<ClassroomResponseProps | null>(null);
   const {
     subjects: classSubjects,
@@ -104,26 +107,29 @@ export default function EnrollmentWorkspace({
   } = useSubjects<ClassroomFacultiesWithSubjectProps[]>();
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([]);
 
-  // ============ School year ============
+  // ============ Past Grades (Selected Student) ============
+  const [pastGrades, setPastGrades] = useState<PastGradesView | null>(null);
+  const [pastGradesLoading, setPastGradesLoading] = useState(false);
+  const [pastGradesModalOpen, setPastGradesModalOpen] = useState(false);
+  const [expandedYears, setExpandedYears] = useState<Record<number, boolean>>({});
+
+  // ============ School Year ============
   const [schoolYear, setSchoolYear] = useState<SchoolYear[] | null>(null);
   const [selectedSchoolYearId, setSelectedSchoolYearId] = useState<number | null>(null);
 
-  // ============ Enrollment window (from Admin Settings) ============
+  // ============ Enrollment Window ============
   const [enrollmentOpen, setEnrollmentOpen] = useState<boolean | null>(null);
 
-  // ============ Enrollment submission ============
+  // ============ Submission State ============
   const [enrolling, setEnrolling] = useState(false);
   const [creatingSchoolYear, setCreatingSchoolYear] = useState(false);
   const [confirmCreateOpen, setConfirmCreateOpen] = useState(false);
   const createTriggerRef = useRef<HTMLButtonElement>(null);
 
-  // ============ Past grades modal (selected student) ============
-  const [pastGradesModalOpen, setPastGradesModalOpen] = useState(false);
-
   // ============ SF10 (Form-137) PDF ============
   const [pdfLoading, setPdfLoading] = useState(false);
 
-  // ================== debounce the search input (1s) ================
+  // ================== Debounce Search Input ==================
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchDebounced(searchQuery);
@@ -132,7 +138,7 @@ export default function EnrollmentWorkspace({
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // ================== fetch students ================
+  // ================== Fetch Not-Enrolled Students ==================
   const fetchStudents = useCallback(async () => {
     try {
       setLoading(true);
@@ -156,7 +162,6 @@ export default function EnrollmentWorkspace({
     fetchStudents();
     getAPICall<SchoolYear[]>("/schoolYear").then((response) => {
       setSchoolYear(response.data ?? null);
-      // Default the school year to the first available one
       setSelectedSchoolYearId((current) => current ?? response.data?.[0]?.id ?? null);
     });
     getAPICall<AcademicSettingsData>("/academic-settings", { toast: false }).then((response) => {
@@ -164,7 +169,101 @@ export default function EnrollmentWorkspace({
     });
   }, [fetchStudents]);
 
-  // ================== classroom selection ================
+  // ================== Load Past Grades When Student Selected ==================
+  useEffect(() => {
+    if (!selectedStudent) {
+      setPastGrades(null);
+      setPastGradesLoading(false);
+      setSelectedGradeLevel(null);
+      setSelectedClassroom(null);
+      setSelectedSubjectIds([]);
+      setExpandedYears({});
+      return;
+    }
+
+    let cancelled = false;
+    setPastGradesLoading(true);
+    setSelectedClassroom(null);
+    setSelectedSubjectIds([]);
+
+    getAPICall<PastGradesView>(`/students/${selectedStudent.id}/past-submitted-grades`, { toast: false })
+      .then((response) => {
+        if (cancelled) return;
+        const data = response.data ?? null;
+        setPastGrades(data);
+
+        if (data && data.classes && data.classes.length > 0) {
+          const sorted = [...data.classes].sort((a, b) => b.gradeLevel - a.gradeLevel);
+          const highest = sorted[0];
+          const isPassed = highest.generalAverage !== null ? highest.generalAverage >= 75 : true;
+          const nextGrade = isPassed ? highest.gradeLevel + 1 : highest.gradeLevel;
+          setSelectedGradeLevel(nextGrade);
+          // Auto-expand the most recent school year
+          setExpandedYears({ [highest.enrollmentId]: true });
+        } else {
+          setSelectedGradeLevel(7);
+          setExpandedYears({});
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPastGrades(null);
+          setSelectedGradeLevel(7);
+          setExpandedYears({});
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setPastGradesLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedStudent?.id]);
+
+  // Available grade levels from classrooms or standard 7-12
+  const availableGradeLevels = useMemo(() => {
+    const levels = new Set<number>();
+    if (classrooms) {
+      classrooms.forEach((c) => {
+        if (typeof c.gradeLevel === "number") {
+          levels.add(c.gradeLevel);
+        }
+      });
+    }
+    [7, 8, 9, 10, 11, 12].forEach((g) => levels.add(g));
+    return Array.from(levels).sort((a, b) => a - b);
+  }, [classrooms]);
+
+  // Recommended grade level from past submitted records
+  const recommendedGradeLevel = useMemo(() => {
+    if (!pastGrades || !pastGrades.classes || pastGrades.classes.length === 0) {
+      return null;
+    }
+    const sorted = [...pastGrades.classes].sort((a, b) => b.gradeLevel - a.gradeLevel);
+    const highest = sorted[0];
+    const isPassed = highest.generalAverage !== null ? highest.generalAverage >= 75 : true;
+    return isPassed ? highest.gradeLevel + 1 : highest.gradeLevel;
+  }, [pastGrades]);
+
+  // Filter classrooms by the selected grade level
+  const filteredClassrooms = useMemo(() => {
+    if (!classrooms) return null;
+    if (selectedGradeLevel === null) return classrooms;
+    return classrooms.filter((c) => c.gradeLevel === selectedGradeLevel);
+  }, [classrooms, selectedGradeLevel]);
+
+  function handleGradeLevelChange(newGrade: number) {
+    setSelectedGradeLevel(newGrade);
+    if (selectedClassroom && selectedClassroom.gradeLevel !== newGrade) {
+      setSelectedClassroom(null);
+      setSelectedSubjectIds([]);
+    }
+  }
+
+  // ================== Classroom Selection ==================
   async function handleSelectClassroom(classroom: ClassroomResponseProps) {
     setSelectedClassroom(classroom);
     setSelectedSubjectIds([]);
@@ -172,7 +271,7 @@ export default function EnrollmentWorkspace({
     await fetchClassSubjects(`/classrooms/${classroom.id}/faculties-subject/`);
   }
 
-  // ================== subject selection ================
+  // ================== Subject Selection ==================
   function toggleSubject(subjectId: number) {
     setSelectedSubjectIds((prev) =>
       prev.includes(subjectId)
@@ -181,17 +280,39 @@ export default function EnrollmentWorkspace({
     );
   }
 
-// ================== derived state ================
-  const activeStep = !selectedStudent ? 1 : !selectedClassroom ? 2 : 3;
+  function handleToggleAllSubjects() {
+    if (!classSubjects || classSubjects.length === 0) return;
+    if (selectedSubjectIds.length === classSubjects.length) {
+      setSelectedSubjectIds([]);
+    } else {
+      setSelectedSubjectIds(classSubjects.map((s) => s.subjectId));
+    }
+  }
+
+  // Toggle year accordion
+  const toggleYearAccordion = (enrollmentId: number) => {
+    setExpandedYears((prev) => ({
+      ...prev,
+      [enrollmentId]: !prev[enrollmentId],
+    }));
+  };
+
+  // Reset student selection
+  function handleClearStudent() {
+    setSelectedStudent(null);
+    setSelectedGradeLevel(null);
+    setSelectedClassroom(null);
+    setSelectedSubjectIds([]);
+    setPastGrades(null);
+    setSearchQuery("");
+  }
+
+  // ================== Derived State ==================
   const selectedSubjects =
     classSubjects?.filter((cs) => selectedSubjectIds.includes(cs.subjectId)) ?? [];
   const totalUnits = selectedSubjects.reduce((sum, cs) => sum + Number(cs.unit), 0);
   const selectedSchoolYear =
     schoolYear?.find((sy) => sy.id === selectedSchoolYearId) ?? null;
-
-  const classroomPct = selectedClassroom
-    ? Math.min(100, Math.round(((Number(selectedClassroom.totalStudent) || 0) / CAPACITY) * 100))
-    : 0;
 
   const nextStartYear = new Date().getFullYear();
   const nextEndYear = nextStartYear + 1;
@@ -199,14 +320,42 @@ export default function EnrollmentWorkspace({
   const canEnroll = Boolean(
     selectedStudent &&
       selectedClassroom &&
+      selectedGradeLevel &&
+      selectedClassroom.gradeLevel === selectedGradeLevel &&
       selectedSubjectIds.length > 0 &&
       selectedSchoolYearId &&
       enrollmentOpen !== false,
   );
 
-  // ================== handle enrollment submission ================
+  // Stepper state
+  const isStep1Done = Boolean(selectedSchoolYearId);
+  const isStep2Done = Boolean(selectedStudent);
+  const isStep3Done = Boolean(selectedGradeLevel);
+  const isStep4Done = Boolean(selectedClassroom);
+  const isStep5Done = selectedSubjectIds.length > 0;
+
+  const currentStep = !selectedStudent
+    ? 2
+    : !selectedGradeLevel
+      ? 3
+      : !selectedClassroom
+        ? 4
+        : !isStep5Done
+          ? 5
+          : 5;
+
+  const guidanceText = useMemo(() => {
+    if (enrollmentOpen === false) return "Enrollment is closed in Admin Settings.";
+    if (!selectedStudent) return "Select a student to continue.";
+    if (!selectedGradeLevel) return "Select a grade level for this enrollment.";
+    if (!selectedClassroom) return "Select a class to continue.";
+    if (selectedSubjectIds.length === 0) return "Select at least one subject to enroll.";
+    return "All details verified. Ready to enroll.";
+  }, [enrollmentOpen, selectedStudent, selectedGradeLevel, selectedClassroom, selectedSubjectIds.length]);
+
+  // ================== Handle Enrollment Submission ==================
   async function handleEnroll() {
-    if (!selectedStudent || !selectedClassroom || !selectedSchoolYearId) return;
+    if (!selectedStudent || !selectedClassroom || !selectedSchoolYearId || !selectedGradeLevel) return;
     if (selectedSubjectIds.length === 0) return;
 
     setEnrolling(true);
@@ -218,17 +367,16 @@ export default function EnrollmentWorkspace({
           classId: selectedClassroom.id,
           schoolYearId: selectedSchoolYearId,
           subjectIds: selectedSubjectIds,
+          gradeLevel: selectedGradeLevel,
         },
       );
 
-      // Reset the flow and refresh the lists — the student is now enrolled.
-      setSelectedStudent(null);
-      setSelectedClassroom(null);
-      setSelectedSubjectIds([]);
+      // Reset the flow and refresh lists
+      handleClearStudent();
       fetchStudents();
       refetchClassroom();
     } catch {
-      // Error toast is handled by the axios interceptor in api.ts
+      // Error toast is handled by axios interceptor
     } finally {
       setEnrolling(false);
     }
@@ -236,15 +384,14 @@ export default function EnrollmentWorkspace({
 
   const closeCreateConfirm = useCallback(() => setConfirmCreateOpen(false), []);
   const closePastGradesModal = useCallback(() => setPastGradesModalOpen(false), []);
-  // =================== handle creating a new school year ===================
+
+  // ================== Create School Year ==================
   async function handleCreateSchoolYear() {
     if (creatingSchoolYear) return;
 
     setCreatingSchoolYear(true);
     try {
       const response = await postAPICall<object, SchoolYear>("/schoolYear", {});
-
-      // Refresh the list and auto-select the newly created school year.
       const listResponse = await getAPICall<SchoolYear[]>("/schoolYear");
       const updated = listResponse.data ?? null;
       setSchoolYear(updated);
@@ -252,22 +399,18 @@ export default function EnrollmentWorkspace({
       closeCreateConfirm();
       createTriggerRef.current?.focus();
     } catch {
-      // Error toast is handled by the axios interceptor in api.ts; keep the dialog open to retry.
+      // Handled by axios interceptor
     } finally {
       setCreatingSchoolYear(false);
     }
   }
 
-  // =================== SF10 / Form-137 printing ===================
+  // ================== SF10 / Form-137 Printing ==================
   async function openStudentRecordPdf(student: StudentResponseProps) {
     if (pdfLoading) return;
     setPdfLoading(true);
-    // Open the tab synchronously inside the click gesture so popup blockers
-    // don't reject it — the final blob URL is only known after the fetch.
     const pdfTab = window.open("", "_blank");
     try {
-      // Fetch as a blob so the httpOnly login_token cookie travels with the
-      // request (a plain tab navigation to the endpoint would not send it).
       const response = await API.get(`/student-records/${student.id}/pdf`, { responseType: "blob" });
       const blobUrl = URL.createObjectURL(response.data as Blob);
       if (pdfTab) {
@@ -275,11 +418,9 @@ export default function EnrollmentWorkspace({
       } else {
         window.open(blobUrl, "_blank");
       }
-      // Give the new tab time to load the PDF before releasing the URL.
       window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
     } catch {
       pdfTab?.close();
-      // Error toast is handled by the axios interceptor in api.ts
     } finally {
       setPdfLoading(false);
     }
@@ -289,8 +430,8 @@ export default function EnrollmentWorkspace({
     <PageShell className="enrollments">
       {/* ============ Header ============ */}
       <PageHeader
-        title="Enroll a Student"
-        description="Search, assign a section, and confirm in one flow."
+        title="Enrollments"
+        description="Enroll students into classes for a school year."
         meta={
           enrollmentOpen === false
             ? "Enrollment closed"
@@ -299,43 +440,21 @@ export default function EnrollmentWorkspace({
               : "Enrollment open"
         }
         actions={
-          <>
-            {allowSchoolYearCreation && (
-              <button
-                ref={createTriggerRef}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--neutral-border)] px-3.5 py-2 text-xs font-bold text-neutral-700 transition-colors hover:border-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={() => setConfirmCreateOpen(true)}
-                disabled={creatingSchoolYear}
-              >
-                <FiCheckCircle aria-hidden="true" />
-                {creatingSchoolYear ? "Creating…" : "Create new School Year"}
-              </button>
-            )}
-
-            <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-bold text-neutral-700">
-              <FiCalendar aria-hidden="true" />
-              <select
-                value={selectedSchoolYearId ?? ""}
-                onChange={(e) => setSelectedSchoolYearId(Number(e.target.value))}
-                aria-label="Select school year"
-                className="rounded-lg border border-[var(--neutral-border)] px-2 py-1.5 text-[0.8125rem] font-semibold"
-              >
-                {schoolYear && schoolYear.length > 0 ? (
-                  schoolYear.map((sy) => (
-                    <option key={sy.id} value={sy.id}>
-                      {sy.startYear} – {sy.endYear}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">Loading…</option>
-                )}
-              </select>
-            </label>
-          </>
+          allowSchoolYearCreation ? (
+            <button
+              ref={createTriggerRef}
+              className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--neutral-border)] bg-white px-3.5 py-2 text-xs font-bold text-neutral-700 transition-colors hover:border-[var(--primary)] hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => setConfirmCreateOpen(true)}
+              disabled={creatingSchoolYear}
+            >
+              <FiCheckCircle aria-hidden="true" />
+              {creatingSchoolYear ? "Creating…" : "Create new School Year"}
+            </button>
+          ) : undefined
         }
       />
 
-      {/* ============ Closed enrollment banner ============ */}
+      {/* ============ Closed Enrollment Banner ============ */}
       {enrollmentOpen === false && (
         <div
           className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
@@ -350,595 +469,712 @@ export default function EnrollmentWorkspace({
         </div>
       )}
 
-      {/* ============ Stepper ============ */}
+      {/* ============ Top Stepper Bar (Matching Reference) ============ */}
       <nav
-        className="enrollments__steps flex items-center gap-4 overflow-x-auto px-5 py-4"
+        className="enrollments__stepper-wrap flex items-center justify-between gap-3 overflow-x-auto px-6 py-4"
         aria-label="Enrollment progress"
       >
-        {STEPS.map((step, i) => {
-          const n = i + 1;
-          const done = activeStep > n;
-          const active = activeStep === n;
+        {STEPS.map((step, idx) => {
+          const isDone =
+            (step.id === 1 && isStep1Done) ||
+            (step.id === 2 && isStep2Done) ||
+            (step.id === 3 && isStep3Done) ||
+            (step.id === 4 && isStep4Done) ||
+            (step.id === 5 && isStep5Done);
+
+          const isActive = currentStep === step.id;
 
           return (
-            <div
-              key={step.label}
-              className={`enrollments__step flex shrink-0 items-center gap-3 ${
-                done ? "enrollments__step--done" : ""
-              } ${active ? "enrollments__step--active" : ""}`}
-            >
-              <span
-                className="enrollments__step-badge inline-flex h-9 w-9 shrink-0 items-center justify-center text-sm"
-                aria-hidden="true"
-              >
-                {done ? <FiCheck /> : n}
-              </span>
-              <span className="enrollments__step-label flex min-w-0 flex-col gap-0.5">
-                <span className="enrollments__step-name text-[0.8125rem] font-bold">
+            <div key={step.id} className="flex flex-1 items-center gap-3 min-w-0">
+              <div className="flex items-center gap-2.5 shrink-0">
+                <span
+                  className={`enrollments__stepper-circle ${
+                    isDone
+                      ? "enrollments__stepper-circle--done"
+                      : isActive
+                        ? "enrollments__stepper-circle--active"
+                        : "enrollments__stepper-circle--inactive"
+                  }`}
+                >
+                  {isDone ? <FiCheck /> : step.id}
+                </span>
+                <span
+                  className={`text-xs whitespace-nowrap font-semibold ${
+                    isDone || isActive ? "text-[var(--text-dark)] font-bold" : "text-neutral-400"
+                  }`}
+                >
                   {step.label}
                 </span>
-                <span className="enrollments__step-hint text-[0.625rem]">{step.hint}</span>
-              </span>
-              {i < STEPS.length - 1 && (
-                <span className="enrollments__step-line min-w-10 flex-1" aria-hidden="true" />
+              </div>
+              {idx < STEPS.length - 1 && (
+                <span
+                  className={`enrollments__stepper-line ${
+                    isDone ? "enrollments__stepper-line--done" : ""
+                  }`}
+                  aria-hidden="true"
+                />
               )}
             </div>
           );
         })}
       </nav>
 
-      {/* ============ 3-column layout ============ */}
-      <div className="enrollments__layout grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)_minmax(0,16rem)]">
-        {/* ============ Step 1 — student search ============ */}
-        <PageSection as="aside" className="enrollments__panel" flush>
-          <header className="enrollments__panel-head flex items-start justify-between gap-3 p-5">
-            <div>
-              <span className="enrollments__step-tag inline-flex items-center px-2 py-0.5 text-[0.625rem] font-bold uppercase">
-                Step 1
-              </span>
-              <h3 className="enrollments__panel-title mt-2 text-base font-bold">Find Student</h3>
-              <p className="enrollments__panel-subtitle mt-0.5 text-xs">
-                Search students who aren't enrolled yet
-              </p>
-            </div>
-            {searchDebounced && (
-              <span className="enrollments__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-[0.6875rem] font-semibold">
-                {students?.length ?? 0} result{students?.length === 1 ? "" : "s"}
-              </span>
-            )}
-          </header>
-
-          <div className="enrollments__search mx-5 mt-4">
-            <FiSearch className="enrollments__search-icon" aria-hidden="true" />
-            <input
-              type="search"
-              placeholder="Search by name or LRN..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Search students"
-              className="w-full py-2.5 pl-9 pr-3 text-sm"
-            />
-          </div>
-
-          <div className="enrollments__results px-5 pb-5" aria-live="polite">
-            {loading && searchDebounced ? (
-              <div
-                className="enrollments__results-state flex items-center justify-center gap-2 px-3 py-4 text-center text-xs"
-                aria-busy="true"
-              >
-                Searching students…
-              </div>
-            ) : students && students.length > 0 ? (
-              students.map((s) => (
-                <label
-                  className={`enrollments__result flex items-center gap-2.5 p-2 ${
-                    selectedStudent?.id === s.id ? "enrollments__result--active" : ""
-                  }`}
-                  key={String(s.lrn)}
-                  htmlFor={`student-${s.lrn}`}
-                >
-                  <input
-                    type="radio"
-                    name="students"
-                    id={`student-${s.lrn}`}
-                    value={s.id}
-                    checked={selectedStudent?.id === s.id}
-                    onChange={() => setSelectedStudent(s)}
-                  />
-                  <span className="enrollments__result-info flex min-w-0 flex-col gap-px">
-                    <span className="enrollments__result-name text-[0.8125rem] font-semibold">
-                      {s.fullname}
-                    </span>
-                    <span className="enrollments__result-lrn text-[0.6875rem]">{s.lrn}</span>
-                  </span>
-                  <span
-                    className={`enrollments__result-sex ml-auto shrink-0 px-2 py-0.5 text-[0.625rem] ${
-                      s.sex.toLowerCase() === "male"
-                        ? "enrollments__result-sex--male"
-                        : "enrollments__result-sex--female"
-                    }`}
-                  >
-                    {s.sex.charAt(0).toUpperCase()}
-                  </span>
-                </label>
-              ))
-            ) : searchDebounced ? (
-              <div className="enrollments__results-state flex items-center justify-center gap-2 px-3 py-4 text-center text-xs">
-                No students found for &ldquo;{searchDebounced}&rdquo;
-              </div>
-            ) : (
-              <div className="enrollments__results-state enrollments__results-state--hint flex items-center justify-center gap-2 px-3 py-6 text-center text-xs">
-                Type a name or LRN to find students not yet enrolled.
-              </div>
-            )}
-          </div>
-
-          {/* Selected student profile */}
-          {selectedStudent && (
-            <div className="enrollments__profile mx-5 mb-5 p-4">
-              <div className="enrollments__profile-head flex items-center gap-3">
-                <div className="enrollments__profile-heading min-w-0">
-                  <h4 className="enrollments__profile-name text-[0.9375rem] font-bold">
-                    {selectedStudent.fullname}
-                  </h4>
-                  <p className="enrollments__profile-email mt-1 flex items-center gap-1.5 text-xs">
-                    <FiMail aria-hidden="true" />
-                    {selectedStudent.email}
-                  </p>
-                </div>
-              </div>
-              <dl className="enrollments__profile-stats mt-3.5 grid grid-cols-2 gap-2">
-                <div className="enrollments__profile-stat flex flex-col gap-0.5 p-2">
-                  <dt className="text-[0.5625rem] font-bold uppercase">LRN</dt>
-                  <dd className="text-xs">{selectedStudent.lrn}</dd>
-                </div>
-                <div className="enrollments__profile-stat flex flex-col gap-0.5 p-2">
-                  <dt className="text-[0.5625rem] font-bold uppercase">Age</dt>
-                  <dd className="text-xs">{selectedStudent.age}</dd>
-                </div>
-                <div className="enrollments__profile-stat flex flex-col gap-0.5 p-2">
-                  <dt className="text-[0.5625rem] font-bold uppercase">Sex</dt>
-                  <dd className="text-xs">{selectedStudent.sex}</dd>
-                </div>
-                <div className="enrollments__profile-stat flex flex-col gap-0.5 p-2">
-                  <dt className="text-[0.5625rem] font-bold uppercase">Birthdate</dt>
-                  <dd className="text-xs">{selectedStudent.birthdate}</dd>
-                </div>
-              </dl>
-
-              {allowPastGrades && (
-                <button
-                  type="button"
-                  className="enrollments__profile-grades mt-4 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--neutral-border)] bg-white px-3 py-2 text-xs font-bold text-neutral-700 hover:bg-[var(--neutral-hover)]"
-                  onClick={() => setPastGradesModalOpen(true)}
-                  title="View the student's already-submitted past grades before enrolling"
-                >
-                  <FiFileText aria-hidden="true" />
-                  View past submitted grades
-                </button>
-              )}
-
-              {allowSf10Print && (
-                <button
-                  type="button"
-                  className="enrollments__profile-grades mt-2 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--neutral-border)] bg-white px-3 py-2 text-xs font-bold text-neutral-700 hover:bg-[var(--neutral-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-                  onClick={() => openStudentRecordPdf(selectedStudent)}
-                  disabled={pdfLoading}
-                  title="Print the SF10 / Form-137 student record"
-                >
-                  <FiPrinter aria-hidden="true" />
-                  {pdfLoading ? "Preparing…" : "Print SF10 (Form-137)"}
-                </button>
-              )}
-            </div>
-          )}
-        </PageSection>
-
-        {/* ============ Step 2 — classroom & subjects ============ */}
-        <PageSection className="enrollments__panel" flush>
-          {selectedStudent ? (
-            <>
-              <header className="enrollments__panel-head flex items-start justify-between gap-3 p-5">
-                <div>
-                  <span className="enrollments__step-tag inline-flex items-center px-2 py-0.5 text-[0.625rem] font-bold uppercase">
-                    Step 2
-                  </span>
-                  <h3 className="enrollments__panel-title mt-2 text-base font-bold">
-                    Assign a Section
-                  </h3>
-                  <p className="enrollments__panel-subtitle mt-0.5 text-xs">
-                    Pick the classroom for {selectedStudent.fullname.split(" ")[0] || "this student"}
-                  </p>
-                </div>
-                <span className="enrollments__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-[0.6875rem] font-semibold">
-                  {classrooms?.length ?? 0} available
+      {/* ============ 2-Column Layout (Matching Reference) ============ */}
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_380px]">
+        {/* ============ Left Column: Stacked Step Cards ============ */}
+        <div className="flex flex-col gap-5 min-w-0">
+          {/* Card 1: School Year */}
+          <section className="enrollments__card p-5">
+            <header className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex items-start gap-3">
+                <span className="enrollments__step-num" aria-hidden="true">
+                  1
                 </span>
-              </header>
-
-              {/* Classroom picker */}
-              <div className="enrollments__classes px-5 pt-4">
-                {classrooms === null ? (
-                  loading ? (
-                    <div
-                      className="enrollments__results-state flex items-center justify-center gap-2 px-3 py-4 text-center text-xs"
-                      aria-busy="true"
-                    >
-                      Loading classrooms…
-                    </div>
-                  ) : (
-                    <div className="enrollments__results-state flex items-center justify-center gap-2 px-3 py-4 text-center text-xs">
-                      No classrooms available.
-                    </div>
-                  )
-                ) : classrooms.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    {classrooms.map((c) => {
-                      const enrolled = Number(c.totalStudent) || 0;
-                      const pct = Math.min(100, Math.round((enrolled / CAPACITY) * 100));
-                      const slotsLeft = Math.max(0, CAPACITY - enrolled);
-                      const isLow = slotsLeft > 0 && slotsLeft <= 4;
-                      const isFull = slotsLeft === 0;
-                      const isActive = selectedClassroom?.id === c.id;
-
-                      return (
-                        <label
-                          key={String(c.id)}
-                          className={`enrollments__class relative flex cursor-pointer flex-col gap-3.5 overflow-hidden p-4 isolate ${
-                            isActive ? "enrollments__class--active" : ""
-                          } ${isLow ? "enrollments__class--low" : ""} ${
-                            isFull ? "enrollments__class--full" : ""
-                          }`}
-                          htmlFor={`classroom-${c.id}`}
-                        >
-                          <input
-                            type="radio"
-                            name="classroom"
-                            id={`classroom-${c.id}`}
-                            value={c.id}
-                            checked={isActive}
-                            onChange={() => handleSelectClassroom(c)}
-                          />
-
-                          <span className="flex items-start justify-between gap-3">
-                            <span
-                              className="enrollments__class-monogram inline-flex h-10 w-10 shrink-0 items-center justify-center text-base"
-                              aria-hidden="true"
-                            >
-                              {c.section.charAt(0)}
-                            </span>
-                            <span
-                              className="enrollments__class-check inline-flex items-center justify-center"
-                              aria-hidden="true"
-                            >
-                              <FiCheck />
-                            </span>
-                          </span>
-
-                          <span className="flex flex-col gap-1">
-                            <span className="enrollments__class-grade self-start px-2 py-0.5 text-[0.625rem] font-bold uppercase">
-                              Grade {c.gradeLevel}
-                            </span>
-                            <span className="enrollments__class-section text-lg font-extrabold">
-                              {c.section}
-                            </span>
-                          </span>
-
-                          <span className="enrollments__class-capacity">
-                            <span className="enrollments__class-capacity-meta flex items-center justify-between gap-2 text-[0.6875rem]">
-                              <span className="flex items-center gap-1 font-semibold">
-                                <FiUsers aria-hidden="true" />
-                                {enrolled}/{CAPACITY} enrolled
-                              </span>
-                              <span className="enrollments__class-slots-pct px-1.5 py-0.5 text-[0.625rem]">
-                                {pct}% full
-                              </span>
-                            </span>
-                            <span className="enrollments__class-bar mt-2 block" aria-hidden="true">
-                              <span
-                                className="enrollments__class-bar-fill block"
-                                style={{ width: `${pct}%` }}
-                              />
-                            </span>
-                          </span>
-
-                          <span className="enrollments__class-foot inline-flex items-center gap-1.5 text-xs">
-                            {isFull
-                              ? "Class is full"
-                              : `${slotsLeft} slot${slotsLeft === 1 ? "" : "s"} left`}
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="enrollments__results-state flex items-center justify-center gap-2 px-3 py-4 text-center text-xs">
-                    No classrooms available.
-                  </div>
-                )}
+                <div>
+                  <h3 className="text-sm font-bold text-[var(--text-dark)]">School Year</h3>
+                  <p className="text-xs text-neutral-500 mt-0.5">
+                    Which school year is this enrollment for?
+                  </p>
+                </div>
               </div>
+            </header>
 
-              {/* Subject picker */}
-              {selectedClassroom && (
-                <section className="enrollments__subjects mt-5 border-t border-[var(--neutral-border)] p-5">
-                  <div className="enrollments__section-head flex items-center justify-between gap-3">
-                    <div>
-                      <h4 className="enrollments__section-title text-sm font-bold">Subjects</h4>
-                      <p className="enrollments__section-subtitle mt-0.5 text-xs">
-                        Grade {selectedClassroom.gradeLevel} – {selectedClassroom.section}
-                      </p>
+            <div className="max-w-md">
+              <select
+                value={selectedSchoolYearId ?? ""}
+                onChange={(e) => setSelectedSchoolYearId(Number(e.target.value))}
+                aria-label="Select school year"
+                className="w-full rounded-lg border border-[var(--neutral-border)] bg-[var(--surface-bg)] px-3.5 py-2.5 text-xs font-semibold text-neutral-800 transition focus:border-[var(--primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+              >
+                {schoolYear && schoolYear.length > 0 ? (
+                  schoolYear.map((sy) => (
+                    <option key={sy.id} value={sy.id}>
+                      {sy.startYear}–{sy.endYear} {sy.status === "ongoing" ? "— Current" : ""}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Loading school years…</option>
+                )}
+              </select>
+            </div>
+          </section>
+
+          {/* Card 2: Student */}
+          <section className="enrollments__card p-5">
+            <header className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex items-start gap-3">
+                <span className="enrollments__step-num" aria-hidden="true">
+                  2
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-[var(--text-dark)]">Student</h3>
+                  <p className="text-xs text-neutral-500 mt-0.5">
+                    Search by name or email, then pick from the results.
+                  </p>
+                </div>
+              </div>
+              {searchDebounced && !selectedStudent && (
+                <span className="inline-flex shrink-0 items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-[0.6875rem] font-semibold text-neutral-600">
+                  {students?.length ?? 0} result{students?.length === 1 ? "" : "s"}
+                </span>
+              )}
+            </header>
+
+            {/* Search Input */}
+            <div className="relative max-w-md mb-4">
+              <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+              <input
+                type="search"
+                placeholder="Search student by name or LRN..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search students"
+                className="w-full rounded-lg border border-[var(--neutral-border)] bg-[var(--surface-bg)] py-2.5 pl-9 pr-3 text-xs text-neutral-800 transition focus:border-[var(--primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+              />
+            </div>
+
+            {/* If student is selected: Selected Chip + Previous School Years */}
+            {selectedStudent ? (
+              <div className="flex flex-col gap-4">
+                {/* Selected Student Pill/Chip */}
+                <div className="enrollments__student-chip">
+                  <span className="enrollments__avatar-circle">
+                    {getInitials(selectedStudent.fullname)}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-xs text-neutral-900 leading-tight truncate">
+                      {selectedStudent.fullname}
                     </div>
-                    <span className="enrollments__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-[0.6875rem] font-semibold">
-                      {selectedSubjectIds.length}/{classSubjects?.length ?? 0} selected
-                    </span>
+                    <div className="text-[0.6875rem] text-neutral-500 truncate">
+                      {selectedStudent.email} · LRN: {selectedStudent.lrn}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleClearStudent}
+                    aria-label="Deselect student"
+                    className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-200 hover:text-neutral-700"
+                  >
+                    <FiX size={13} />
+                  </button>
+                </div>
+
+                {/* Previous school years section (Exact match to reference) */}
+                <div className="enrollments__past-years-box p-4 rounded-xl border border-neutral-200 bg-neutral-50/70">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200/80 pb-3 mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-white border border-neutral-200 text-neutral-700 text-xs">
+                        <FiBookOpen />
+                      </span>
+                      <div>
+                        <h4 className="text-xs font-bold text-neutral-900">Previous school years</h4>
+                        <p className="text-[0.6875rem] text-neutral-500">
+                          {pastGradesLoading
+                            ? "Retrieving past academic history…"
+                            : pastGrades && pastGrades.classes.length > 0
+                              ? `${pastGrades.classes.length} school year${
+                                  pastGrades.classes.length === 1 ? "" : "s"
+                                } on record, excluding current year.`
+                              : "No previous school years on record (New student / Transferee)."}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {allowPastGrades && (
+                        <button
+                          type="button"
+                          onClick={() => setPastGradesModalOpen(true)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1 text-xs font-bold text-neutral-700 transition hover:border-[var(--primary)] hover:bg-neutral-50"
+                        >
+                          <FiFileText size={12} />
+                          Full academic record
+                        </button>
+                      )}
+                      {allowSf10Print && (
+                        <button
+                          type="button"
+                          onClick={() => openStudentRecordPdf(selectedStudent)}
+                          disabled={pdfLoading}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1 text-xs font-bold text-neutral-700 transition hover:border-[var(--primary)] hover:bg-neutral-50 disabled:opacity-50"
+                        >
+                          <FiPrinter size={12} />
+                          {pdfLoading ? "Preparing…" : "Print SF10"}
+                        </button>
+                      )}
+                    </div>
                   </div>
 
-                  {subjectsLoading ? (
-                    <div
-                      className="enrollments__results-state flex items-center justify-center gap-2 px-3 py-4 text-center text-xs"
-                      aria-busy="true"
-                    >
-                      Loading subjects…
+                  {/* Accordion List of Past School Years */}
+                  {pastGradesLoading ? (
+                    <div className="py-6 text-center text-xs text-neutral-500 flex items-center justify-center gap-2">
+                      <FiCalendar className="animate-spin text-neutral-400" />
+                      Loading past grades…
                     </div>
-                  ) : classSubjects && classSubjects.length > 0 ? (
-                    <div className="enrollments__subjects-list mt-4 flex flex-col gap-2">
-                      {classSubjects.map((cs) => {
-                        const checked = selectedSubjectIds.includes(cs.subjectId);
+                  ) : pastGrades && pastGrades.classes.length > 0 ? (
+                    <div className="flex flex-col gap-2">
+                      {pastGrades.classes.map((cls) => {
+                        const isExpanded = Boolean(expandedYears[cls.enrollmentId]);
 
                         return (
-                          <label
-                            key={cs.subjectId}
-                            className={`enrollments__subject relative flex cursor-pointer items-center gap-2.5 p-2.5 ${
-                              checked ? "enrollments__subject--checked" : ""
-                            }`}
+                          <div
+                            key={cls.enrollmentId}
+                            className="rounded-lg border border-neutral-200 bg-white overflow-hidden shadow-2xs"
                           >
-                            <input
-                              type="checkbox"
-                              name="subject"
-                              checked={checked}
-                              onChange={() => toggleSubject(cs.subjectId)}
-                            />
-                            <span
-                              className="enrollments__subject-check inline-flex items-center justify-center"
-                              aria-hidden="true"
+                            {/* Accordion Header */}
+                            <button
+                              type="button"
+                              onClick={() => toggleYearAccordion(cls.enrollmentId)}
+                              className="w-full flex items-center justify-between gap-3 p-3 text-left transition hover:bg-neutral-50/80"
                             >
-                              <FiCheck />
-                            </span>
-                            <span
-                              className="enrollments__subject-icon inline-flex items-center justify-center"
-                              aria-hidden="true"
-                            >
-                              <FiBookOpen />
-                            </span>
-                            <span className="enrollments__subject-info flex min-w-0 flex-col gap-px">
-                              <span className="enrollments__subject-name text-[0.8125rem]">
-                                {cs.subjectName}
-                              </span>
-                              <span className="enrollments__subject-faculty text-[0.6875rem]">
-                                {cs.facultyFullname}
-                              </span>
-                            </span>
-                            <span className="enrollments__subject-code ml-auto shrink-0 px-2 py-0.5 text-[0.625rem]">
-                              {cs.code}
-                            </span>
-                            <span className="enrollments__subject-unit text-xs">
-                              {cs.unit} unit{cs.unit === 1 ? "" : "s"}
-                            </span>
-                          </label>
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <span className="text-neutral-500 text-xs">
+                                  {isExpanded ? <FiChevronDown /> : <FiChevronRight />}
+                                </span>
+                                <div className="min-w-0">
+                                  <span className="font-bold text-xs text-neutral-900 mr-2">
+                                    {cls.schoolYear}
+                                  </span>
+                                  <span className="text-[0.6875rem] text-neutral-500 truncate">
+                                    Grade {cls.gradeLevel} · {cls.section}
+                                    {cls.adviser ? ` · Adviser: ${cls.adviser}` : ""} · completed
+                                  </span>
+                                </div>
+                              </div>
+
+                              {cls.generalAverage !== null && (
+                                <span className="shrink-0 rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-0.5 text-[0.6875rem] font-bold text-neutral-800 tabular-nums">
+                                  Average {cls.generalAverage.toFixed(2)}
+                                </span>
+                              )}
+                            </button>
+
+                            {/* Expanded Subjects Table (Matching Reference) */}
+                            {isExpanded && (
+                              <div className="border-t border-neutral-100 p-3 bg-neutral-50/40">
+                                <div className="overflow-x-auto">
+                                  <table className="w-full text-left text-xs">
+                                    <thead>
+                                      <tr className="border-b border-neutral-200 text-[0.625rem] font-bold uppercase tracking-wider text-neutral-500">
+                                        <th className="py-1.5 px-2">Subject</th>
+                                        <th className="py-1.5 px-2 text-center">Quarter 1</th>
+                                        <th className="py-1.5 px-2 text-center">Quarter 2</th>
+                                        <th className="py-1.5 px-2 text-center">Quarter 3</th>
+                                        <th className="py-1.5 px-2 text-center">Quarter 4</th>
+                                        <th className="py-1.5 px-2 text-right">Final Grade</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-neutral-100">
+                                      {cls.subjects.map((sub) => (
+                                        <tr key={sub.code}>
+                                          <td className="py-1.5 px-2 font-medium text-neutral-800">
+                                            {sub.name}
+                                          </td>
+                                          {sub.quarters.map((q, qIdx) => (
+                                            <td
+                                              key={qIdx}
+                                              className="py-1.5 px-2 text-center tabular-nums text-neutral-600"
+                                            >
+                                              {q !== null ? q.toFixed(2) : "—"}
+                                            </td>
+                                          ))}
+                                          <td className="py-1.5 px-2 text-right font-bold tabular-nums text-neutral-900">
+                                            {sub.final !== null ? sub.final.toFixed(2) : "—"}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                    <tfoot>
+                                      <tr className="border-t-2 border-neutral-200 font-bold">
+                                        <td colSpan={5} className="py-2 px-2 text-neutral-700">
+                                          General Average
+                                        </td>
+                                        <td className="py-2 px-2 text-right tabular-nums text-neutral-900">
+                                          {cls.generalAverage !== null
+                                            ? cls.generalAverage.toFixed(2)
+                                            : "—"}
+                                        </td>
+                                      </tr>
+                                    </tfoot>
+                                  </table>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
                   ) : (
-                    <div className="enrollments__results-state flex items-center justify-center gap-2 px-3 py-4 text-center text-xs">
-                      No subjects assigned to this section yet.
+                    <div className="p-3 text-center text-xs text-neutral-500">
+                      No finalized past school-year grades on record for this student.
                     </div>
                   )}
-                </section>
+                </div>
+              </div>
+            ) : (
+              /* Search Results Dropdown List when searching */
+              <div className="rounded-lg border border-[var(--neutral-border)] bg-white max-h-56 overflow-y-auto divide-y divide-neutral-100 shadow-xs">
+                {loading && searchDebounced ? (
+                  <div className="p-4 text-center text-xs text-neutral-500">Searching students…</div>
+                ) : students && students.length > 0 ? (
+                  students.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setSelectedStudent(s)}
+                      className="w-full flex items-center justify-between p-3 text-left transition hover:bg-neutral-50"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="enrollments__avatar-circle">
+                          {getInitials(s.fullname)}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="font-bold text-xs text-neutral-900 truncate">
+                            {s.fullname}
+                          </div>
+                          <div className="text-[0.6875rem] text-neutral-500 truncate">
+                            {s.email} · LRN: {s.lrn}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="shrink-0 text-xs font-semibold text-[var(--primary)]">
+                        Select →
+                      </span>
+                    </button>
+                  ))
+                ) : searchDebounced ? (
+                  <div className="p-4 text-center text-xs text-neutral-500">
+                    No students found for &ldquo;{searchDebounced}&rdquo;.
+                  </div>
+                ) : (
+                  <div className="p-4 text-center text-xs text-neutral-400">
+                    Type a name or LRN above to search not-yet-enrolled candidates.
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+
+          {/* Card 3: Grade Level */}
+          <section className="enrollments__card p-5">
+            <header className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex items-start gap-3">
+                <span className="enrollments__step-num" aria-hidden="true">
+                  3
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-[var(--text-dark)]">Grade Level</h3>
+                  <p className="text-xs text-neutral-500 mt-0.5">
+                    Select the grade level for this enrollment.
+                  </p>
+                </div>
+              </div>
+              {recommendedGradeLevel && selectedStudent && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[0.6875rem] font-bold text-emerald-800 border border-emerald-200">
+                  <FiCheckCircle />
+                  Recommended: Grade {recommendedGradeLevel}
+                </span>
               )}
-            </>
-          ) : (
-            <div className="enrollments__placeholder flex flex-col items-center justify-center gap-2 px-6 py-14 text-center">
-              <span
-                className="enrollments__placeholder-icon inline-flex items-center justify-center text-lg"
-                aria-hidden="true"
-              >
-                <FiInbox />
-              </span>
-              <p className="enrollments__placeholder-title text-sm font-bold">
-                Select a student first
-              </p>
-              <p className="enrollments__placeholder-text text-xs">
-                Search and pick a student in Step 1 to unlock section &amp; subject assignment.
-              </p>
-            </div>
-          )}
-        </PageSection>
+            </header>
 
-        {/* ============ Step 3 — review & enroll (sticky) ============ */}
-        <PageSection
-          as="aside"
-          className="enrollments__panel enrollments__panel--summary flex flex-col lg:col-span-2 xl:sticky xl:top-5 xl:col-span-1"
-          flush
-        >
-          <header className="enrollments__panel-head flex items-start justify-between gap-3 p-5">
-            <div>
-              <span className="enrollments__step-tag inline-flex items-center px-2 py-0.5 text-[0.625rem] font-bold uppercase">
-                Step 3
-              </span>
-              <h3 className="enrollments__panel-title mt-2 text-base font-bold">Review & Enroll</h3>
-              <p className="enrollments__panel-subtitle mt-0.5 text-xs">Confirm the enrollment</p>
-            </div>
-          </header>
+            {!selectedStudent ? (
+              <div className="py-6 text-center text-xs text-neutral-400">
+                Select a student first.
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Select Grade Level">
+                {availableGradeLevels.map((gl) => {
+                  const isSelected = selectedGradeLevel === gl;
+                  const isRecommended = recommendedGradeLevel === gl;
 
-          <div className="enrollments__summary flex flex-1 flex-col gap-5 p-5 pb-6">
-            {/* Student */}
-            <div className="enrollments__summary-block flex flex-col gap-2">
-              <span className="enrollments__summary-label text-[0.625rem] font-bold uppercase">
-                Student
-              </span>
-              {selectedStudent ? (
-                <div className="enrollments__summary-row flex items-center gap-2.5 p-2.5">
-                  <span
-                    className="enrollments__summary-icon inline-flex h-9 w-9 shrink-0 items-center justify-center"
-                    aria-hidden="true"
+                  return (
+                    <button
+                      key={gl}
+                      type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      onClick={() => handleGradeLevelChange(gl)}
+                      className={`enrollments__grade-square relative ${
+                        isSelected ? "enrollments__grade-square--active" : ""
+                      }`}
+                    >
+                      <span>{gl}</span>
+                      {isRecommended && !isSelected && (
+                        <span
+                          className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white"
+                          title="Recommended based on past grades"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* Card 4: Class */}
+          <section className="enrollments__card p-5">
+            <header className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex items-start gap-3">
+                <span className="enrollments__step-num" aria-hidden="true">
+                  4
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-[var(--text-dark)]">Class</h3>
+                  <p className="text-xs text-neutral-500 mt-0.5">
+                    Classes matching the selected grade level.
+                  </p>
+                </div>
+              </div>
+              {selectedGradeLevel && filteredClassrooms && (
+                <span className="inline-flex shrink-0 items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-[0.6875rem] font-semibold text-neutral-600">
+                  {filteredClassrooms.length} available
+                </span>
+              )}
+            </header>
+
+            {!selectedGradeLevel ? (
+              <div className="py-6 text-center text-xs text-neutral-400">
+                Select a grade level first.
+              </div>
+            ) : filteredClassrooms === null || loading ? (
+              <div className="py-6 text-center text-xs text-neutral-500 flex items-center justify-center gap-2">
+                <FiCalendar className="animate-spin text-neutral-400" />
+                Loading classrooms…
+              </div>
+            ) : filteredClassrooms.length > 0 ? (
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                {filteredClassrooms.map((c) => {
+                  const enrolled = Number(c.totalStudent) || 0;
+                  const pct = Math.min(100, Math.round((enrolled / CAPACITY) * 100));
+                  const slotsLeft = Math.max(0, CAPACITY - enrolled);
+                  const isLow = slotsLeft > 0 && slotsLeft <= 4;
+                  const isFull = slotsLeft === 0;
+                  const isActive = selectedClassroom?.id === c.id;
+
+                  return (
+                    <label
+                      key={String(c.id)}
+                      className={`enrollments__class relative flex cursor-pointer flex-col gap-3 overflow-hidden p-4 isolate ${
+                        isActive ? "enrollments__class--active" : ""
+                      } ${isLow ? "enrollments__class--low" : ""} ${
+                        isFull ? "enrollments__class--full" : ""
+                      }`}
+                      htmlFor={`classroom-${c.id}`}
+                    >
+                      <input
+                        type="radio"
+                        name="classroom"
+                        id={`classroom-${c.id}`}
+                        value={c.id}
+                        checked={isActive}
+                        onChange={() => handleSelectClassroom(c)}
+                      />
+
+                      <span className="flex items-start justify-between gap-3">
+                        <span
+                          className="enrollments__class-monogram inline-flex h-9 w-9 shrink-0 items-center justify-center text-sm font-bold"
+                          aria-hidden="true"
+                        >
+                          {c.section.charAt(0)}
+                        </span>
+                        <span
+                          className="enrollments__class-check inline-flex items-center justify-center"
+                          aria-hidden="true"
+                        >
+                          <FiCheck />
+                        </span>
+                      </span>
+
+                      <span className="flex flex-col gap-0.5">
+                        <span className="enrollments__class-grade self-start px-2 py-0.5 text-[0.625rem] font-bold uppercase">
+                          Grade {c.gradeLevel}
+                        </span>
+                        <span className="enrollments__class-section text-base font-extrabold text-neutral-900">
+                          {c.section}
+                        </span>
+                      </span>
+
+                      <span className="enrollments__class-capacity">
+                        <span className="enrollments__class-capacity-meta flex items-center justify-between gap-2 text-[0.6875rem]">
+                          <span className="flex items-center gap-1 font-semibold text-neutral-700">
+                            <FiUsers aria-hidden="true" />
+                            {enrolled}/{CAPACITY} enrolled
+                          </span>
+                          <span className="enrollments__class-slots-pct px-1.5 py-0.5 text-[0.625rem]">
+                            {pct}% full
+                          </span>
+                        </span>
+                        <span className="enrollments__class-bar mt-2 block" aria-hidden="true">
+                          <span
+                            className="enrollments__class-bar-fill block"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </span>
+                      </span>
+
+                      <span className="enrollments__class-foot inline-flex items-center gap-1.5 text-xs text-neutral-500">
+                        {isFull
+                          ? "Class is full"
+                          : `${slotsLeft} slot${slotsLeft === 1 ? "" : "s"} left`}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-6 text-center text-xs text-neutral-500">
+                No sections found for Grade {selectedGradeLevel}.
+              </div>
+            )}
+          </section>
+
+          {/* Card 5: Subjects */}
+          <section className="enrollments__card p-5">
+            <header className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex items-start gap-3">
+                <span className="enrollments__step-num" aria-hidden="true">
+                  5
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-[var(--text-dark)]">Subjects</h3>
+                  <p className="text-xs text-neutral-500 mt-0.5">
+                    Subjects assigned to this class — choose which to enroll.
+                  </p>
+                </div>
+              </div>
+              {selectedClassroom && classSubjects && classSubjects.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleToggleAllSubjects}
+                    className="rounded-lg border border-[var(--neutral-border)] bg-white px-2.5 py-1 text-xs font-bold text-neutral-700 hover:bg-neutral-50"
                   >
-                    <FiUserPlus />
+                    {selectedSubjectIds.length === classSubjects.length ? "Deselect All" : "Select All"}
+                  </button>
+                  <span className="inline-flex shrink-0 items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-[0.6875rem] font-semibold text-neutral-600">
+                    {selectedSubjectIds.length}/{classSubjects.length} selected
                   </span>
-                  <span className="enrollments__summary-line flex min-w-0 flex-col gap-px">
-                    <strong>{selectedStudent.fullname}</strong>
-                    <span>{selectedStudent.email}</span>
-                  </span>
-                </div>
-              ) : (
-                <div className="enrollments__summary-row enrollments__summary-row--empty flex items-center justify-center gap-2.5 p-3 text-xs">
-                  No student selected
                 </div>
               )}
-            </div>
+            </header>
 
-            {/* Section */}
-            <div className="enrollments__summary-block flex flex-col gap-2">
-              <span className="enrollments__summary-label text-[0.625rem] font-bold uppercase">
-                Section
-              </span>
-              {selectedClassroom ? (
-                <div className="enrollments__summary-row flex items-center gap-2.5 p-2.5">
-                  <span
-                    className="enrollments__summary-icon inline-flex h-9 w-9 shrink-0 items-center justify-center"
-                    aria-hidden="true"
-                  >
-                    <FiUsers />
-                  </span>
-                  <span className="enrollments__summary-line flex min-w-0 flex-col gap-px">
-                    <strong>
-                      Grade {selectedClassroom.gradeLevel} – {selectedClassroom.section}
-                    </strong>
-                    <span>
-                      {Number(selectedClassroom.totalStudent) || 0}/{CAPACITY} enrolled
-                    </span>
-                  </span>
-                  <span className="enrollments__summary-bar w-16 shrink-0" aria-hidden="true">
-                    <span
-                      className="enrollments__summary-bar-fill"
-                      style={{ width: `${classroomPct}%` }}
-                    />
-                  </span>
-                </div>
-              ) : (
-                <div className="enrollments__summary-row enrollments__summary-row--empty flex items-center justify-center gap-2.5 p-3 text-xs">
-                  No section selected
-                </div>
-              )}
-            </div>
+            {!selectedClassroom ? (
+              <div className="py-6 text-center text-xs text-neutral-400">
+                Select a class first.
+              </div>
+            ) : subjectsLoading ? (
+              <div className="py-6 text-center text-xs text-neutral-500 flex items-center justify-center gap-2">
+                <FiCalendar className="animate-spin text-neutral-400" />
+                Loading subjects…
+              </div>
+            ) : classSubjects && classSubjects.length > 0 ? (
+              <div className="flex flex-col gap-2">
+                {classSubjects.map((cs) => {
+                  const checked = selectedSubjectIds.includes(cs.subjectId);
 
-            {/* Subjects */}
-            <div className="enrollments__summary-block flex flex-col gap-2">
-              <span className="enrollments__summary-label text-[0.625rem] font-bold uppercase">
-                Subjects
-              </span>
-              {selectedSubjects.length > 0 ? (
-                <>
-                  <ul className="enrollments__summary-list flex flex-col gap-1.5">
-                    {selectedSubjects.map((cs) => (
-                      <li
-                        key={cs.subjectId}
-                        className="flex items-center justify-between gap-2 rounded-md border border-[var(--neutral-border)] bg-white px-2.5 py-1.5"
-                      >
-                        <span className="enrollments__summary-subject inline-flex items-center gap-1.5 text-xs">
-                          <FiBookOpen aria-hidden="true" />
+                  return (
+                    <label
+                      key={cs.subjectId}
+                      className={`enrollments__subject relative flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition ${
+                        checked
+                          ? "border-[var(--primary)] bg-emerald-50/40"
+                          : "border-neutral-200 bg-white hover:bg-neutral-50"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleSubject(cs.subjectId)}
+                        className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
+                      />
+                      <span className="enrollments__subject-icon inline-flex h-8 w-8 items-center justify-center rounded-md bg-neutral-100 text-neutral-600 text-xs">
+                        <FiBookOpen />
+                      </span>
+                      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <span className="text-xs font-bold text-neutral-900 truncate">
                           {cs.subjectName}
                         </span>
-                        <span className="enrollments__summary-unit shrink-0 text-xs">
-                          {cs.unit} unit{cs.unit === 1 ? "" : "s"}
+                        <span className="text-[0.6875rem] text-neutral-500 truncate">
+                          {cs.facultyFullname}
                         </span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="enrollments__summary-total flex items-center justify-between pt-2 text-xs">
-                    <span>Total units</span>
-                    <strong className="text-sm">{totalUnits}</strong>
-                  </div>
-                </>
-              ) : (
-                <div className="enrollments__summary-empty px-3 py-2.5 text-xs">
-                  No subjects selected
-                </div>
-              )}
-            </div>
+                      </div>
+                      <span className="rounded-md bg-neutral-100 px-2 py-0.5 text-[0.625rem] font-mono font-semibold text-neutral-600">
+                        {cs.code}
+                      </span>
+                      <span className="text-xs font-medium text-neutral-700">
+                        {cs.unit} unit{cs.unit === 1 ? "" : "s"}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-6 text-center text-xs text-neutral-500">
+                No subjects assigned to this section yet.
+              </div>
+            )}
+          </section>
+        </div>
 
-            {/* School year */}
-            <div className="enrollments__summary-block flex flex-col gap-2">
-              <span className="enrollments__summary-label text-[0.625rem] font-bold uppercase">
-                School Year
-              </span>
-              {selectedSchoolYear ? (
-                <div className="enrollments__summary-row flex items-center gap-2.5 p-2.5">
-                  <span
-                    className="enrollments__summary-icon inline-flex h-9 w-9 shrink-0 items-center justify-center"
-                    aria-hidden="true"
-                  >
-                    <FiCalendar />
-                  </span>
-                  <span className="enrollments__summary-line flex min-w-0 flex-col gap-px">
-                    <strong>
-                      {selectedSchoolYear.startYear} – {selectedSchoolYear.endYear}
-                    </strong>
-                    <span>Enrollment period</span>
-                  </span>
-                </div>
-              ) : (
-                <div className="enrollments__summary-row enrollments__summary-row--empty flex items-center justify-center gap-2.5 p-3 text-xs">
-                  No school year selected
-                </div>
-              )}
-            </div>
+        {/* ============ Right Column: Enrollment Summary (Sticky Card) ============ */}
+        <aside className="enrollments__summary-card sticky top-5 flex flex-col p-6 shadow-sm">
+          <h3 className="text-sm font-extrabold text-neutral-900 mb-5">Enrollment summary</h3>
 
-            {/* Readiness checklist */}
-            <div className="enrollments__summary-block flex flex-col gap-2">
-              <span className="enrollments__summary-label text-[0.625rem] font-bold uppercase">
-                Readiness
-              </span>
-              <ul className="enrollments__summary-list flex flex-col gap-1.5">
-                {[
-                  { ok: Boolean(selectedStudent), label: "Student selected" },
-                  { ok: Boolean(selectedClassroom), label: "Section chosen" },
-                  { ok: selectedSubjectIds.length > 0, label: "Subjects picked" },
-                ].map((item) => (
-                  <li
-                    key={item.label}
-                    className={`enrollments__summary-hint flex items-center gap-2 text-xs ${
-                      item.ok ? "enrollments__summary-hint--ok" : ""
-                    }`}
-                  >
-                    <FiCheck aria-hidden="true" />
-                    {item.label}
-                  </li>
-                ))}
-              </ul>
+          {/* SCHOOL YEAR */}
+          <div className="flex flex-col gap-1 pb-4">
+            <span className="text-[0.625rem] font-extrabold uppercase tracking-wider text-neutral-400">
+              SCHOOL YEAR
+            </span>
+            <div className="text-xs font-bold text-neutral-900">
+              {selectedSchoolYear
+                ? `${selectedSchoolYear.startYear}–${selectedSchoolYear.endYear}`
+                : "Not selected"}
             </div>
-
-            <button
-              type="button"
-              className="enrollments__submit inline-flex w-full items-center justify-center gap-2 py-3 text-sm"
-              disabled={!canEnroll || enrolling}
-              onClick={handleEnroll}
-              title={enrollmentOpen === false ? "Enrollment is currently closed" : undefined}
-            >
-              <FiCheckCircle aria-hidden="true" />
-              {enrolling ? "Enrolling…" : "Enroll Student"}
-              <FiArrowRight aria-hidden="true" />
-            </button>
-            <p className="enrollments__summary-note text-[0.6875rem]">
-              {enrollmentOpen === false
-                ? "Enrollment is closed — reopen it in Admin Settings to continue."
-                : canEnroll
-                  ? "All set — click to finalize the enrollment."
-                  : "Complete Steps 1–2 to enable enrollment."}
-            </p>
           </div>
-        </PageSection>
+
+          {/* STUDENT */}
+          <div className="enrollments__summary-divider pt-4 pb-4 flex flex-col gap-1.5">
+            <span className="text-[0.625rem] font-extrabold uppercase tracking-wider text-neutral-400">
+              STUDENT
+            </span>
+            {selectedStudent ? (
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="enrollments__avatar-circle h-7 w-7 text-[0.6875rem]">
+                  {getInitials(selectedStudent.fullname)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-bold text-neutral-900 truncate">
+                    {selectedStudent.fullname}
+                  </div>
+                  <div className="text-[0.6875rem] text-neutral-500 truncate">
+                    {selectedStudent.email}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <span className="text-xs text-neutral-400">Not selected</span>
+            )}
+          </div>
+
+          {/* GRADE LEVEL */}
+          <div className="enrollments__summary-divider pt-4 pb-4 flex flex-col gap-1">
+            <span className="text-[0.625rem] font-extrabold uppercase tracking-wider text-neutral-400">
+              GRADE LEVEL
+            </span>
+            <div className="text-xs font-bold text-neutral-900">
+              {selectedGradeLevel ? `Grade ${selectedGradeLevel}` : "Not selected"}
+            </div>
+          </div>
+
+          {/* CLASS */}
+          <div className="enrollments__summary-divider pt-4 pb-4 flex flex-col gap-1">
+            <span className="text-[0.625rem] font-extrabold uppercase tracking-wider text-neutral-400">
+              CLASS
+            </span>
+            <div className="text-xs font-bold text-neutral-900">
+              {selectedClassroom
+                ? `Grade ${selectedClassroom.gradeLevel} – ${selectedClassroom.section}`
+                : "Not selected"}
+            </div>
+          </div>
+
+          {/* SUBJECTS */}
+          <div className="enrollments__summary-divider pt-4 pb-5 flex flex-col gap-1">
+            <span className="text-[0.625rem] font-extrabold uppercase tracking-wider text-neutral-400">
+              SUBJECTS
+            </span>
+            <div className="text-xs font-bold text-neutral-900">
+              {selectedSubjectIds.length > 0
+                ? `${selectedSubjectIds.length} subject${
+                    selectedSubjectIds.length === 1 ? "" : "s"
+                  } (${totalUnits} units)`
+                : "Not available"}
+            </div>
+          </div>
+
+          {/* Guidance Banner (Amber/Yellow matching reference) */}
+          <div
+            className={`enrollments__guidance-box p-3 text-center text-xs font-medium mb-4 ${
+              canEnroll ? "enrollments__guidance-box--ready" : ""
+            }`}
+          >
+            {guidanceText}
+          </div>
+
+          {/* Enroll Student Action Button */}
+          <button
+            type="button"
+            onClick={handleEnroll}
+            disabled={!canEnroll || enrolling}
+            className="enrollments__submit w-full py-3 text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {enrolling ? "Enrolling…" : "Enroll student"}
+          </button>
+        </aside>
       </div>
 
-      {/* ============ Create school year confirmation (Admin only) ============ */}
+      {/* ============ Create School Year Modal (Admin Only) ============ */}
       {allowSchoolYearCreation && (
         <ConfirmDialog
           open={confirmCreateOpen}
@@ -956,7 +1192,7 @@ export default function EnrollmentWorkspace({
         />
       )}
 
-      {/* ============ Past submitted grades for the selected student (Admin only) ============ */}
+      {/* ============ Past Submitted Grades Modal ============ */}
       {allowPastGrades && selectedStudent && (
         <StudentPastGradesModal
           studentId={selectedStudent.id}
@@ -965,7 +1201,7 @@ export default function EnrollmentWorkspace({
           onClose={closePastGradesModal}
         />
       )}
-
     </PageShell>
   );
 }
+

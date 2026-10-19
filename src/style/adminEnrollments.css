@@ -933,3 +933,170 @@
     animation: none;
   }
 }
+
+/* ============================================================
+   Reference-Matching Layout Styles (Preserving Green Theme)
+   ============================================================ */
+
+/* Top Stepper Bar */
+.enrollments__stepper-wrap {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-xs);
+}
+
+.enrollments__stepper-circle {
+  width: 1.625rem;
+  height: 1.625rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.enrollments__stepper-circle--done {
+  background: var(--primary);
+  color: var(--text-on-dark);
+}
+
+.enrollments__stepper-circle--active {
+  background: var(--primary);
+  color: var(--text-on-dark);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.enrollments__stepper-circle--inactive {
+  background: var(--surface-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--neutral-border);
+}
+
+.enrollments__stepper-line {
+  height: 2px;
+  border-radius: 9999px;
+  background: var(--neutral-border);
+  flex: 1;
+  min-width: 1.25rem;
+  transition: background var(--transition-fast);
+}
+
+.enrollments__stepper-line--done {
+  background: var(--primary);
+}
+
+/* Numbered Step Cards */
+.enrollments__card {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-xs);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.enrollments__step-num {
+  width: 1.625rem;
+  height: 1.625rem;
+  border-radius: 9999px;
+  background: var(--text-dark);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+/* Selected Student Chip */
+.enrollments__student-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--neutral-border);
+  border-radius: 9999px;
+  background: var(--surface-bg);
+  padding: 0.375rem 0.75rem 0.375rem 0.5rem;
+  max-width: 100%;
+}
+
+.enrollments__avatar-circle {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background: var(--text-dark);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Previous School Years Box */
+.enrollments__past-years-box {
+  border: 1px solid rgba(22, 101, 52, 0.16);
+  border-radius: var(--radius-lg);
+  background: rgba(240, 253, 244, 0.5);
+}
+
+/* Grade Level Square Buttons */
+.enrollments__grade-square {
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-white);
+  color: var(--text-dark);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.enrollments__grade-square:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--surface-bg);
+  transform: translateY(-1px);
+}
+
+.enrollments__grade-square--active {
+  background: var(--primary) !important;
+  color: #fff !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 4px 12px -2px rgba(22, 101, 52, 0.35);
+}
+
+/* Summary Card */
+.enrollments__summary-card {
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.enrollments__summary-divider {
+  border-top: 1px solid var(--neutral-border);
+}
+
+.enrollments__guidance-box {
+  border-radius: var(--radius-md);
+  background: #fefce8;
+  border: 1px solid #fef08a;
+  color: #854d0e;
+}
+
+.enrollments__guidance-box--ready {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+

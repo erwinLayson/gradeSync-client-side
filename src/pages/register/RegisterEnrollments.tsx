@@ -15,5 +15,5 @@ import EnrollmentWorkspace from "../../components/EnrollmentWorkspace";
  * See docs/register-role-implementation-plan.md.
  */
 export default function RegisterEnrollments() {
-  return <EnrollmentWorkspace allowSf10Print />;
+  return <EnrollmentWorkspace allowSf10Print allowPastGrades />;
 }

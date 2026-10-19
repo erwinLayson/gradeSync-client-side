@@ -152,8 +152,11 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
       <footer className="sidebar__footer">
         {user && (
           <div className="sidebar__user" title={effectiveCollapsed ? `${user.email} · ${roleLabel}` : undefined}>
+            <div className="sidebar__user-avatar" aria-hidden="true">
+              {user.email.charAt(0).toUpperCase()}
+            </div>
             <div className="sidebar__user-info">
-              <span className="sidebar__user-email">{user.email}</span>
+              <span className="sidebar__user-email">{user.email.split('@')[0]}</span>
               <span className="sidebar__user-role">{roleLabel}</span>
             </div>
           </div>
