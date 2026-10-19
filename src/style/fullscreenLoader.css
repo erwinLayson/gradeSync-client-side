@@ -7,147 +7,132 @@
 .fullscreen-loader {
   display: flex;
   min-height: 100vh;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 45%, #ffffff 0%, var(--surface-bg, #F7FAF8) 100%);
+  padding: 1.5rem;
+}
+
+/* ---------- Centered content stack ---------- */
+.fullscreen-loader__content {
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 1.25rem;
-  background: var(--surface-white);
+  text-align: center;
 }
 
-/* ---------- Logo badge (mirrors login-card__logo / sidebar__logo) ---------- */
+/* ---------- Logo badge with subtle glow & breathing ---------- */
 .fullscreen-loader__logo {
   display: flex;
-  height: 3.5rem;
-  width: 3.5rem;
+  height: 4.25rem;
+  width: 4.25rem;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--neutral-border);
-  background: var(--surface-white);
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-xl, 1.25rem);
+  border: 1px solid rgba(23, 107, 58, 0.12);
+  background: var(--surface-white, #ffffff);
+  box-shadow:
+    0 10px 25px -5px rgba(23, 107, 58, 0.08),
+    0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  padding: 0.35rem;
+  animation: fullscreen-loader-pulse 2.4s ease-in-out infinite;
 }
 
 .fullscreen-loader__logo img {
   height: 100%;
   width: 100%;
-  object-fit: cover;
-}
-
-/* ---------- Loading loader ---------- */
-.fullscreen-loader__loader {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 5.5rem;
-  height: 5.5rem;
-  border-radius: var(--radius-lg);
-  background: var(--surface-white);
-  border: 1px solid var(--neutral-border);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-}
-
-.fullscreen-loader__loader::before {
-  content: "";
-  position: absolute;
-  inset: 0;
+  object-fit: contain;
   border-radius: inherit;
+}
+
+/* ---------- Animated Loading Bar Track ---------- */
+.fullscreen-loader__bar-track {
+  position: relative;
+  width: 13rem;
+  max-width: 75vw;
+  height: 4px;
+  background: rgba(23, 107, 58, 0.1);
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+
+/* ---------- Indeterminate animated bar ---------- */
+.fullscreen-loader__bar-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  border-radius: 9999px;
   background: linear-gradient(
     90deg,
-    var(--accent-light, var(--surface-white, #ffffff)) 0%,
-    var(--accent, var(--brand-accent, #0b5394)) 50%,
-    var(--accent-light, var(--surface-white, #ffffff)) 100%
+    var(--primary-dark, #0D4F2B) 0%,
+    var(--primary, #176B3A) 50%,
+    #22c55e 100%
   );
-  background-size: 200% 100%;
-  animation: fullscreen-loader-shimmer 1.4s ease-in-out infinite;
-  z-index: 0;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.45);
+  animation: fullscreen-bar-move 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.fullscreen-loader__bounce-dot {
-  position: absolute;
-  width: 0.75rem;
-  height: 0.75rem;
-  border-radius: 9999px;
-  background: var(--accent, var(--brand-accent, #0b5394));
-  z-index: 1;
-}
-
-.fullscreen-loader__bounce-dot:nth-child(1) {
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  animation: fullscreen-loader-bounce-dot 1.4s ease-in-out infinite;
-}
-
-.fullscreen-loader__bounce-dot:nth-child(2) {
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  animation: fullscreen-loader-bounce-dot 1.4s ease-in-out infinite -0.175s;
-}
-
-.fullscreen-loader__bounce-dot:nth-child(3) {
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  animation: fullscreen-loader-bounce-dot 1.4s ease-in-out infinite -0.35s;
-}
-
-@keyframes fullscreen-loader-shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-@keyframes fullscreen-loader-bounce-dot {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-  30% {
-    transform: translate(-50%, -50%) scale(0.7);
-    opacity: 0.6;
-  }
-  60% {
-    transform: translate(-50%, -50%) scale(0.85);
-    opacity: 0.9;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-}
-
-/* ---------- Spinner (ring) ---------- */
-.fullscreen-loader__spin {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  animation: fullscreen-loader-spin 0.9s linear infinite;
-}
-
-@keyframes fullscreen-loader-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* ---------- Status text ---------- */
+/* ---------- Status label ---------- */
 .fullscreen-loader__status {
-  color: var(--text-muted);
+  color: var(--text-muted, #6B7280);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  margin: 0;
+  animation: fullscreen-status-fade 2s ease-in-out infinite;
 }
 
-/* ---------- Reduce motion ---------- */
+/* ---------- Keyframes ---------- */
+@keyframes fullscreen-bar-move {
+  0% {
+    transform: translateX(-120%) scaleX(0.7);
+  }
+  50% {
+    transform: translateX(70%) scaleX(1.15);
+  }
+  100% {
+    transform: translateX(260%) scaleX(0.7);
+  }
+}
+
+@keyframes fullscreen-loader-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow:
+      0 10px 25px -5px rgba(23, 107, 58, 0.08),
+      0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow:
+      0 14px 28px -4px rgba(23, 107, 58, 0.14),
+      0 8px 12px -5px rgba(23, 107, 58, 0.08);
+  }
+}
+
+@keyframes fullscreen-status-fade {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ---------- Accessibility (reduced motion) ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .fullscreen-loader__spin,
-  .fullscreen-loader__bounce-dot {
+  .fullscreen-loader__logo,
+  .fullscreen-loader__status {
     animation: none;
+  }
+
+  .fullscreen-loader__bar-fill {
+    animation-duration: 3s;
   }
 }

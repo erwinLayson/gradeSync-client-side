@@ -1,30 +1,31 @@
-import { FiLoader } from "react-icons/fi";
-
 import logo1 from "../assets/logo1.webp";
 import "../style/fullscreenLoader.css";
+
+interface FullscreenLoaderProps {
+    message?: string;
+}
 
 /**
  * Full-screen splash shown while the app is waiting on an initial load
  * (e.g. the landing page verifying the visitor's session).
  */
-export default function FullscreenLoader() {
+export default function FullscreenLoader({ message = "Loading…" }: FullscreenLoaderProps) {
     return (
         <div
             className="fullscreen-loader"
             role="status"
             aria-live="polite"
-            aria-label="Loading"
+            aria-label={message}
         >
-            <div className="fullscreen-loader__logo" aria-hidden="true">
-                <img src={logo1} alt="" />
+            <div className="fullscreen-loader__content">
+                <div className="fullscreen-loader__logo" aria-hidden="true">
+                    <img src={logo1} alt="GradeSync Logo" />
+                </div>
+                <div className="fullscreen-loader__bar-track" aria-hidden="true">
+                    <div className="fullscreen-loader__bar-fill" />
+                </div>
+                <p className="fullscreen-loader__status">{message}</p>
             </div>
-            <div className="fullscreen-loader__loader" aria-hidden="true">
-                <span className="fullscreen-loader__bounce-dot" />
-                <span className="fullscreen-loader__bounce-dot" />
-                <span className="fullscreen-loader__bounce-dot" />
-            </div>
-            <FiLoader className="fullscreen-loader__spin" size={22} aria-hidden="true" />
-            <p className="fullscreen-loader__status">Loading…</p>
         </div>
     );
 }
