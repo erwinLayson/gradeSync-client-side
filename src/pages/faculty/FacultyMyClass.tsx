@@ -271,57 +271,7 @@ export default function FacultyMyClass() {
 
             {/* ==================== Roster View ==================== */}
             {viewMode === "roster" && (
-                <>
-                    {/* Subjects & Faculties */}
-                    <section className="faculty-classes__subjects" aria-label="Subjects and faculties">
-                        <div className="faculty-classes__roster-head flex flex-wrap items-center justify-between gap-3">
-                            <div className="faculty-classes__roster-heading min-w-0">
-                                <h4 className="faculty-classes__roster-title text-[0.9375rem] font-bold">Subjects & Faculties</h4>
-                                <p className="faculty-classes__roster-subtitle mt-1 text-[0.8125rem]">
-                                    All subjects and faculties in your advised class
-                                </p>
-                            </div>
-                            {facultiesWithSubjects.length > 0 && (
-                                <span className="faculty-classes__roster-count inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
-                                    <FiBookOpen aria-hidden="true" />
-                                    {facultiesWithSubjects.length} {facultiesWithSubjects.length === 1 ? "subject" : "subjects"}
-                                </span>
-                            )}
-                        </div>
-
-                        <div className="data-table__wrap mt-4 rounded-xl border">
-                            {facultiesWithSubjects.length > 0 ? (
-                                <table className="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col" className="data-table__th w-56">Subject</th>
-                                            <th scope="col" className="data-table__th w-24">Code</th>
-                                            <th scope="col" className="data-table__th w-48">Faculty</th>
-                                            <th scope="col" className="data-table__th data-table__th--num w-20">Units</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {facultiesWithSubjects.map((ct) => (
-                                            <tr key={`${ct.facultyId}-${ct.subjectId}`} className="data-table__row">
-                                                <td className="data-table__td data-table__td--primary">{ct.subjectName}</td>
-                                                <td className="data-table__td data-table__td--mono">{ct.code}</td>
-                                                <td className="data-table__td">{ct.facultyFullname}</td>
-                                                <td className="data-table__td data-table__td--num">{ct.unit}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            ) : (
-                                <div className="faculty-classes__roster-empty flex flex-col items-center justify-center px-6 py-10 text-center">
-                                    <FiBookOpen className="text-gray-400" />
-                                    <p className="mt-3 text-sm font-bold">No subjects assigned</p>
-                                </div>
-                            )}
-                        </div>
-                    </section>
-
-                    {/* Class Roster */}
-                    <section className="faculty-classes__roster" aria-label="Class roster">
+                <section className="faculty-classes__roster" aria-label="Class roster">
                         <div className="faculty-classes__roster-head flex flex-wrap items-center justify-between gap-3">
                             <div className="faculty-classes__roster-heading min-w-0">
                                 <h4 className="faculty-classes__roster-title text-[0.9375rem] font-bold">Class Roster</h4>
@@ -335,7 +285,7 @@ export default function FacultyMyClass() {
                             )}
                         </div>
 
-                        <div className="data-table__wrap mt-4 rounded-xl border">
+                        <div className="data-table__wrap mt-4">
                             {loadingRoster ? (
                                 <div className="p-5"><Skeleton count={4} lines={1} height="2.75rem" gap="0.75rem" /></div>
                             ) : students.length > 0 ? (
@@ -382,7 +332,6 @@ export default function FacultyMyClass() {
                             )}
                         </div>
                     </section>
-                </>
             )}
 
             {/* ==================== Grades View ==================== */}
@@ -403,7 +352,7 @@ export default function FacultyMyClass() {
                         )}
                     </div>
 
-                    <div className="data-table__wrap mt-4 rounded-xl border">
+                    <div className="data-table__wrap mt-4">
                         {loadingGrades ? (
                             <div className="p-5"><Skeleton count={4} lines={1} height="2.75rem" gap="0.75rem" /></div>
                         ) : studentGrades.length > 0 ? (
@@ -420,7 +369,7 @@ export default function FacultyMyClass() {
                                             Student
                                         </th>
                                         {facultiesWithSubjects.map((s) => (
-                                            <th key={s.classSubjectId} colSpan={quarters.length} scope="colgroup" className="data-table__th border-x text-center">
+                                            <th key={s.classSubjectId} colSpan={quarters.length} scope="colgroup" className="data-table__th text-center">
                                                 <span className="data-table__value block">{s.subjectName}</span>
                                                 <span className="data-table__sub block font-mono">{s.code}</span>
                                             </th>

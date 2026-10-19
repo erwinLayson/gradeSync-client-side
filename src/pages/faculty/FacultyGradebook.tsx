@@ -1,15 +1,20 @@
 import {
     FiArrowLeft,
     FiBookOpen,
+    FiCheck,
+    FiChevronDown,
+    FiChevronLeft,
+    FiChevronRight,
+    FiChevronUp,
     FiEdit3,
     FiPlus,
     FiSave,
-    FiSettings,
     FiTrash2,
     FiUsers,
     FiX,
 } from "react-icons/fi";
 import {
+    Fragment,
     useCallback,
     useEffect,
     useMemo,
@@ -23,7 +28,7 @@ import { deleteAPICall, getAPICall, patchAPICall, postAPICall, putAPICall } from
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ModalDialog } from "../../components/ModalDialog";
-import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
+import { PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
 import { toast } from "../../helper/toast";
 import { computeFlatQuarterGradePreview, isPassing } from "../../helper/grades";
@@ -120,24 +125,19 @@ const EMPTY_ASSESSMENT_FORM: AssessmentFormState = {
     dateGiven: "",
 };
 
-const WEIGHTS_FIELD_LABELS: Array<{ key: keyof GradeWeights; label: string; hint?: string }> = [
-    { key: "writtenWorkWeight", label: "Written Work" },
-    { key: "performanceTaskWeight", label: "Performance Task" },
-    { key: "quarterlyAssessmentWeight", label: "Quarterly Assessment" },
-    { key: "attendanceWeight", label: "Attendance", hint: "Set 0 to exclude attendance from the grade" },
+const WEIGHT_CONFIGS: Array<{
+    key: keyof GradeWeights;
+    label: string;
+    color: string;
+}> = [
+    { key: "writtenWorkWeight", label: "Written Work", color: "#176B3A" },
+    { key: "performanceTaskWeight", label: "Performance Task", color: "#16A34A" },
+    { key: "quarterlyAssessmentWeight", label: "Quarterly Assessment", color: "#0F766E" },
+    { key: "attendanceWeight", label: "Attendance", color: "#10B981" },
 ];
 
 // ================= Helpers =================
 
-// Build one student's sheet row.
-//
-// FLAT subject   -> live preview from the draft sheet, using the shared helper that
-//                   mirrors the server's flat formula (helper/grades.ts).
-// COMPOSITE      -> the server's own composite grade and remarks are displayed as-is.
-//                   The client never aggregates components: each component is graded
-//                   and weighted by component.weight on the server
-//                   (computeCompositeQuarterGrade), so per-component grades are the
-//                   server's values too. Attendance is likewise the server's concern.
 function computeStudentRow(
     student: StudentGradebookRow,
     assessments: Assessment[],
@@ -150,7 +150,6 @@ function computeStudentRow(
 
     if (isCompositeSubject) {
         return {
-            // Totals are a raw score summary of the visible sheet, not a grade.
             totalScore: preview.totalScore,
             totalMaxScore: preview.totalMaxScore,
             quarterGrade: student.quarterGrade,
@@ -170,7 +169,6 @@ function computeStudentRow(
     };
 }
 
-// Build the draft map from freshly fetched data (server scores -> input strings).
 function buildDraftScores(data: GradebookDetails | null): DraftScores {
     const draft: DraftScores = {};
     if (!data) return draft;
@@ -186,7 +184,6 @@ function buildDraftScores(data: GradebookDetails | null): DraftScores {
     return draft;
 }
 
-// Convert a display date ("Aug 15, 2026") to a yyyy-mm-dd value for date inputs.
 function toDateInputValue(dateGiven: string | null): string {
     if (!dateGiven) return "";
     const date = new Date(dateGiven);
@@ -197,20 +194,44 @@ function toDateInputValue(dateGiven: string | null): string {
     return `${year}-${month}-${day}`;
 }
 
+function getInitials(name: string): string {
+    if (!name) return "";
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export default function FacultyGradebook() {
     const navigate = useNavigate();
-    const { classId } = useParams(); // URL param is actually the class_subjects id
+    const { classId } = useParams();
     const { quarters } = useAcademicSettings();
     const classSubjectId = Number(classId);
 
-    // ================ pages Data ================
+    // ================ Page Data ================
     const [loading, setLoading] = useState<boolean>(true);
     const [quarter, setQuarter] = useState<number>(1);
     const [gradeBookDetails, setGradeBookDetails] = useState<GradebookDetails | null>(null);
     const [draftScores, setDraftScores] = useState<DraftScores>({});
     const [savingScores, setSavingScores] = useState<boolean>(false);
 
-    // ================ Component tabs (for composite subjects like MAPEH) ================
+    // ================ Mobile preview collapse / expand state ================
+    const [isStudentColCollapsed, setIsStudentColCollapsed] = useState<boolean>(false);
+    const [expandedStudentIds, setExpandedStudentIds] = useState<Set<number>>(new Set());
+
+    const toggleStudentRow = useCallback((enrollmentId: number) => {
+        setExpandedStudentIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(enrollmentId)) {
+                next.delete(enrollmentId);
+            } else {
+                next.add(enrollmentId);
+            }
+            return next;
+        });
+    }, []);
+
+    // ================ Component tabs (for composite subjects) ================
     const [selectedComponentId, setSelectedComponentId] = useState<number | null>(null);
 
     // ================ Assessment modal / delete state ================
@@ -220,19 +241,28 @@ export default function FacultyGradebook() {
     const [deletingAssessment, setDeletingAssessment] = useState<Assessment | null>(null);
     const [deleting, setDeleting] = useState<boolean>(false);
 
-    // ================ Grading weights editor state ================
-    const [weightsModalOpen, setWeightsModalOpen] = useState<boolean>(false);
+    // ================ Grading weights state ================
     const [weightsForm, setWeightsForm] = useState<Record<keyof GradeWeights, string>>({
-        writtenWorkWeight: "",
-        performanceTaskWeight: "",
-        quarterlyAssessmentWeight: "",
-        attendanceWeight: "",
+        writtenWorkWeight: "30",
+        performanceTaskWeight: "50",
+        quarterlyAssessmentWeight: "20",
+        attendanceWeight: "0",
     });
     const [savingWeights, setSavingWeights] = useState<boolean>(false);
 
+    // Sync weightsForm with loaded gradeBookDetails
+    useEffect(() => {
+        if (gradeBookDetails) {
+            setWeightsForm({
+                writtenWorkWeight: String(gradeBookDetails.gradingWeights.writtenWorkWeight ?? ""),
+                performanceTaskWeight: String(gradeBookDetails.gradingWeights.performanceTaskWeight ?? ""),
+                quarterlyAssessmentWeight: String(gradeBookDetails.gradingWeights.quarterlyAssessmentWeight ?? ""),
+                attendanceWeight: String(gradeBookDetails.gradingWeights.attendanceWeight ?? ""),
+            });
+        }
+    }, [gradeBookDetails]);
+
     // ================= Fetch gradebook details ================
-    // No synchronous setState in this function's pre-await path, so calling it
-    // from the mount/quarter effect does not trigger cascading renders.
     async function fetchGradebook(targetQuarter: number) {
         if (Number.isNaN(classSubjectId)) return;
         try {
@@ -249,8 +279,6 @@ export default function FacultyGradebook() {
 
     useEffect(() => {
         fetchGradebook(quarter);
-        // fetchGradebook is recreated every render; quarter is the only input
-        // that should trigger a refetch.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [quarter]);
 
@@ -261,31 +289,18 @@ export default function FacultyGradebook() {
     }
 
     // ================= Derived state ================
-    const isCompositeSubject = gradeBookDetails?.hasComponents ?? false;
+    const isCompositeSubject = Boolean(gradeBookDetails?.hasComponents);
     const components = gradeBookDetails?.components ?? [];
 
-    // Filter assessments by selected component for composite subjects
     const assessments = useMemo(() => {
         const allAssessments = gradeBookDetails?.assessment ?? [];
         if (isCompositeSubject && selectedComponentId !== null) {
-            return allAssessments.filter(a => a.componentId === selectedComponentId);
+            return allAssessments.filter((a) => a.componentId === selectedComponentId);
         }
         return allAssessments;
     }, [gradeBookDetails, isCompositeSubject, selectedComponentId]);
 
     const students = useMemo(() => gradeBookDetails?.student ?? [], [gradeBookDetails]);
-
-    const assessmentCounts = useMemo(() => {
-        const counts: Record<AssessmentType, number> = {
-            written_work: 0,
-            performance_task: 0,
-            quarterly_assessment: 0,
-        };
-        for (const assessment of assessments) {
-            counts[assessment.type] += 1;
-        }
-        return counts;
-    }, [assessments]);
 
     const isDirty = useMemo(() => {
         if (!gradeBookDetails) return false;
@@ -323,10 +338,39 @@ export default function FacultyGradebook() {
     const passedCount = computedRows.filter((row) => row.remarks === "Passed").length;
     const failedCount = computedRows.filter((row) => row.remarks === "Failed").length;
 
-    const attendanceWeight = useMemo(
-        () => (gradeBookDetails ? Number(gradeBookDetails.gradingWeights.attendanceWeight) : 0),
-        [gradeBookDetails],
-    );
+    // ModuLearn-style grouped assessment categories
+    const groupedAssessments = useMemo(() => {
+        const ww = assessments.filter((a) => a.type === "written_work");
+        const pt = assessments.filter((a) => a.type === "performance_task");
+        const qa = assessments.filter((a) => a.type === "quarterly_assessment");
+        return [
+            {
+                type: "written_work" as const,
+                meta: ASSESSMENT_TYPE_META.written_work,
+                weight: gradeBookDetails?.gradingWeights.writtenWorkWeight ?? 0,
+                color: "#176B3A",
+                items: ww,
+            },
+            {
+                type: "performance_task" as const,
+                meta: ASSESSMENT_TYPE_META.performance_task,
+                weight: gradeBookDetails?.gradingWeights.performanceTaskWeight ?? 0,
+                color: "#16A34A",
+                items: pt,
+            },
+            {
+                type: "quarterly_assessment" as const,
+                meta: ASSESSMENT_TYPE_META.quarterly_assessment,
+                weight: gradeBookDetails?.gradingWeights.quarterlyAssessmentWeight ?? 0,
+                color: "#0F766E",
+                items: qa,
+            },
+        ];
+    }, [assessments, gradeBookDetails]);
+
+    const activeGroups = useMemo(() => {
+        return groupedAssessments.filter((g) => g.items.length > 0);
+    }, [groupedAssessments]);
 
     // ================= Score sheet handlers ================
     function handleScoreChange(enrollmentId: number, assessmentId: number, value: string) {
@@ -341,7 +385,6 @@ export default function FacultyGradebook() {
         if (!gradeBookDetails || !isDirty || savingScores) return;
         setSavingScores(true);
         try {
-            // Only touch assessments whose sheet actually changed.
             const changedAssessmentIds = new Set<number>();
             for (const student of students) {
                 const draftRow = draftScores[student.enrollmentId];
@@ -423,7 +466,6 @@ export default function FacultyGradebook() {
             title,
             type: modalForm.type,
             maxScore,
-            // Empty string clears the date on edit; null is fine on create too.
             dateGiven: modalForm.dateGiven || null,
         };
 
@@ -435,15 +477,10 @@ export default function FacultyGradebook() {
                     quarter,
                     ...payload,
                 };
-                // Include componentId for composite subjects when a component is selected
                 if (isCompositeSubject && selectedComponentId !== null) {
                     createPayload.componentId = selectedComponentId;
                 }
-                await postAPICall(
-                    "/assessments",
-                    createPayload,
-                    { toast: false },
-                );
+                await postAPICall("/assessments", createPayload, { toast: false });
                 toast.success("Assessment created successfully");
             } else {
                 await patchAPICall(`/assessments/${modal.assessment.id}`, payload, { toast: false });
@@ -456,7 +493,6 @@ export default function FacultyGradebook() {
         }
     }
 
-    // ================= Delete assessment ================
     async function handleDeleteAssessment() {
         if (!deletingAssessment || deleting) return;
         setDeleting(true);
@@ -471,44 +507,35 @@ export default function FacultyGradebook() {
     }
 
     // ================= Grading weights handlers ================
-    function openWeightsModal() {
-        if (!gradeBookDetails) return;
-        const weights = gradeBookDetails.gradingWeights;
-        setWeightsForm({
-            writtenWorkWeight: String(weights.writtenWorkWeight),
-            performanceTaskWeight: String(weights.performanceTaskWeight),
-            quarterlyAssessmentWeight: String(weights.quarterlyAssessmentWeight),
-            attendanceWeight: String(weights.attendanceWeight),
-        });
-        setWeightsModalOpen(true);
-    }
-
-    function closeWeightsModal() {
-        setWeightsModalOpen(false);
-    }
-
     function handleWeightsInputChange(event: ChangeEvent<HTMLInputElement>) {
         const { name, value } = event.target;
         setWeightsForm((prev) => ({ ...prev, [name]: value }));
     }
 
     const weightsTotal = useMemo(() => {
-        const values = Object.values(weightsForm).map((raw) => (raw.trim() === "" ? Number.NaN : Number(raw)));
-        return values.some(Number.isNaN) ? Number.NaN : values.reduce((sum, value) => sum + value, 0);
+        const values = [
+            Number(weightsForm.writtenWorkWeight) || 0,
+            Number(weightsForm.performanceTaskWeight) || 0,
+            Number(weightsForm.quarterlyAssessmentWeight) || 0,
+            Number(weightsForm.attendanceWeight) || 0,
+        ];
+        return values.reduce((sum, value) => sum + value, 0);
     }, [weightsForm]);
 
     async function handleWeightsSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (!gradeBookDetails || savingWeights) return;
 
-        // Empty fields must be filled in — never silently convert them to 0.
         if (Object.values(weightsForm).some((raw) => raw.trim() === "")) {
             toast.warning("All weight fields are required.");
             return;
         }
 
-        const [writtenWorkWeight, performanceTaskWeight, quarterlyAssessmentWeight, attendanceWeight] =
-            Object.values(weightsForm).map(Number);
+        const writtenWorkWeight = Number(weightsForm.writtenWorkWeight);
+        const performanceTaskWeight = Number(weightsForm.performanceTaskWeight);
+        const quarterlyAssessmentWeight = Number(weightsForm.quarterlyAssessmentWeight);
+        const attendanceWeight = Number(weightsForm.attendanceWeight);
+
         if (
             [writtenWorkWeight, performanceTaskWeight, quarterlyAssessmentWeight, attendanceWeight].some(
                 (value) => value < 0,
@@ -518,7 +545,7 @@ export default function FacultyGradebook() {
             return;
         }
         if (weightsTotal > 100) {
-            toast.warning(`Weights total ${weightsTotal}, which exceeds the maximum of 100.`);
+            toast.warning(`Weights total ${weightsTotal}%, which exceeds the maximum of 100%.`);
             return;
         }
 
@@ -535,14 +562,12 @@ export default function FacultyGradebook() {
                 { toast: false },
             );
             toast.success("Grading weights updated successfully");
-            setWeightsModalOpen(false);
             await fetchGradebook(quarter);
         } finally {
             setSavingWeights(false);
         }
     }
 
-    // =============== handle back to class List button ================
     const handleBackToClassList = () => {
         navigate("/faculty/classes");
     };
@@ -550,259 +575,414 @@ export default function FacultyGradebook() {
     if (loading) {
         return (
             <PageShell className="faculty-gradebook" busy>
-                <PageSection className="faculty-gradebook__card" flush>
-                    <div className="p-5">
-                        <Skeleton lines={5} gap="1rem" />
-                    </div>
-                </PageSection>
+                <div className="space-y-4 p-6">
+                    <Skeleton lines={2} gap="0.75rem" />
+                    <Skeleton lines={4} gap="1rem" />
+                    <Skeleton lines={8} gap="0.75rem" />
+                </div>
             </PageShell>
         );
     }
 
     return (
-        <PageShell className="faculty-gradebook">
-            {/* ==================== Back button ==================== */}
-            <button
-                type="button"
-                className="faculty-gradebook__back inline-flex cursor-pointer items-center justify-center gap-2 self-start rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
-                aria-label="Back to class list"
-                onClick={handleBackToClassList}
-            >
-                <FiArrowLeft aria-hidden="true" />
-                <span className="text-sm font-bold">Back to Classes</span>
-            </button>
+        <PageShell className="faculty-gradebook space-y-6">
+            {/* ==================== Compact Page Header (ModuLearn style) ==================== */}
+            <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-1">
+                    <button
+                        type="button"
+                        className="faculty-gradebook__back inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-semibold shadow-2xs mb-1"
+                        aria-label="Back to class list"
+                        onClick={handleBackToClassList}
+                    >
+                        <FiArrowLeft className="w-3.5 h-3.5" />
+                        <span>Back to Classes</span>
+                    </button>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900">
+                        Gradebook
+                    </h1>
+                    <p className="text-sm font-medium text-gray-500">
+                        {gradeBookDetails ? (
+                            <>
+                                Grade {gradeBookDetails.classLevel} &middot;{" "}
+                                {gradeBookDetails.classSection.toLowerCase().startsWith("section")
+                                    ? gradeBookDetails.classSection
+                                    : `Section ${gradeBookDetails.classSection}`}{" "}
+                                &middot;{" "}
+                                <span className="font-bold text-gray-700">{gradeBookDetails.subjectName}</span>{" "}
+                                <span className="font-mono text-xs text-gray-400">({gradeBookDetails.subjectCode})</span>
+                            </>
+                        ) : (
+                            "Manage grades, weights, and items for this subject."
+                        )}
+                    </p>
+                </div>
 
-            {/* ==================== Header ==================== */}
-            {gradeBookDetails && (
-                <PageHeader
-                    title={gradeBookDetails.subjectName}
-                    description={gradeBookDetails.subjectCode}
-                    meta={`Grade ${gradeBookDetails.classLevel} · ${gradeBookDetails.classSection} · Q${quarter}`}
-                />
-            )}
+                {/* Academic Period Selector aligned right */}
+                <div className="flex flex-col sm:items-end">
+                    <label htmlFor="academic-period-select" className="text-[0.6875rem] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                        Academic Period
+                    </label>
+                    <select
+                        id="academic-period-select"
+                        value={quarter}
+                        onChange={(e) => handleQuarterChange(Number(e.target.value))}
+                        className="faculty-gradebook__period-select cursor-pointer rounded-lg border px-3.5 py-2 text-sm font-semibold shadow-2xs"
+                    >
+                        {quarters.map((q) => (
+                            <option key={q} value={q}>
+                                Quarter {q}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            </header>
 
-            {/* ==================== Quarter tabs + actions ==================== */}
-            <div className="faculty-gradebook__toolbar flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm">
-                <div className="faculty-gradebook__tabs flex items-center gap-1.5" role="tablist" aria-label="Select quarter">
-                    {quarters.map((q) => (
+            {/* ==================== Composite Subject Tabs (MAPEH etc.) ==================== */}
+            {isCompositeSubject && components.length > 0 ? (
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-2xs">
+                    <span className="text-xs font-bold text-gray-500 mr-1">Component:</span>
+                    <button
+                        type="button"
+                        className={`faculty-gradebook__comp-tab cursor-pointer${
+                            selectedComponentId === null ? " faculty-gradebook__comp-tab--active" : ""
+                        }`}
+                        onClick={() => setSelectedComponentId(null)}
+                    >
+                        All
+                    </button>
+                    {components.map((comp) => (
                         <button
-                            key={q}
+                            key={comp.id}
                             type="button"
-                            role="tab"
-                            aria-selected={quarter === q}
-                            aria-label={`Quarter ${q}`}
-                            className={`faculty-gradebook__tab inline-flex cursor-pointer items-center justify-center rounded-lg px-4 py-2 text-[0.8125rem] font-bold transition-colors${
-                                quarter === q ? " faculty-gradebook__tab--active" : ""
+                            className={`faculty-gradebook__comp-tab cursor-pointer${
+                                selectedComponentId === comp.id ? " faculty-gradebook__comp-tab--active" : ""
                             }`}
-                            onClick={() => handleQuarterChange(q)}
+                            onClick={() => setSelectedComponentId(comp.id)}
                         >
-                            Quarter {q}
+                            {comp.name}
+                            <span className="ml-1 text-[0.625rem] opacity-75 font-normal">({comp.weight}%)</span>
                         </button>
                     ))}
                 </div>
-                <div className="faculty-gradebook__toolbar-actions flex items-center gap-2">
-                    <button
-                        type="button"
-                        className="faculty-gradebook__weights inline-flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2 text-[0.8125rem] font-bold"
-                        disabled={!gradeBookDetails}
-                        onClick={openWeightsModal}
-                    >
-                        <FiSettings aria-hidden="true" />
-                        Grading Weights
-                    </button>
-                    <button
-                        type="button"
-                        className="faculty-gradebook__add inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold"
-                        onClick={openCreateModal}
-                    >
-                        <FiPlus aria-hidden="true" />
-                        Add Assessment
-                    </button>
-                </div>
-            </div>
+            ) : null}
 
-            {/* ==================== Component tabs (for composite subjects) ==================== */}
-            {isCompositeSubject && components.length > 0 && (
-                <div className="faculty-gradebook__components flex flex-wrap items-center gap-2 rounded-xl border bg-white p-4 shadow-sm">
-                    <span className="text-[0.75rem] font-bold text-neutral-500">Component:</span>
-                    <div className="flex items-center gap-1.5" role="tablist" aria-label="Select component">
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-selected={selectedComponentId === null}
-                            className={`faculty-gradebook__tab inline-flex cursor-pointer items-center justify-center rounded-lg px-3 py-1.5 text-[0.75rem] font-bold transition-colors${
-                                selectedComponentId === null ? " faculty-gradebook__tab--active" : ""
-                            }`}
-                            onClick={() => setSelectedComponentId(null)}
-                        >
-                            All
-                        </button>
-                        {components.map((comp) => (
-                            <button
-                                key={comp.id}
-                                type="button"
-                                role="tab"
-                                aria-selected={selectedComponentId === comp.id}
-                                className={`faculty-gradebook__tab inline-flex cursor-pointer items-center justify-center rounded-lg px-3 py-1.5 text-[0.75rem] font-bold transition-colors${
-                                    selectedComponentId === comp.id ? " faculty-gradebook__tab--active" : ""
-                                }`}
-                                onClick={() => setSelectedComponentId(comp.id)}
-                            >
-                                {comp.name}
-                                <span className="ml-1 text-[0.625rem] opacity-60">{comp.weight}%</span>
-                            </button>
+            {/* ==================== Grading Weights Panel (ModuLearn Pattern) ==================== */}
+            <section className="faculty-gradebook__weights-card p-5 sm:p-6 space-y-4" aria-labelledby="grading-weights-title">
+                <h2 id="grading-weights-title" className="text-base font-bold text-gray-900">
+                    Grading Weights
+                </h2>
+
+                <form onSubmit={handleWeightsSubmit} className="space-y-4" noValidate>
+                    {/* Visual Segmented Progress Distribution Bar */}
+                    <div className="faculty-gradebook__weights-bar" aria-label="Percentage distribution bar">
+                        {WEIGHT_CONFIGS.map((config) => {
+                            const val = Math.max(0, Number(weightsForm[config.key]) || 0);
+                            const widthPercent = weightsTotal > 0 ? (val / Math.max(100, weightsTotal)) * 100 : 0;
+                            return (
+                                <div
+                                    key={config.key}
+                                    style={{
+                                        width: `${widthPercent}%`,
+                                        backgroundColor: config.color,
+                                    }}
+                                    className="h-full transition-all duration-300"
+                                    title={`${config.label}: ${val}%`}
+                                />
+                            );
+                        })}
+                    </div>
+
+                    {/* Component Input Boxes */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        {WEIGHT_CONFIGS.map((config) => (
+                            <div key={config.key} className="faculty-gradebook__weight-box">
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                    <span
+                                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                                        style={{ backgroundColor: config.color }}
+                                        aria-hidden="true"
+                                    />
+                                    <label
+                                        htmlFor={`weight-input-${config.key}`}
+                                        className="text-xs font-bold text-gray-700 truncate cursor-pointer"
+                                    >
+                                        {config.label}
+                                    </label>
+                                </div>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                    <input
+                                        id={`weight-input-${config.key}`}
+                                        type="number"
+                                        min={0}
+                                        max={100}
+                                        step="1"
+                                        name={config.key}
+                                        value={weightsForm[config.key]}
+                                        onChange={handleWeightsInputChange}
+                                        className="faculty-gradebook__weight-input"
+                                        aria-label={`${config.label} weight percentage`}
+                                    />
+                                    <span className="text-xs font-semibold text-gray-400">%</span>
+                                </div>
+                            </div>
                         ))}
                     </div>
-                </div>
-            )}
 
-            {/* ==================== Component summary ==================== */}
-            <div className="faculty-gradebook__chips grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {(Object.keys(ASSESSMENT_TYPE_META) as AssessmentType[]).map((type) => {
-                    const meta = ASSESSMENT_TYPE_META[type];
-                    const count = assessmentCounts[type];
-                    return (
-                        <div key={type} className="faculty-gradebook__chip flex items-center gap-3 rounded-xl border p-4">
+                    {/* Bottom Controls: Total and Save Weights */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                        <div className="flex items-center gap-2">
                             <span
-                                className="faculty-gradebook__chip-icon inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[0.6875rem] font-bold"
-                                aria-hidden="true"
+                                className={`text-sm font-bold ${
+                                    weightsTotal === 100
+                                        ? "text-[#176B3A]"
+                                        : "text-amber-600"
+                                }`}
                             >
-                                {meta.short}
+                                Total: {weightsTotal}%
                             </span>
-                            <div className="min-w-0">
-                                <span className="faculty-gradebook__chip-label block text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                                    {meta.label}
+                            {weightsTotal !== 100 && (
+                                <span className="text-xs text-amber-600 font-medium">
+                                    (Weights must equal 100%)
                                 </span>
-                                <span className="faculty-gradebook__chip-value mt-0.5 block text-[1.125rem] font-bold">
-                                    {count} assessment{count === 1 ? "" : "s"}
-                                </span>
-                            </div>
+                            )}
                         </div>
-                    );
-                })}
-            </div>
 
-            {/* ==================== Score sheet ==================== */}
-            <div className="faculty-gradebook__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                <div className="faculty-gradebook__card-head flex flex-wrap items-center justify-between gap-4 p-5">
-                    <div className="faculty-gradebook__card-heading min-w-0">
-                        <h3 className="faculty-gradebook__card-title text-base font-bold">Score Sheet</h3>
-                        <p className="faculty-gradebook__card-subtitle mt-1 text-[0.8125rem]">
-                            {students.length} students &middot; Quarter {quarter}
+                        <button
+                            type="submit"
+                            disabled={savingWeights}
+                            className="faculty-gradebook__weights-save-btn cursor-pointer inline-flex items-center gap-2"
+                        >
+                            {savingWeights ? "Saving…" : "Save Weights"}
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            {/* ==================== Grade Sheet Panel (ModuLearn Pattern) ==================== */}
+            <section className="faculty-gradebook__sheet-card" aria-labelledby="grade-sheet-title">
+                {/* Header */}
+                <div className="flex flex-wrap items-center justify-between gap-4 p-5 border-b border-gray-200">
+                    <div>
+                        <h2 id="grade-sheet-title" className="text-lg font-bold text-gray-900">
+                            Grade Sheet
+                        </h2>
+                        <p className="text-xs font-medium text-gray-500 mt-0.5">
+                            {students.length} students &middot; {assessments.length} items
                         </p>
                     </div>
-                    <button
-                        type="button"
-                        className="faculty-gradebook__save inline-flex items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold hover:cursor-pointer"
-                        disabled={!isDirty || savingScores}
-                        onClick={handleSaveScores}
-                    >
-                        <FiSave/> {savingScores ? "Saving…" : isDirty ? "Save Scores" : "Saved"}
-                    </button>
+
+                    <div className="flex items-center gap-3">
+                        {/* Save status badge */}
+                        {isDirty ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200">
+                                Unsaved changes
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100">
+                                <FiCheck className="w-3.5 h-3.5" /> Saved
+                            </span>
+                        )}
+
+                        <button
+                            type="button"
+                            onClick={openCreateModal}
+                            className="faculty-gradebook__btn-secondary cursor-pointer inline-flex items-center gap-1.5"
+                        >
+                            <FiPlus className="w-3.5 h-3.5" />
+                            <span>Add Item</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={handleSaveScores}
+                            disabled={!isDirty || savingScores}
+                            className="faculty-gradebook__btn-primary cursor-pointer inline-flex items-center gap-1.5"
+                        >
+                            <FiSave className="w-3.5 h-3.5" />
+                            <span>{savingScores ? "Saving…" : "Save All"}</span>
+                        </button>
+                    </div>
                 </div>
 
+                {/* Table or Empty States */}
                 {assessments.length === 0 ? (
                     <div className="faculty-gradebook__empty flex flex-col items-center justify-center px-6 py-16 text-center">
                         <span
-                            className="faculty-gradebook__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full"
+                            className="faculty-gradebook__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full text-lg mb-3"
                             aria-hidden="true"
                         >
                             <FiBookOpen />
                         </span>
-                        <p className="faculty-gradebook__empty-title mt-3 text-sm font-bold">
+                        <h3 className="faculty-gradebook__empty-title text-base font-bold">
                             No assessments yet for Quarter {quarter}
-                        </p>
-                        <p className="faculty-gradebook__empty-text mt-1 text-[0.8125rem]">
-                            Add an assessment to start recording scores for this class.
+                        </h3>
+                        <p className="faculty-gradebook__empty-text text-xs text-gray-500 mt-1 max-w-sm">
+                            Add an assessment to start recording scores for this subject and quarter.
                         </p>
                         <button
                             type="button"
-                            className="faculty-gradebook__add faculty-gradebook__empty-add mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold"
+                            className="faculty-gradebook__btn-primary cursor-pointer mt-4 inline-flex items-center gap-1.5"
                             onClick={openCreateModal}
                         >
-                            <FiPlus aria-hidden="true" />
-                            Add Assessment
+                            <FiPlus className="w-3.5 h-3.5" />
+                            <span>Add Assessment</span>
                         </button>
                     </div>
                 ) : students.length === 0 ? (
                     <div className="faculty-gradebook__empty flex flex-col items-center justify-center px-6 py-16 text-center">
                         <span
-                            className="faculty-gradebook__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full"
+                            className="faculty-gradebook__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-full text-lg mb-3"
                             aria-hidden="true"
                         >
                             <FiUsers />
                         </span>
-                        <p className="faculty-gradebook__empty-title mt-3 text-sm font-bold">No students enrolled</p>
-                        <p className="faculty-gradebook__empty-text mt-1 text-[0.8125rem]">
+                        <h3 className="faculty-gradebook__empty-title text-base font-bold">
+                            No students enrolled
+                        </h3>
+                        <p className="faculty-gradebook__empty-text text-xs text-gray-500 mt-1">
                             Students will appear here once they are enrolled in this class.
                         </p>
                     </div>
                 ) : (
-                    <div className="data-table__wrap">
-                        {/* One 10rem column per assessment keeps the sheet readable
-                            no matter how many assessments there are. */}
+                    <div className="faculty-gradebook__table-container">
                         <table
-                            className="data-table"
-                            style={{ minWidth: `${38 + assessments.length * 10}rem` }}
+                            className="faculty-gradebook__table"
+                            style={{ minWidth: isStudentColCollapsed ? `${14 + assessments.length * 8}rem` : `${22 + assessments.length * 8}rem` }}
                         >
                             <thead>
+                                {/* Header Row 1: Groups & Summaries */}
                                 <tr>
-                                    <th scope="col" className="data-table__th w-48">
-                                        Student
+                                    <th
+                                        scope="col"
+                                        rowSpan={2}
+                                        className={`faculty-gradebook__sticky-col faculty-gradebook__th-summary px-3 py-3 text-left transition-all ${
+                                            isStudentColCollapsed ? "w-16 min-w-[4rem]" : "min-w-[13rem]"
+                                        }`}
+                                    >
+                                        <div className="flex items-center justify-between gap-1.5">
+                                            <div className="flex items-center gap-1.5 truncate">
+                                                <FiUsers className="w-4 h-4 text-gray-400 shrink-0" />
+                                                {!isStudentColCollapsed && <span>STUDENT</span>}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsStudentColCollapsed((prev) => !prev)}
+                                                className="p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-800 transition-colors cursor-pointer shrink-0"
+                                                title={isStudentColCollapsed ? "Expand student column" : "Collapse student column"}
+                                                aria-label={isStudentColCollapsed ? "Expand student column" : "Collapse student column"}
+                                            >
+                                                {isStudentColCollapsed ? (
+                                                    <FiChevronRight className="w-4 h-4 text-[#176B3A]" />
+                                                ) : (
+                                                    <FiChevronLeft className="w-4 h-4" />
+                                                )}
+                                            </button>
+                                        </div>
                                     </th>
 
-                                    {assessments.map((assessment) => (
-                                        <th key={assessment.id} scope="col" className="data-table__th w-40">
-                                            <div className="faculty-gradebook__assessment-cell flex flex-col gap-1">
-                                                <span className="faculty-gradebook__assessment-title flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.06em]">
-                                                    <span className="faculty-gradebook__assessment-type inline-flex items-center rounded px-1.5 py-0.5 text-[0.625rem] font-bold">
-                                                        {ASSESSMENT_TYPE_META[assessment.type].short}
-                                                    </span>
-                                                    <span className="min-w-0 truncate">{assessment.title}</span>
-                                                </span>
-                                                <span className="faculty-gradebook__assessment-meta font-mono text-[0.6875rem]">
-                                                    {assessment.dateGiven ? `${assessment.dateGiven} · ` : ""}max{" "}
-                                                    {assessment.maxScore}
-                                                </span>
-                                                <span className="faculty-gradebook__assessment-actions flex items-center gap-1">
-                                                    <button
-                                                        type="button"
-                                                        className="faculty-gradebook__assessment-action inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded"
-                                                        aria-label={`Edit ${assessment.title}`}
-                                                        onClick={() => openEditModal(assessment)}
-                                                    >
-                                                        <FiEdit3 aria-hidden="true" />
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        className="faculty-gradebook__assessment-action faculty-gradebook__assessment-action--danger inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded"
-                                                        aria-label={`Delete ${assessment.title}`}
-                                                        onClick={() => setDeletingAssessment(assessment)}
-                                                    >
-                                                        <FiTrash2 aria-hidden="true" />
-                                                    </button>
-                                                </span>
-                                            </div>
+                                    {/* Grouped Category Headers */}
+                                    {activeGroups.map((group) => (
+                                        <th
+                                            key={group.type}
+                                            colSpan={group.items.length}
+                                            scope="colgroup"
+                                            className="faculty-gradebook__th-group"
+                                            style={{ borderTop: `3px solid ${group.color}` }}
+                                        >
+                                            <span
+                                                className="inline-flex items-center justify-center gap-1.5"
+                                                style={{ color: group.color }}
+                                            >
+                                                <span
+                                                    className="w-2 h-2 rounded-full shrink-0"
+                                                    style={{ backgroundColor: group.color }}
+                                                />
+                                                {group.meta.label.toUpperCase()} ({group.weight}%)
+                                            </span>
                                         </th>
                                     ))}
 
-                                    <th scope="col" className="data-table__th data-table__th--center w-24">
-                                        Total
+                                    {/* Summary Header: ATTENDANCE */}
+                                    <th
+                                        scope="col"
+                                        rowSpan={2}
+                                        className="faculty-gradebook__th-summary min-w-[6.5rem]"
+                                    >
+                                        ATTENDANCE
                                     </th>
-                                    <th scope="col" className="data-table__th data-table__th--center w-28">
-                                        <span className="block">Attendance</span>
-                                        <span className="faculty-gradebook__attendance-meta block font-mono">
-                                            weight {attendanceWeight}%
-                                        </span>
+
+                                    {/* Summary Header: FINAL GRADE */}
+                                    <th
+                                        scope="col"
+                                        rowSpan={2}
+                                        className="faculty-gradebook__th-summary min-w-[6.5rem]"
+                                    >
+                                        FINAL GRADE
                                     </th>
-                                    <th scope="col" className="data-table__th data-table__th--center w-28">
-                                        Grade
-                                    </th>
-                                    <th scope="col" className="data-table__th data-table__th--center w-28">
-                                        Remarks
+
+                                    {/* Summary Header: REMARKS */}
+                                    <th
+                                        scope="col"
+                                        rowSpan={2}
+                                        className="faculty-gradebook__th-summary min-w-[6.5rem]"
+                                    >
+                                        REMARKS
                                     </th>
                                 </tr>
+
+                                {/* Header Row 2: Individual Assessment Items */}
+                                <tr>
+                                    {activeGroups.map((group) => (
+                                        <Fragment key={group.type}>
+                                            {group.items.map((assessment) => (
+                                                <th
+                                                    key={assessment.id}
+                                                    scope="col"
+                                                    className="faculty-gradebook__th-sub min-w-[7.5rem]"
+                                                >
+                                                    <div className="flex flex-col items-center gap-1 group/item">
+                                                        <span
+                                                            className="font-bold text-gray-800 text-[0.75rem] max-w-[8rem] truncate leading-tight"
+                                                            title={assessment.title}
+                                                        >
+                                                            {assessment.title}
+                                                        </span>
+                                                        <span className="font-mono text-[0.6875rem] text-gray-500">
+                                                            /{assessment.maxScore}
+                                                        </span>
+                                                        {assessment.dateGiven && (
+                                                            <span className="text-[0.625rem] text-gray-400">
+                                                                {assessment.dateGiven}
+                                                            </span>
+                                                        )}
+                                                        {/* Edit / Delete quick controls */}
+                                                        <div className="flex items-center gap-1 mt-0.5 opacity-60 hover:opacity-100 transition-opacity">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => openEditModal(assessment)}
+                                                                title={`Edit ${assessment.title}`}
+                                                                className="p-1 hover:text-[#176B3A] rounded hover:bg-gray-200 cursor-pointer"
+                                                            >
+                                                                <FiEdit3 className="w-3 h-3" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setDeletingAssessment(assessment)}
+                                                                title={`Delete ${assessment.title}`}
+                                                                className="p-1 hover:text-red-600 rounded hover:bg-red-50 cursor-pointer"
+                                                            >
+                                                                <FiTrash2 className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </th>
+                                            ))}
+                                        </Fragment>
+                                    ))}
+                                </tr>
                             </thead>
+
                             <tbody>
                                 {students.map((student, index) => {
                                     const draftRow = draftScores[student.enrollmentId] ?? {};
@@ -811,135 +991,285 @@ export default function FacultyGradebook() {
                                         totalMaxScore: 0,
                                         quarterGrade: null,
                                         remarks: null,
+                                        componentGrades: [],
+                                        fromServer: false,
                                     };
+                                    const isRowExpanded = expandedStudentIds.has(student.enrollmentId);
+
                                     return (
-                                        <tr key={student.enrollmentId} className="data-table__row">
-                                            <td className="data-table__td">
-                                                <span className="data-table__value">
-                                                    {student.fullname}
-                                                </span>
-                                                <span className="data-table__sub">
-                                                    LRN {student.studentLrn}
-                                                </span>
-                                            </td>
-
-                                            {assessments.map((assessment) => (
+                                        <Fragment key={student.enrollmentId}>
+                                            <tr className="hover:bg-gray-50/70 transition-colors">
+                                                {/* Sticky Student Column */}
                                                 <td
-                                                    key={assessment.id}
-                                                    className="data-table__td data-table__td--center"
+                                                    className={`faculty-gradebook__sticky-col transition-all ${
+                                                        isStudentColCollapsed
+                                                            ? "w-16 min-w-[4rem] px-2 py-2 text-center"
+                                                            : "px-4 py-2.5"
+                                                    }`}
                                                 >
-                                                    <input
-                                                        type="number"
-                                                        inputMode="decimal"
-                                                        min={0}
-                                                        max={Number(assessment.maxScore)}
-                                                        step="0.01"
-                                                        className="faculty-gradebook__score-input"
-                                                        value={draftRow[assessment.id] ?? ""}
-                                                        placeholder="—"
-                                                        aria-label={`${student.fullname} score in ${assessment.title}`}
-                                                        onChange={(event) =>
-                                                            handleScoreChange(
-                                                                student.enrollmentId,
-                                                                assessment.id,
-                                                                event.target.value,
-                                                            )
-                                                        }
-                                                    />
-                                                </td>
-                                            ))}
-
-                                            <td className="data-table__td data-table__td--center data-table__td--mono font-mono text-[0.8125rem] font-bold">
-                                                {computed.totalMaxScore > 0
-                                                    ? `${Math.round(computed.totalScore)}/${computed.totalMaxScore}`
-                                                    : "—"}
-                                            </td>
-                                            <td className="data-table__td data-table__td--center">
-                                                {student.attendance && student.attendance.totalDays > 0 ? (
-                                                    <span
-                                                        className={`faculty-gradebook__attendance inline-flex flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1${
-                                                            attendanceWeight > 0
-                                                                ? student.attendance.percentage >= 90
-                                                                    ? " faculty-gradebook__attendance--good"
-                                                                    : student.attendance.percentage >= 75
-                                                                      ? " faculty-gradebook__attendance--warn"
-                                                                      : " faculty-gradebook__attendance--low"
-                                                                : " faculty-gradebook__attendance--off"
-                                                        }`}
-                                                        title={
-                                                            attendanceWeight > 0
-                                                                ? undefined
-                                                                : "Attendance is not counted toward the grade (weight is 0)"
-                                                        }
-                                                    >
-                                                        <span className="font-mono text-[0.8125rem] font-bold leading-none">
-                                                            {student.attendance.percentage.toFixed(0)}%
-                                                        </span>
-                                                        <span className="faculty-gradebook__attendance-days text-[0.625rem] leading-none">
-                                                            {student.attendance.presentDays}/{student.attendance.totalDays} days
-                                                        </span>
-                                                    </span>
-                                                ) : (
-                                                    <span
-                                                        className="faculty-gradebook__attendance-empty"
-                                                        title="No attendance records for this class yet"
-                                                    >
-                                                        No records
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="data-table__td data-table__td--center">
-                                                {computed.quarterGrade !== null ? (
-                                                    <div className="flex flex-col items-center gap-0.5">
-                                                        <span
-                                                            className={`faculty-gradebook__grade inline-flex items-center justify-center rounded-lg px-2 py-1 font-mono text-[0.8125rem] font-bold${
-                                                                isPassing(computed.quarterGrade)
-                                                                    ? " faculty-gradebook__grade--pass"
-                                                                    : " faculty-gradebook__grade--fail"
-                                                            }`}
-                                                            title={
-                                                                computed.fromServer
-                                                                    ? "Composite grade computed by the server from the saved component grades — save any score changes to refresh it"
-                                                                    : "Live preview from the score sheet"
-                                                            }
+                                                    {isStudentColCollapsed ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => toggleStudentRow(student.enrollmentId)}
+                                                            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#EAF5EE] text-[#176B3A] font-bold text-xs border border-[#176B3A]/20 cursor-pointer shadow-2xs hover:scale-105 transition-transform"
+                                                            title={`${student.fullname}\nLRN: ${student.studentLrn}\nClick to toggle row details`}
+                                                            aria-label={`Toggle row details for ${student.fullname}`}
                                                         >
-                                                            {computed.quarterGrade.toFixed(2)}
-                                                        </span>
-                                                        {computed.componentGrades.length > 0 && (
-                                                            <span className="faculty-gradebook__attendance-days text-[0.625rem] leading-none">
-                                                                {computed.componentGrades
-                                                                    .map(
-                                                                        (componentGrade) =>
-                                                                            `${componentGrade.componentCode} ${
-                                                                                componentGrade.grade === null
-                                                                                    ? "—"
-                                                                                    : componentGrade.grade.toFixed(2)
-                                                                            }`,
-                                                                    )
-                                                                    .join(" · ")}
+                                                            {getInitials(student.fullname)}
+                                                        </button>
+                                                    ) : (
+                                                        <div className="flex items-center justify-between gap-2">
+                                                            <div className="flex flex-col min-w-0">
+                                                                <span
+                                                                    className="font-bold text-gray-900 text-[0.8125rem] leading-snug truncate"
+                                                                    title={student.fullname}
+                                                                >
+                                                                    {student.fullname}
+                                                                </span>
+                                                                <span className="text-[0.6875rem] text-gray-400 font-mono mt-0.5 truncate">
+                                                                    {student.studentLrn}
+                                                                </span>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => toggleStudentRow(student.enrollmentId)}
+                                                                className="p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer shrink-0"
+                                                                title={isRowExpanded ? "Collapse student details" : "Expand student details"}
+                                                                aria-label={isRowExpanded ? "Collapse student details" : "Expand student details"}
+                                                            >
+                                                                {isRowExpanded ? (
+                                                                    <FiChevronUp className="w-3.5 h-3.5 text-[#176B3A]" />
+                                                                ) : (
+                                                                    <FiChevronDown className="w-3.5 h-3.5" />
+                                                                )}
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </td>
+
+                                                {/* Scores for Each Active Category */}
+                                                {activeGroups.map((group) => (
+                                                    <Fragment key={group.type}>
+                                                        {group.items.map((assessment) => (
+                                                            <td key={assessment.id} className="text-center px-1.5 py-2">
+                                                                <input
+                                                                    type="number"
+                                                                    inputMode="decimal"
+                                                                    min={0}
+                                                                    max={Number(assessment.maxScore)}
+                                                                    step="0.01"
+                                                                    className="faculty-gradebook__score-input"
+                                                                    value={draftRow[assessment.id] ?? ""}
+                                                                    placeholder="—"
+                                                                    aria-label={`${student.fullname} score in ${assessment.title}`}
+                                                                    onChange={(e) =>
+                                                                        handleScoreChange(
+                                                                            student.enrollmentId,
+                                                                            assessment.id,
+                                                                            e.target.value,
+                                                                        )
+                                                                    }
+                                                                />
+                                                            </td>
+                                                        ))}
+                                                    </Fragment>
+                                                ))}
+
+                                                {/* ATTENDANCE */}
+                                                <td className="text-center px-2 py-2">
+                                                    {student.attendance && student.attendance.totalDays > 0 ? (
+                                                        <div className="inline-flex flex-col items-center">
+                                                            <span className="font-mono text-xs font-bold text-gray-800">
+                                                                {student.attendance.percentage.toFixed(0)}%
                                                             </span>
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-[0.8125rem] text-gray-400">—</span>
-                                                )}
-                                            </td>
-                                            <td className="data-table__td data-table__td--center">
-                                                {computed.remarks ? (
-                                                    <span
-                                                        className={`faculty-gradebook__remarks inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold${
-                                                            computed.remarks === "Passed"
-                                                                ? " faculty-gradebook__remarks--passed"
-                                                                : " faculty-gradebook__remarks--failed"
-                                                        }`}
+                                                            <div className="faculty-gradebook__attendance-bar-wrap">
+                                                                <div
+                                                                    className="faculty-gradebook__attendance-bar-fill"
+                                                                    style={{
+                                                                        width: `${Math.min(
+                                                                            100,
+                                                                            Math.max(0, student.attendance.percentage),
+                                                                        )}%`,
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-gray-400">—</span>
+                                                    )}
+                                                </td>
+
+                                                {/* FINAL GRADE */}
+                                                <td className="text-center px-2 py-2">
+                                                    {computed.quarterGrade !== null ? (
+                                                        <div className="inline-flex flex-col items-center">
+                                                            <span
+                                                                className={`font-mono text-sm font-extrabold ${
+                                                                    isPassing(computed.quarterGrade)
+                                                                        ? "text-[#176B3A]"
+                                                                        : "text-red-600"
+                                                                }`}
+                                                            >
+                                                                {computed.quarterGrade.toFixed(2)}
+                                                            </span>
+                                                            {computed.componentGrades.length > 0 && (
+                                                                <span className="text-[0.625rem] text-gray-400 mt-0.5">
+                                                                    {computed.componentGrades
+                                                                        .map(
+                                                                            (cg) =>
+                                                                                `${cg.componentCode} ${
+                                                                                    cg.grade === null ? "—" : cg.grade.toFixed(1)
+                                                                                }`,
+                                                                        )
+                                                                        .join(" · ")}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-gray-400">—</span>
+                                                    )}
+                                                </td>
+
+                                                {/* REMARKS */}
+                                                <td className="text-center px-2 py-2">
+                                                    {computed.remarks ? (
+                                                        <span
+                                                            className={`faculty-gradebook__remarks-badge ${
+                                                                computed.remarks === "Passed"
+                                                                    ? "faculty-gradebook__remarks-badge--passed"
+                                                                    : "faculty-gradebook__remarks-badge--failed"
+                                                            }`}
+                                                        >
+                                                            {computed.remarks}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-xs text-gray-400">—</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+
+                                            {/* Mobile / Compact Expanded Student Details Accordion */}
+                                            {isRowExpanded && (
+                                                <tr className="bg-[#F7FAF8] border-b border-gray-200">
+                                                    <td
+                                                        colSpan={1 + assessments.length + 3}
+                                                        className="p-3 sm:p-4"
                                                     >
-                                                        {computed.remarks}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-[0.8125rem] text-gray-400">—</span>
-                                                )}
-                                            </td>
-                                        </tr>
+                                                        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm space-y-3">
+                                                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
+                                                                <div>
+                                                                    <h4 className="font-bold text-sm text-gray-900">
+                                                                        {student.fullname}
+                                                                    </h4>
+                                                                    <p className="text-xs text-gray-500 font-mono">
+                                                                        LRN: {student.studentLrn}
+                                                                    </p>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-xs font-semibold text-gray-500">
+                                                                        Quarter Grade:{" "}
+                                                                        <strong
+                                                                            className={
+                                                                                isPassing(computed.quarterGrade)
+                                                                                    ? "text-[#176B3A]"
+                                                                                    : "text-red-600"
+                                                                            }
+                                                                        >
+                                                                            {computed.quarterGrade !== null
+                                                                                ? computed.quarterGrade.toFixed(2)
+                                                                                : "—"}
+                                                                        </strong>
+                                                                    </span>
+                                                                    {computed.remarks && (
+                                                                        <span
+                                                                            className={`faculty-gradebook__remarks-badge ${
+                                                                                computed.remarks === "Passed"
+                                                                                    ? "faculty-gradebook__remarks-badge--passed"
+                                                                                    : "faculty-gradebook__remarks-badge--failed"
+                                                                            }`}
+                                                                        >
+                                                                            {computed.remarks}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Assessment Score Fields for Mobile Preview */}
+                                                            <div className="space-y-3">
+                                                                <span className="text-[0.6875rem] font-bold text-gray-400 uppercase tracking-wider block">
+                                                                    Assessments & Scores
+                                                                </span>
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                                                                    {activeGroups.map((group) => (
+                                                                        <div key={group.type} className="space-y-1.5 rounded-lg border border-gray-100 bg-gray-50/60 p-2.5">
+                                                                            <div
+                                                                                className="flex items-center gap-1.5 text-xs font-bold"
+                                                                                style={{ color: group.color }}
+                                                                            >
+                                                                                <span
+                                                                                    className="w-2 h-2 rounded-full"
+                                                                                    style={{ backgroundColor: group.color }}
+                                                                                />
+                                                                                <span>{group.meta.label} ({group.weight}%)</span>
+                                                                            </div>
+                                                                            <div className="space-y-1.5">
+                                                                                {group.items.map((assessment) => (
+                                                                                    <div
+                                                                                        key={assessment.id}
+                                                                                        className="flex items-center justify-between gap-2 p-1.5 rounded-md bg-white border border-gray-200 text-xs"
+                                                                                    >
+                                                                                        <div className="min-w-0">
+                                                                                            <p className="font-semibold text-gray-800 truncate" title={assessment.title}>
+                                                                                                {assessment.title}
+                                                                                            </p>
+                                                                                            <p className="text-[0.625rem] text-gray-400 font-mono">
+                                                                                                Max: {assessment.maxScore}
+                                                                                            </p>
+                                                                                        </div>
+                                                                                        <div className="flex items-center gap-1 shrink-0">
+                                                                                            <input
+                                                                                                type="number"
+                                                                                                inputMode="decimal"
+                                                                                                min={0}
+                                                                                                max={Number(assessment.maxScore)}
+                                                                                                step="0.01"
+                                                                                                value={draftRow[assessment.id] ?? ""}
+                                                                                                placeholder="—"
+                                                                                                className="w-16 rounded border border-gray-300 bg-white px-2 py-1 text-center font-mono text-xs font-bold text-gray-800 focus:border-[#176B3A] focus:outline-none"
+                                                                                                onChange={(e) =>
+                                                                                                    handleScoreChange(
+                                                                                                        student.enrollmentId,
+                                                                                                        assessment.id,
+                                                                                                        e.target.value,
+                                                                                                    )
+                                                                                                }
+                                                                                            />
+                                                                                            <span className="text-gray-400 text-[0.6875rem] font-mono">
+                                                                                                /{assessment.maxScore}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Attendance info */}
+                                                            <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-xs text-gray-500">
+                                                                <span>Attendance:</span>
+                                                                <span className="font-mono font-bold text-gray-800">
+                                                                    {student.attendance && student.attendance.totalDays > 0
+                                                                        ? `${student.attendance.percentage.toFixed(0)}% (${student.attendance.presentDays}/${student.attendance.totalDays} days)`
+                                                                        : "No records"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </Fragment>
                                     );
                                 })}
                             </tbody>
@@ -947,24 +1277,23 @@ export default function FacultyGradebook() {
                     </div>
                 )}
 
-                {/* ==================== Sheet footer ==================== */}
-                <div className="faculty-gradebook__card-foot flex flex-wrap items-center justify-between gap-3 p-5">
-                    <p className="faculty-gradebook__foot-note flex items-center gap-2 text-[0.8125rem]">
-                        <FiUsers aria-hidden="true" />
-                        {students.length} students &middot; {passedCount} passed &middot; {failedCount} failed
+                {/* Footer */}
+                <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-t border-gray-200 bg-gray-50/50 text-xs text-gray-500">
+                    <p className="flex items-center gap-1.5 font-medium">
+                        <FiUsers className="w-4 h-4 text-gray-400" />
+                        <span>
+                            {students.length} students &middot; {passedCount} passed &middot; {failedCount} failed
+                        </span>
                     </p>
-                    {isCompositeSubject && (
-                        <p className="faculty-gradebook__foot-note">
-                            Composite subject: the quarter grade and each component grade are
-                            computed by the server from saved scores (weighted by component weight).
-                            Save changes to refresh.
+                    {isCompositeSubject ? (
+                        <p className="text-[0.6875rem] text-gray-500">
+                            Composite subject: the quarter grade is computed by the server from saved scores.
                         </p>
-                    )}
-                    
+                    ) : null}
                 </div>
-            </div>
+            </section>
 
-            {/* ==================== Assessment create/edit modal ==================== */}
+            {/* ==================== Assessment Create / Edit Modal ==================== */}
             <ModalDialog
                 open={modal !== null}
                 onClose={closeModal}
@@ -978,7 +1307,10 @@ export default function FacultyGradebook() {
                                 <span className="faculty-gradebook__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
                                     {modal.mode === "create" ? "New record" : "Edit record"}
                                 </span>
-                                <h3 id="faculty-gradebook-modal-title" className="faculty-gradebook__modal-title mt-0.5 text-xl font-bold">
+                                <h3
+                                    id="faculty-gradebook-modal-title"
+                                    className="faculty-gradebook__modal-title mt-0.5 text-xl font-bold"
+                                >
                                     {modal.mode === "create" ? "Create Assessment" : "Edit Assessment"}
                                 </h3>
                                 <p className="faculty-gradebook__modal-subtitle mt-1 text-[0.8125rem]">
@@ -989,7 +1321,7 @@ export default function FacultyGradebook() {
                             </div>
                             <button
                                 type="button"
-                                className="faculty-gradebook__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg"
+                                className="faculty-gradebook__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg cursor-pointer"
                                 onClick={closeModal}
                                 aria-label="Close modal"
                             >
@@ -998,11 +1330,11 @@ export default function FacultyGradebook() {
                         </header>
 
                         <form className="faculty-gradebook__form p-6" onSubmit={handleAssessmentSubmit} noValidate>
-                            <div className="faculty-gradebook__form-grid grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div className="faculty-gradebook__form-field sm:col-span-2">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div className="sm:col-span-2">
                                     <label
                                         htmlFor="assessment-title"
-                                        className="faculty-gradebook__form-label text-[0.8125rem] font-semibold"
+                                        className="faculty-gradebook__form-label block text-[0.8125rem] font-semibold mb-1"
                                     >
                                         Title
                                     </label>
@@ -1017,16 +1349,16 @@ export default function FacultyGradebook() {
                                         onChange={handleModalInputChange}
                                     />
                                 </div>
-                                <div className="faculty-gradebook__form-field">
+                                <div>
                                     <label
                                         htmlFor="assessment-type"
-                                        className="faculty-gradebook__form-label text-[0.8125rem] font-semibold"
+                                        className="faculty-gradebook__form-label block text-[0.8125rem] font-semibold mb-1"
                                     >
                                         Type
                                     </label>
                                     <select
                                         id="assessment-type"
-                                        className="faculty-gradebook__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                        className="faculty-gradebook__form-input w-full rounded-lg border px-3 py-2.5 text-sm cursor-pointer"
                                         name="type"
                                         value={modalForm.type}
                                         onChange={handleModalInputChange}
@@ -1038,10 +1370,10 @@ export default function FacultyGradebook() {
                                         ))}
                                     </select>
                                 </div>
-                                <div className="faculty-gradebook__form-field">
+                                <div>
                                     <label
                                         htmlFor="assessment-max-score"
-                                        className="faculty-gradebook__form-label text-[0.8125rem] font-semibold"
+                                        className="faculty-gradebook__form-label block text-[0.8125rem] font-semibold mb-1"
                                     >
                                         Max Score
                                     </label>
@@ -1057,10 +1389,10 @@ export default function FacultyGradebook() {
                                         onChange={handleModalInputChange}
                                     />
                                 </div>
-                                <div className="faculty-gradebook__form-field sm:col-span-2">
+                                <div className="sm:col-span-2">
                                     <label
                                         htmlFor="assessment-date"
-                                        className="faculty-gradebook__form-label text-[0.8125rem] font-semibold"
+                                        className="faculty-gradebook__form-label block text-[0.8125rem] font-semibold mb-1"
                                     >
                                         Date Given{" "}
                                         <span className="faculty-gradebook__form-optional font-normal">(optional)</span>
@@ -1079,14 +1411,14 @@ export default function FacultyGradebook() {
                             <footer className="faculty-gradebook__form-footer mt-6 flex justify-end gap-3 border-t pt-5">
                                 <button
                                     type="button"
-                                    className="faculty-gradebook__form-cancel rounded-lg border px-4 py-2.5 text-sm font-semibold"
+                                    className="faculty-gradebook__form-cancel rounded-lg border px-4 py-2.5 text-sm font-semibold cursor-pointer"
                                     onClick={closeModal}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="faculty-gradebook__form-submit inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold"
+                                    className="faculty-gradebook__form-submit inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold cursor-pointer"
                                     disabled={savingAssessment}
                                 >
                                     {savingAssessment
@@ -1101,109 +1433,7 @@ export default function FacultyGradebook() {
                 )}
             </ModalDialog>
 
-            {/* ==================== Grading weights modal ==================== */}
-            <ModalDialog
-                open={weightsModalOpen}
-                onClose={closeWeightsModal}
-                labelledById="faculty-gradebook-weights-title"
-                className="faculty-gradebook__modal-panel w-full max-w-[30rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
-            >
-                        <header className="faculty-gradebook__modal-header flex items-start justify-between gap-4 p-6 pb-5">
-                            <div className="faculty-gradebook__modal-heading">
-                                <span className="faculty-gradebook__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                                    Class subject settings
-                                </span>
-                                <h3
-                                    id="faculty-gradebook-weights-title"
-                                    className="faculty-gradebook__modal-title mt-0.5 text-xl font-bold"
-                                >
-                                    Grading Weights
-                                </h3>
-                                <p className="faculty-gradebook__modal-subtitle mt-1 text-[0.8125rem]">
-                                    Set how each component counts toward the quarter grade
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                className="faculty-gradebook__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg"
-                                onClick={closeWeightsModal}
-                                aria-label="Close modal"
-                            >
-                                <FiX aria-hidden="true" />
-                            </button>
-                        </header>
-
-                        <form className="faculty-gradebook__form p-6" onSubmit={handleWeightsSubmit} noValidate>
-                            <div className="faculty-gradebook__form-grid grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                {WEIGHTS_FIELD_LABELS.map((field) => (
-                                    <div
-                                        key={field.key}
-                                        className={`faculty-gradebook__form-field${field.key === "attendanceWeight" ? " sm:col-span-2" : ""}`}
-                                    >
-                                        <label
-                                            htmlFor={`weights-${field.key}`}
-                                            className="faculty-gradebook__form-label text-[0.8125rem] font-semibold"
-                                        >
-                                            {field.label}
-                                            <span className="faculty-gradebook__form-suffix font-normal"> %</span>
-                                        </label>
-                                        <input
-                                            id={`weights-${field.key}`}
-                                            type="number"
-                                            min={0}
-                                            max={100}
-                                            step="0.5"
-                                            className="faculty-gradebook__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
-                                            placeholder="0"
-                                            name={field.key}
-                                            value={weightsForm[field.key]}
-                                            onChange={handleWeightsInputChange}
-                                        />
-                                        {field.hint && (
-                                            <p className="faculty-gradebook__form-hint mt-1 text-[0.6875rem]">{field.hint}</p>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="faculty-gradebook__weights-total-wrap mt-4 flex items-center justify-between gap-3 rounded-lg border px-4 py-3">
-                                <span className="faculty-gradebook__weights-total-label text-[0.8125rem] font-semibold">
-                                    Total
-                                </span>
-                                <span
-                                    className={`faculty-gradebook__weights-total font-mono text-[0.8125rem] font-bold${
-                                        Number.isNaN(weightsTotal)
-                                            ? ""
-                                            : weightsTotal > 100
-                                              ? " faculty-gradebook__weights-total--over"
-                                              : " faculty-gradebook__weights-total--ok"
-                                    }`}
-                                    aria-live="polite"
-                                >
-                                    {Number.isNaN(weightsTotal) ? "—" : `${weightsTotal}/100`}
-                                </span>
-                            </div>
-
-                            <footer className="faculty-gradebook__form-footer mt-6 flex justify-end gap-3 border-t pt-5">
-                                <button
-                                    type="button"
-                                    className="faculty-gradebook__form-cancel rounded-lg border px-4 py-2.5 text-sm font-semibold"
-                                    onClick={closeWeightsModal}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="faculty-gradebook__form-submit inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold"
-                                    disabled={savingWeights}
-                                >
-                                    {savingWeights ? "Saving…" : "Save Weights"}
-                                </button>
-                            </footer>
-                        </form>
-            </ModalDialog>
-
-            {/* ==================== Delete assessment confirmation ==================== */}
+            {/* ==================== Delete Assessment Confirmation ==================== */}
             <ConfirmDialog
                 open={deletingAssessment !== null}
                 title="Delete Assessment"

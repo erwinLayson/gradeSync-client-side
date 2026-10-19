@@ -1,507 +1,399 @@
 /* ============================================================
    FacultyGradebook — component stylesheet (hybrid approach)
 
-   Holds the "complex" layer only (colors, gradients, shadows,
-   animations, transitions, state styles). Basic layout lives
-   as Tailwind utilities directly in FacultyGradebook.tsx.
+   Holds the complex styling layer (colors, gradients, shadows,
+   animations, transitions, sticky headers, ModuLearn table structure).
+   Basic layout is paired with Tailwind utilities.
    ============================================================ */
 
-/* ---------- Back button ---------- */
+/* ---------- Page Header & Navigation ---------- */
+.faculty-gradebook__header-nav {
+  margin-bottom: 0.5rem;
+}
+
 .faculty-gradebook__back {
   border-color: var(--neutral-border);
-  color: var(--primary-dark);
+  color: var(--text-dark);
   background: var(--surface-white);
   font-family: var(--font-sans);
-  transition: border-color var(--transition-fast), background var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .faculty-gradebook__back:hover {
   border-color: var(--primary);
-  background: var(--surface-bg);
+  color: var(--primary);
+  background: var(--primary-light);
 }
 
 .faculty-gradebook__back:focus-visible {
-  outline: 2px solid var(--primary-light);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
-/* ---------- Hero banner ---------- */
-.faculty-gradebook__hero {
-  background: var(--gradient-brand);
-  color: var(--text-on-dark);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
-  animation: faculty-gradebook-in var(--transition-slow) ease-out forwards;
-}
-
-@keyframes faculty-gradebook-in {
-  from {
-    opacity: 0;
-    transform: translateY(0.5rem);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.faculty-gradebook__hero-avatar {
-  color: var(--text-on-dark);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
-  border: 1px solid var(--border-on-dark);
-  box-shadow: 0 12px 24px -8px rgb(0 0 0 / 0.45);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.faculty-gradebook__hero-eyebrow {
-  color: var(--text-on-dark-muted);
-}
-
-.faculty-gradebook__hero-name {
-  letter-spacing: -0.01em;
-  color: var(--text-on-dark);
-}
-
-.faculty-gradebook__hero-role {
-  color: var(--text-on-dark-soft);
-}
-
-.faculty-gradebook__hero-badge {
-  border-color: var(--border-on-dark);
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.faculty-gradebook__hero-badge-count {
-  color: var(--text-on-dark);
-}
-
-.faculty-gradebook__hero-badge-label {
-  color: var(--text-on-dark-muted);
-}
-
-/* ---------- Toolbar + quarter tabs ---------- */
-.faculty-gradebook__toolbar {
+/* ---------- Academic Period Selector ---------- */
+.faculty-gradebook__period-select {
   border-color: var(--neutral-border);
-  background: var(--surface-white);
-}
-
-.faculty-gradebook__tab {
-  border: 1px solid var(--neutral-border);
-  color: var(--text-muted);
-  background: var(--surface-bg);
-  transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
-}
-
-.faculty-gradebook__tab:hover {
-  border-color: var(--primary);
-  color: var(--primary-dark);
-}
-
-.faculty-gradebook__tab--active {
-  border-color: var(--primary);
-  color: var(--text-on-dark);
-  background: var(--gradient-brand);
-  box-shadow: var(--shadow-sm);
-}
-
-.faculty-gradebook__tab--active:hover {
-  color: var(--text-on-dark);
-}
-
-/* ---------- Action buttons ---------- */
-.faculty-gradebook__add {
-  color: var(--text-on-dark);
-  background: var(--gradient-brand);
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
-}
-
-.faculty-gradebook__add:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-  filter: brightness(1.05);
-}
-
-.faculty-gradebook__add:focus-visible {
-  outline: 2px solid var(--primary-light);
-  outline-offset: 2px;
-}
-
-.faculty-gradebook__save {
-  border: 1px solid var(--neutral-border);
-  color: var(--primary-dark);
-  background: var(--surface-white);
+  background-color: var(--surface-white);
+  color: var(--text-dark);
   font-family: var(--font-sans);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.faculty-gradebook__period-select:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+/* ---------- Grading Weights Card ---------- */
+.faculty-gradebook__weights-card {
+  border: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.faculty-gradebook__weights-bar {
+  background: #f1f5f9;
+  border-radius: 9999px;
+  overflow: hidden;
+  height: 0.625rem;
+  display: flex;
+}
+
+.faculty-gradebook__weight-box {
+  border: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.faculty-gradebook__weight-box:hover {
+  border-color: #cbd5e1;
+}
+
+.faculty-gradebook__weight-box:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.faculty-gradebook__weight-input {
+  width: 4rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--text-dark);
+  border: 1px solid var(--neutral-border);
+  border-radius: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  outline: none;
+  background: #f8fafc;
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
-.faculty-gradebook__save:hover:not(:disabled) {
+.faculty-gradebook__weight-input:focus {
   border-color: var(--primary);
-  background: var(--surface-bg);
+  background: var(--surface-white);
 }
 
-.faculty-gradebook__save:disabled {
-  cursor: default;
-  opacity: 0.85;
+.faculty-gradebook__weights-save-btn {
+  background-color: var(--primary);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 
-.faculty-gradebook__save--primary {
-  border-color: transparent;
-  color: var(--text-on-dark);
-  background: var(--gradient-brand);
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
-}
-
-.faculty-gradebook__save--primary:hover:not(:disabled) {
-  border-color: transparent;
+.faculty-gradebook__weights-save-btn:hover:not(:disabled) {
+  background-color: var(--primary-dark);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-  filter: brightness(1.05);
 }
 
-.faculty-gradebook__save--primary:focus-visible {
-  outline: 2px solid var(--primary-light);
-  outline-offset: 2px;
+.faculty-gradebook__weights-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-/* ---------- Component summary chips ---------- */
-.faculty-gradebook__chip {
-  border-color: var(--neutral-border);
-  background: var(--surface-white);
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
-}
-
-.faculty-gradebook__chip:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--primary);
-}
-
-.faculty-gradebook__chip-icon {
-  color: var(--primary-dark);
-  background: var(--neutral-border);
-  box-shadow: var(--shadow-sm);
-}
-
-.faculty-gradebook__chip-label {
-  color: var(--text-muted);
-}
-
-.faculty-gradebook__chip-value {
-  color: var(--text-dark);
-}
-
-/* ---------- Card shell ---------- */
-.faculty-gradebook__card {
+/* ---------- Grade Sheet Card ---------- */
+.faculty-gradebook__sheet-card {
   border: 1px solid var(--neutral-border);
-  border-radius: var(--radius-xl);
-}
-
-.faculty-gradebook__card-head {
-  border-bottom: 1px solid var(--neutral-border);
-}
-
-.faculty-gradebook__card-title {
-  letter-spacing: -0.01em;
-  color: var(--text-dark);
-}
-
-.faculty-gradebook__card-subtitle {
-  color: var(--text-muted);
-}
-
-/* ---------- Score sheet ---------- */
-.faculty-gradebook__sheet-wrap {
   background: var(--surface-white);
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 }
 
-.faculty-gradebook__sheet th {
-  text-align: left;
-  color: var(--text-muted);
+.faculty-gradebook__btn-secondary {
+  border: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+  color: var(--text-dark);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  transition: all var(--transition-fast);
+}
+
+.faculty-gradebook__btn-secondary:hover {
+  border-color: var(--primary);
+  color: var(--primary-dark);
   background: var(--surface-bg);
-  border-bottom: 1px solid var(--neutral-border);
-  white-space: nowrap;
 }
 
-.faculty-gradebook__sheet td {
-  color: var(--text-body);
+.faculty-gradebook__btn-primary {
+  background-color: var(--primary);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all var(--transition-fast);
+}
+
+.faculty-gradebook__btn-primary:hover:not(:disabled) {
+  background-color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.faculty-gradebook__btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- ModuLearn Grade Table ---------- */
+.faculty-gradebook__table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  max-width: 100%;
+}
+
+/* Custom scrollbars */
+.faculty-gradebook__table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.faculty-gradebook__table-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.faculty-gradebook__table-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.faculty-gradebook__table-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.faculty-gradebook__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.8125rem;
+}
+
+/* Sticky Student Column */
+.faculty-gradebook__sticky-col {
+  position: sticky;
+  left: 0;
+  background-color: var(--surface-white);
+  z-index: 10;
+  border-right: 1px solid var(--neutral-border);
+  box-shadow: 2px 0 4px -2px rgba(0, 0, 0, 0.06);
+}
+
+thead th.faculty-gradebook__sticky-col {
+  z-index: 25;
+  background-color: #f8fafc;
+}
+
+tr:hover td.faculty-gradebook__sticky-col {
+  background-color: #f8fafc;
+}
+
+/* Table Header Rows */
+.faculty-gradebook__th-group {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  padding: 0.625rem 0.5rem;
   border-bottom: 1px solid var(--neutral-border);
+  border-right: 1px solid var(--neutral-border);
+  background-color: #ffffff;
+}
+
+.faculty-gradebook__th-sub {
+  text-align: center;
+  padding: 0.625rem 0.5rem;
+  border-bottom: 1px solid var(--neutral-border);
+  border-right: 1px solid var(--neutral-border);
+  background-color: #f8fafc;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.faculty-gradebook__th-sum {
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  color: #475569;
+  background-color: #f1f5f9;
+}
+
+.faculty-gradebook__th-summary {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  padding: 0.625rem 0.5rem;
+  border-bottom: 1px solid var(--neutral-border);
+  border-right: 1px solid var(--neutral-border);
+  background-color: #f8fafc;
+  color: #334155;
+}
+
+.faculty-gradebook__th-total {
+  background-color: rgba(23, 107, 58, 0.05);
+  color: var(--primary-dark);
+}
+
+/* Table Body Cells */
+.faculty-gradebook__table td {
+  padding: 0.5rem 0.625rem;
+  border-bottom: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
   vertical-align: middle;
 }
 
-.faculty-gradebook__sheet tbody tr:last-child td {
+.faculty-gradebook__table tr:last-child td {
   border-bottom: none;
 }
 
-.faculty-gradebook__sheet tbody tr:nth-child(even) {
-  background: var(--surface-bg);
-}
-
-.faculty-gradebook__sheet tbody tr {
-  transition: background var(--transition-fast);
-}
-
-.faculty-gradebook__sheet tbody tr:hover {
-  background: var(--accent-light);
-}
-
-/* Assessment header cell */
-.faculty-gradebook__assessment-type {
-  color: var(--primary-dark);
-  background: var(--neutral-border);
-}
-
-.faculty-gradebook__assessment-title {
-  color: var(--text-dark);
-}
-
-.faculty-gradebook__assessment-meta {
-  color: var(--text-muted);
-}
-
-.faculty-gradebook__assessment-actions {
-  opacity: 0;
-  transition: opacity var(--transition-fast);
-}
-
-.faculty-gradebook__sheet th:hover .faculty-gradebook__assessment-actions,
-.faculty-gradebook__sheet th:focus-within .faculty-gradebook__assessment-actions {
-  opacity: 1;
-}
-
-.faculty-gradebook__assessment-action {
-  color: var(--text-muted);
-  background: var(--surface-white);
-  border: 1px solid var(--neutral-border);
-  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
-}
-
-.faculty-gradebook__assessment-action:hover {
-  color: var(--primary-dark);
-  border-color: var(--primary);
-  background: var(--accent-light);
-}
-
-.faculty-gradebook__assessment-action--danger:hover {
-  color: var(--error);
-  border-color: var(--error);
-  background: #fef2f2;
-}
-
-/* Student cell */
-.faculty-gradebook__cell--student {
-  white-space: nowrap;
-}
-
-.faculty-gradebook__student-avatar {
-  color: var(--primary);
-  background: var(--neutral-border);
-  box-shadow: var(--shadow-sm);
-}
-
-.faculty-gradebook__student-name {
-  color: var(--text-dark);
-}
-
-.faculty-gradebook__student-lrn {
-  color: var(--text-muted);
-}
-
-/* Score chips */
-.faculty-gradebook__score {
-  border: 1px solid var(--neutral-border);
-  color: var(--text-input);
-  background: var(--surface-white);
-  padding: 0.375rem 0.625rem;
-  min-width: 4.25rem;
-  font-family: var(--font-mono);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
-}
-
-.faculty-gradebook__cell--score:hover .faculty-gradebook__score {
-  border-color: var(--primary-light);
-}
-
-/* Total cell */
-.faculty-gradebook__cell--total {
-  color: var(--primary-dark);
-  white-space: nowrap;
-}
-
-/* Attendance cell */
-.faculty-gradebook__attendance {
-  white-space: nowrap;
-}
-
-.faculty-gradebook__attendance--good {
-  color: var(--primary-dark);
-  background: var(--neutral-border);
-}
-
-.faculty-gradebook__attendance--warn {
-  color: #b45309;
-  background: #fef3c7;
-}
-
-.faculty-gradebook__attendance--low {
-  color: var(--error);
-  background: #fee2e2;
-}
-
-.faculty-gradebook__attendance--off {
-  color: var(--text-muted);
-  background: var(--surface-bg);
-  opacity: 0.75;
-}
-
-.faculty-gradebook__attendance-days {
-  color: inherit;
-  opacity: 0.75;
-}
-
-.faculty-gradebook__attendance-meta {
-  color: var(--text-muted);
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: normal;
-}
-
-.faculty-gradebook__attendance-empty {
-  color: var(--text-muted);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.faculty-gradebook__attendance-empty:hover {
-  color: var(--primary-dark);
-}
-
-/* Grade + remarks */
-.faculty-gradebook__grade {
-  white-space: nowrap;
-}
-
-.faculty-gradebook__grade--pass {
-  color: var(--primary-dark);
-  background: var(--neutral-border);
-}
-
-.faculty-gradebook__grade--fail {
-  color: var(--error);
-  background: #fee2e2;
-}
-
-.faculty-gradebook__remarks--passed {
-  color: var(--primary-dark);
-  background: var(--neutral-border);
-}
-
-.faculty-gradebook__remarks--failed {
-  color: var(--error);
-  background: #fee2e2;
-}
-
-/* ---------- Sheet footer ---------- */
-.faculty-gradebook__card-foot {
-  border-top: 1px solid var(--neutral-border);
-}
-
-.faculty-gradebook__foot-note {
-  color: var(--text-muted);
-}
-
-.faculty-gradebook__foot-note svg {
-  color: var(--primary);
-  flex-shrink: 0;
-}
-
-/* ---------- Toolbar secondary action ---------- */
-.faculty-gradebook__weights {
-  border-color: var(--neutral-border);
-  color: var(--primary-dark);
-  background: var(--surface-white);
-  font-family: var(--font-sans);
-  transition: border-color var(--transition-fast), background var(--transition-fast);
-}
-
-.faculty-gradebook__weights:hover {
-  border-color: var(--primary);
-  background: var(--surface-bg);
-}
-
-.faculty-gradebook__weights:focus-visible {
-  outline: 2px solid var(--primary-light);
-  outline-offset: 2px;
-}
-
-/* ---------- Weights form extras ---------- */
-.faculty-gradebook__form-suffix {
-  color: var(--text-muted);
-}
-
-.faculty-gradebook__form-hint {
-  color: var(--text-muted);
-}
-
-.faculty-gradebook__weights-total-wrap {
-  border-color: var(--neutral-border);
-  background: var(--surface-bg);
-}
-
-.faculty-gradebook__weights-total-label {
-  color: var(--text-dark);
-}
-
-.faculty-gradebook__weights-total {
-  color: var(--text-muted);
-}
-
-.faculty-gradebook__weights-total--ok {
-  color: var(--primary-dark);
-}
-
-.faculty-gradebook__weights-total--over {
-  color: var(--error);
-}
-
-/* ---------- Score sheet inputs ---------- */
 .faculty-gradebook__score-input {
-  border: 1px solid var(--neutral-border);
-  color: var(--text-input);
-  background: var(--surface-white);
-  padding: 0.375rem 0.625rem;
-  min-width: 4.25rem;
-  max-width: 5.5rem;
-  border-radius: var(--radius-lg);
-  font-family: var(--font-mono);
+  width: 4rem;
   text-align: center;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--text-dark);
+  background-color: #ffffff;
+  border: 1px solid var(--neutral-border);
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.25rem;
   outline: none;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
-}
-
-.faculty-gradebook__score-input::placeholder {
-  color: var(--text-muted);
-  opacity: 0.6;
+  transition: all var(--transition-fast);
 }
 
 .faculty-gradebook__score-input:hover {
-  border-color: var(--primary-light);
+  border-color: #94a3b8;
 }
 
 .faculty-gradebook__score-input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light);
-  background: var(--surface-white);
+  box-shadow: 0 0 0 1px var(--primary);
+  background-color: #ffffff;
 }
 
-/* ---------- Empty states ---------- */
+.faculty-gradebook__cell-sum {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #334155;
+  background-color: #f8fafc;
+  white-space: nowrap;
+}
+
+.faculty-gradebook__cell-total {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  background-color: rgba(23, 107, 58, 0.03);
+  white-space: nowrap;
+}
+
+/* Remarks badge */
+.faculty-gradebook__remarks-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.faculty-gradebook__remarks-badge--passed {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid rgba(23, 107, 58, 0.2);
+}
+
+.faculty-gradebook__remarks-badge--failed {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+/* Attendance bar */
+.faculty-gradebook__attendance-bar-wrap {
+  width: 3rem;
+  height: 0.25rem;
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+
+.faculty-gradebook__attendance-bar-fill {
+  height: 100%;
+  background-color: var(--primary);
+  border-radius: 9999px;
+  transition: width var(--transition-fast);
+}
+
+/* Component Tabs for composite subjects */
+.faculty-gradebook__comp-tab {
+  border: 1px solid var(--neutral-border);
+  color: var(--text-muted);
+  background: var(--surface-bg);
+  border-radius: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: all var(--transition-fast);
+}
+
+.faculty-gradebook__comp-tab:hover {
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+.faculty-gradebook__comp-tab--active {
+  border-color: var(--primary);
+  color: #ffffff;
+  background: var(--primary);
+}
+
+.faculty-gradebook__comp-tab--active:hover {
+  color: #ffffff;
+  background: var(--primary-dark);
+}
+
+/* Empty states */
 .faculty-gradebook__empty {
   border-top: 1px solid var(--neutral-border);
   background: var(--surface-bg);
@@ -520,11 +412,7 @@
   color: var(--text-muted);
 }
 
-.faculty-gradebook__empty-add {
-  align-self: center;
-}
-
-/* ---------- Assessment modal ---------- */
+/* Assessment modal */
 .faculty-gradebook__modal {
   background: rgb(15 23 42 / 0.55);
   backdrop-filter: blur(4px);
@@ -533,17 +421,24 @@
 }
 
 @keyframes faculty-gradebook-fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .faculty-gradebook__modal-panel {
   border: 1px solid var(--neutral-border);
   animation: faculty-gradebook-in var(--transition-slow) ease-out forwards;
+}
+
+@keyframes faculty-gradebook-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .faculty-gradebook__modal-header {
@@ -567,7 +462,7 @@
   color: var(--text-muted);
   background: var(--surface-bg);
   border: 1px solid transparent;
-  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .faculty-gradebook__modal-close:hover {
@@ -576,7 +471,7 @@
   background: var(--accent-light);
 }
 
-/* ---------- Assessment form ---------- */
+/* Assessment form */
 .faculty-gradebook__form-label {
   color: var(--text-dark);
 }
@@ -647,21 +542,17 @@
   opacity: 0.7;
 }
 
-/* ---------- Reduced motion ---------- */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .faculty-gradebook__hero,
   .faculty-gradebook__modal-panel {
     animation: none;
   }
-
   .faculty-gradebook__modal {
     animation: none;
   }
-
-  .faculty-gradebook__tab,
-  .faculty-gradebook__add,
-  .faculty-gradebook__save--primary,
-  .faculty-gradebook__chip {
+  .faculty-gradebook__btn-primary,
+  .faculty-gradebook__btn-secondary,
+  .faculty-gradebook__weights-save-btn {
     transition: none;
   }
 }
