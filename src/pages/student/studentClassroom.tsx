@@ -422,23 +422,6 @@ export default function StudentClassroom() {
                     ? selectedClass.subjects.filter((s) => s.name === selectedSubjectFilter)
                     : selectedClass.subjects;
 
-                const grandEarnedTotal = filteredSubjects.reduce(
-                    (sum, sub) =>
-                        sum +
-                        sub.assessments
-                            .filter((a) => a.quarter === activeQuarter)
-                            .reduce((s, a) => s + (a.score ?? 0), 0),
-                    0
-                );
-                const grandMaxTotal = filteredSubjects.reduce(
-                    (sum, sub) =>
-                        sum +
-                        sub.assessments
-                            .filter((a) => a.quarter === activeQuarter)
-                            .reduce((s, a) => s + a.maxScore, 0),
-                    0
-                );
-
                 interface DateGroup {
                     key: string;
                     monthDay: string;
@@ -574,7 +557,6 @@ export default function StudentClassroom() {
                                                     </th>
                                                 ))}
                                                 <th scope="col" className="student-classes__matrix-grade-col student-classes__matrix-date-th"></th>
-                                                <th scope="col" className="student-classes__matrix-total-col student-classes__matrix-date-th"></th>
                                             </tr>
 
                                             {/* Row 2: Type Badges & column titles */}
@@ -627,16 +609,10 @@ export default function StudentClassroom() {
                                                 <th scope="col" className="student-classes__matrix-grade-col bg-[#f0fdf4] text-[#176B3A] font-extrabold text-xs tracking-wider">
                                                     GRADE
                                                 </th>
-                                                <th scope="col" className="student-classes__matrix-total-col bg-[#f0fdf4] text-[#176B3A] font-extrabold text-xs tracking-wider">
-                                                    TOTAL
-                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {filteredSubjects.map((subject) => {
-                                                const subjectQAssessments = subject.assessments.filter((a) => a.quarter === activeQuarter);
-                                                const subjectEarnedTotal = subjectQAssessments.reduce((sum, a) => sum + (a.score ?? 0), 0);
-                                                const subjectMaxTotal = subjectQAssessments.reduce((sum, a) => sum + a.maxScore, 0);
                                                 const quarterGrade = subject.quarters[activeQuarter - 1];
 
                                                 return (
@@ -685,74 +661,9 @@ export default function StudentClassroom() {
                                                         <td className="student-classes__matrix-grade-col text-sm font-semibold text-neutral-700">
                                                             {quarterGrade !== null && quarterGrade !== undefined ? quarterGrade : "—"}
                                                         </td>
-                                                        <td className="student-classes__matrix-total-col text-sm font-bold text-neutral-900">
-                                                            {subjectEarnedTotal} / {subjectMaxTotal}
-                                                        </td>
                                                     </tr>
                                                 );
                                             })}
-
-                                            {/* TOTAL summary row */}
-                                            <tr className="student-classes__matrix-total">
-                                                <td
-                                                    className={`student-classes__matrix-subject-td student-classes__sticky-col font-extrabold text-neutral-900 text-xs uppercase tracking-wider ${
-                                                        isSubjectCollapsed ? "student-classes__matrix-subject-td--collapsed text-center" : ""
-                                                    }`}
-                                                >
-                                                    {isSubjectCollapsed ? (
-                                                        <>
-                                                            <span className="md:hidden inline text-[0.6875rem] font-bold text-neutral-700">TOT</span>
-                                                            <span className="hidden md:inline">TOTAL</span>
-                                                        </>
-                                                    ) : (
-                                                        "TOTAL"
-                                                    )}
-                                                </td>
-                                                {displayActivities.map((act) => {
-                                                    let colScore = 0;
-                                                    let colMax = act.maxScore;
-                                                    filteredSubjects.forEach((sub) => {
-                                                        const found = sub.assessments.find((a) => a.id === act.id && a.quarter === activeQuarter);
-                                                        if (found) {
-                                                            colScore += found.score ?? 0;
-                                                        }
-                                                    });
-                                                    return (
-                                                        <td key={act.id} className="student-classes__matrix-act-col font-bold text-xs text-red-600">
-                                                            {colScore}/{colMax}
-                                                        </td>
-                                                    );
-                                                })}
-                                                <td className="student-classes__matrix-grade-col text-neutral-400">—</td>
-                                                <td className="student-classes__matrix-total-col font-bold text-sm text-neutral-900">
-                                                    {grandEarnedTotal} / {grandMaxTotal}
-                                                </td>
-                                            </tr>
-
-                                            {/* AVERAGE summary row */}
-                                            <tr className="student-classes__matrix-avg">
-                                                <td
-                                                    className={`student-classes__matrix-subject-td student-classes__sticky-col font-extrabold text-neutral-900 text-xs uppercase tracking-wider ${
-                                                        isSubjectCollapsed ? "student-classes__matrix-subject-td--collapsed text-center" : ""
-                                                    }`}
-                                                >
-                                                    {isSubjectCollapsed ? (
-                                                        <>
-                                                            <span className="md:hidden inline text-[0.6875rem] font-bold text-neutral-700">AVG</span>
-                                                            <span className="hidden md:inline">AVERAGE</span>
-                                                        </>
-                                                    ) : (
-                                                        "AVERAGE"
-                                                    )}
-                                                </td>
-                                                {displayActivities.map((act) => (
-                                                    <td key={act.id} className="student-classes__matrix-act-col text-neutral-400">
-                                                        —
-                                                    </td>
-                                                ))}
-                                                <td className="student-classes__matrix-grade-col text-neutral-400">—</td>
-                                                <td className="student-classes__matrix-total-col text-neutral-400">—</td>
-                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -764,7 +675,7 @@ export default function StudentClassroom() {
                                         <span className="inline-flex items-center gap-1.5"><span className="student-classes__badge-exam">EX</span> Exam</span>
                                     </div>
                                     <span className="text-[0.6875rem] text-neutral-400 italic">
-                                        Tip: Scroll horizontally to view all activities, examinations, and final scores.
+                                        Tip: Scroll horizontally to view all activities, examinations, and quarter grades.
                                     </span>
                                 </div>
                             </section>
