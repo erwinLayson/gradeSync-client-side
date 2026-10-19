@@ -92,6 +92,41 @@
   color: var(--text-on-dark);
 }
 
+/* ---------- Inline quarter select (inside card header) ---------- */
+.faculty-records__quarter-label {
+  color: var(--text-muted);
+}
+
+.faculty-records__quarter-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--surface-white);
+  border: 1px solid var(--neutral-border);
+  border-radius: 0.5rem;
+  color: var(--text-dark);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.375rem 2rem 0.375rem 0.75rem;
+  cursor: pointer;
+  outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.faculty-records__quarter-select:hover {
+  border-color: var(--primary-light);
+}
+
+.faculty-records__quarter-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+
+
 /* ---------- Submit-all button ---------- */
 .faculty-records__submit-all {
   border: 1px solid transparent;
@@ -171,7 +206,291 @@
   font-weight: 700;
 }
 
-/* ---------- Roster table ---------- */
+/* ---------- Sheet card (grade-sheet pattern) ---------- */
+.faculty-records__sheet-card {
+  border: 1px solid var(--neutral-border);
+  border-radius: 1rem;
+  background: var(--surface-white);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* ---------- Grade-sheet table container ---------- */
+.faculty-records__table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  max-width: 100%;
+  border-top: 1px solid var(--neutral-border);
+}
+
+/* Custom scrollbars */
+.faculty-records__table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.faculty-records__table-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.faculty-records__table-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.faculty-records__table-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Grade table base */
+.faculty-records__grade-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.8125rem;
+}
+
+/* Sticky Student Column */
+.faculty-records__sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  border-right: 1px solid var(--neutral-border);
+  box-shadow: 2px 0 4px -2px rgba(0, 0, 0, 0.06);
+}
+
+thead th.faculty-records__sticky-col {
+  z-index: 25;
+  background-color: #f8fafc;
+}
+
+tr:hover td.faculty-records__sticky-col {
+  background-color: #f8fafc;
+}
+
+/* Student header cell */
+.faculty-records__th-student {
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0.75rem 1rem;
+  background-color: #f8fafc;
+  border-bottom: 1px solid var(--neutral-border);
+  min-width: 13rem;
+  white-space: nowrap;
+}
+
+/* Row 1 — group headers */
+.faculty-records__th-group {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--neutral-border);
+  border-right: 1px solid var(--neutral-border);
+  background-color: #ffffff;
+  color: var(--text-dark);
+  white-space: nowrap;
+  min-width: 6rem;
+}
+
+.faculty-records__th-status {
+  min-width: 7rem;
+}
+
+.faculty-records__th-action {
+  min-width: 9rem;
+}
+
+/* Row 2 — sub-headers (subject code) */
+.faculty-records__th-sub {
+  text-align: center;
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid var(--neutral-border);
+  border-right: 1px solid var(--neutral-border);
+  background-color: #f8fafc;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Body rows */
+.faculty-records__grade-row td {
+  border-bottom: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.faculty-records__grade-row:last-child td {
+  border-bottom: none;
+}
+
+.faculty-records__grade-row:hover td {
+  background-color: #f8fafc;
+}
+
+.faculty-records__grade-row:hover td.faculty-records__sticky-col {
+  background-color: #f0fdf4;
+}
+
+/* Student cell */
+.faculty-records__cell-student {
+  background-color: var(--surface-white);
+  padding: 0.625rem 1rem;
+  white-space: nowrap;
+}
+
+/* Avatar initials badge */
+.faculty-records__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--neutral-border);
+  color: var(--primary-dark);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Grade value cells */
+.faculty-records__grade-cell {
+  padding: 0.5rem 0.625rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.faculty-records__cell-status {
+  padding: 0.5rem 0.75rem;
+  white-space: nowrap;
+}
+
+/* Mobile row toggle button (only visible on small screens) */
+.faculty-records__row-toggle {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 1px solid var(--neutral-border);
+  background: var(--surface-bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.faculty-records__row-toggle:hover {
+  background: var(--accent-light);
+  border-color: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+.faculty-records__row-toggle-icon {
+  font-size: 0.875rem;
+  transition: transform var(--transition-base);
+}
+
+.faculty-records__row-toggle-icon--open {
+  transform: rotate(180deg);
+}
+
+/* Hide grade/status/action cells on mobile */
+@media (max-width: 640px) {
+  .faculty-records__row-toggle {
+    display: inline-flex;
+  }
+
+  .faculty-records__desktop-cell {
+    display: none;
+  }
+
+  /* Also hide the sub-header row cells that belong to hidden columns */
+  thead .faculty-records__th-group:not(.faculty-records__th-student):not(:first-child),
+  thead .faculty-records__th-sub {
+    display: none;
+  }
+}
+
+/* Mobile accordion row */
+.faculty-records__accordion-row td {
+  border-bottom: 1px solid #f1f5f9 !important;
+  border-right: none !important;
+  padding: 0 !important;
+}
+
+.faculty-records__accordion-cell {
+  background: #f8fafc;
+}
+
+.faculty-records__accordion-content {
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Individual grade row inside accordion */
+.faculty-records__accordion-grade-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.375rem 0;
+  border-bottom: 1px solid var(--neutral-border);
+}
+
+.faculty-records__accordion-grade-row:last-of-type {
+  border-bottom: none;
+}
+
+.faculty-records__accordion-subject {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.faculty-records__accordion-subject-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.faculty-records__accordion-subject-code {
+  font-size: 0.625rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Footer row inside accordion (status + action) */
+.faculty-records__accordion-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--neutral-border);
+  margin-top: 0.25rem;
+}
+
+
+
+/* ---------- Roster table (legacy, kept for backward compat) ---------- */
 .faculty-records__table-wrap {
   background: var(--surface-white);
 }

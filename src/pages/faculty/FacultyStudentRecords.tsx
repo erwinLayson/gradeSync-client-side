@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
     FiAlertTriangle,
     FiCheckCircle,
+    FiChevronDown,
     FiClock,
     FiFileText,
     FiLock,
@@ -67,6 +68,17 @@ export default function FacultyStudentRecords() {
     // Reopen confirm target.
     const [reopenTarget, setReopenTarget] = useState<StudentClassRecordRow | null>(null);
     const [reopening, setReopening] = useState(false);
+    // Mobile: which student rows are expanded.
+    const [expandedStudents, setExpandedStudents] = useState<Set<number>>(new Set());
+
+    function toggleStudent(enrollmentId: number) {
+        setExpandedStudents((prev) => {
+            const next = new Set(prev);
+            if (next.has(enrollmentId)) next.delete(enrollmentId);
+            else next.add(enrollmentId);
+            return next;
+        });
+    }
 
     // ================= Fetch =================
     // No synchronous setState in the pre-await path, so calling this from the
@@ -259,37 +271,6 @@ export default function FacultyStudentRecords() {
                 </div>
             )}
 
-            {/* ==================== Quarter tabs + submit all ==================== */}
-            <div className="faculty-records__toolbar flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm">
-                <div className="faculty-records__tabs flex items-center gap-1.5" role="tablist" aria-label="Select quarter">
-                    {quarters.map((q) => (
-                        <button
-                            key={q}
-                            type="button"
-                            role="tab"
-                            aria-selected={quarter === q}
-                            aria-label={`Quarter ${q}`}
-                            className={`faculty-records__tab inline-flex cursor-pointer items-center justify-center rounded-lg px-4 py-2 text-[0.8125rem] font-bold transition-colors${
-                                quarter === q ? " faculty-records__tab--active" : ""
-                            }`}
-                            onClick={() => handleQuarterChange(q)}
-                        >
-                            Quarter {q}
-                        </button>
-                    ))}
-                </div>
-                <div className="faculty-records__toolbar-actions flex items-center gap-2">
-                    <button
-                        type="button"
-                        className="faculty-records__submit-all inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold"
-                        disabled={progress.pending === 0 || submittingAll || submissionsLocked}
-                        onClick={() => setConfirmSubmitAll(true)}
-                    >
-                        {submittingAll ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiSend aria-hidden="true" />}
-                        {submittingAll ? "Submitting…" : "Submit All Pending"}
-                    </button>
-                </div>
-            </div>
 
             {/* ==================== Progress banner ==================== */}
             <div className="faculty-records__progress flex flex-col gap-3 rounded-xl border p-5">
@@ -322,15 +303,36 @@ export default function FacultyStudentRecords() {
                 </div>
             </div>
 
-            {/* ==================== Roster table ==================== */}
-            <div className="faculty-records__card overflow-hidden rounded-2xl bg-white shadow-sm">
-                <div className="faculty-records__card-head flex flex-wrap items-center justify-between gap-4 p-5">
+            {/* ==================== Student Records Sheet ==================== */}
+            <div className="faculty-records__sheet-card overflow-hidden rounded-2xl">
+                {/* Card header with inline quarter selector */}
+                <div className="faculty-records__card-head flex flex-wrap items-center justify-between gap-4 px-5 py-4">
                     <div className="faculty-records__card-heading min-w-0">
                         <h3 className="faculty-records__card-title text-base font-bold">Student Records</h3>
-                        <p className="faculty-records__card-subtitle mt-1 text-[0.8125rem]">
+                        <p className="faculty-records__card-subtitle mt-0.5 text-[0.8125rem]">
                             {records.students.length} students &middot; grades are{" "}
                             <strong>frozen on submit</strong> — faculty score edits after submission won't change them
                         </p>
+                    </div>
+                    {/* Quarter selector */}
+                    <div className="faculty-records__quarter-select-wrap flex items-center gap-2 shrink-0">
+                        <label
+                            htmlFor="sr-quarter-select"
+                            className="faculty-records__quarter-label text-[0.75rem] font-semibold whitespace-nowrap"
+                        >
+                            Quarter
+                        </label>
+                        <select
+                            id="sr-quarter-select"
+                            className="faculty-records__quarter-select"
+                            value={quarter}
+                            onChange={(e) => handleQuarterChange(Number(e.target.value))}
+                            aria-label="Select quarter"
+                        >
+                            {quarters.map((q) => (
+                                <option key={q} value={q}>Q{q}</option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 
@@ -345,135 +347,284 @@ export default function FacultyStudentRecords() {
                         </p>
                     </div>
                 ) : (
-                    <div className="data-table__wrap">
-                        <table className="data-table min-w-[62rem]">
+                    <div className="faculty-records__table-container">
+                        <table className="faculty-records__grade-table">
+                            {/* ── Two-row thead ── */}
                             <thead>
+                                {/* Row 1: group labels */}
                                 <tr>
-                                    <th scope="col" className="data-table__th w-48">
+                                    {/* Student sticky header spans 2 header rows */}
+                                    <th
+                                        scope="col"
+                                        rowSpan={2}
+                                        className="faculty-records__sticky-col faculty-records__th-student"
+                                    >
                                         Student
                                     </th>
                                     {records.subjects.map((subject) => (
-                                        <th key={subject.classSubjectId} scope="col" className="data-table__th">
-                                            <span className="data-table__value block truncate">
-                                                {subject.subjectName}
-                                            </span>
-                                            <span className="data-table__sub font-mono">
-                                                {subject.subjectCode}
-                                            </span>
+                                        <th
+                                            key={subject.classSubjectId}
+                                            scope="col"
+                                            className="faculty-records__th-group"
+                                        >
+                                            {subject.subjectName}
                                         </th>
                                     ))}
-                                    <th scope="col" className="data-table__th w-32">
+                                    <th scope="col" className="faculty-records__th-group faculty-records__th-status">
                                         Status
                                     </th>
-                                    <th scope="col" className="data-table__th data-table__th--actions w-36">
+                                    <th scope="col" className="faculty-records__th-group faculty-records__th-action">
                                         Action
                                     </th>
                                 </tr>
+                                {/* Row 2: sub-labels (subject code) */}
+                                <tr>
+                                    {records.subjects.map((subject) => (
+                                        <th
+                                            key={subject.classSubjectId}
+                                            scope="col"
+                                            className="faculty-records__th-sub"
+                                        >
+                                            {subject.subjectCode}
+                                        </th>
+                                    ))}
+                                    <th scope="col" className="faculty-records__th-sub">Q{quarter}</th>
+                                    <th scope="col" className="faculty-records__th-sub"></th>
+                                </tr>
                             </thead>
+
+                            {/* ── tbody ── */}
                             <tbody>
                                 {records.students.map((student) => {
                                     const isSubmitted = student.status === "submitted";
                                     const isBusy = submittingEnrollmentId === student.enrollmentId;
-                                    return (
-                                        <tr key={student.enrollmentId} className="data-table__row">
-                                            <td className="data-table__td">
-                                                <span className="data-table__value">{student.fullname}</span>
-                                                <span className="data-table__sub">
-                                                    LRN {student.studentLrn} &middot; {student.studentSex}
-                                                </span>
-                                            </td>
+                                    const isExpanded = expandedStudents.has(student.enrollmentId);
+                                    const initials = student.fullname
+                                        .split(" ")
+                                        .filter(Boolean)
+                                        .slice(0, 2)
+                                        .map((w) => w[0].toUpperCase())
+                                        .join("");
 
-                                            {records.subjects.map((subject) => {
-                                                const subjectGrade = student.subjects.find(
-                                                    (sg) => sg.subjectId === subject.subjectId,
-                                                );
-                                                if (!subjectGrade || !subjectGrade.enrolled) {
+                                    return (
+                                        <>
+                                            <tr key={student.enrollmentId} className="faculty-records__grade-row">
+                                                {/* Sticky student cell */}
+                                                <td className="faculty-records__sticky-col faculty-records__cell-student">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <span className="faculty-records__avatar" aria-hidden="true">
+                                                            {initials}
+                                                        </span>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="faculty-records__student-name truncate text-[0.8125rem] font-bold">
+                                                                {student.fullname}
+                                                            </div>
+                                                            <div className="faculty-records__student-meta font-mono text-[0.6875rem]">
+                                                                LRN {student.studentLrn} &middot; {student.studentSex}
+                                                            </div>
+                                                        </div>
+                                                        {/* Mobile-only toggle */}
+                                                        <button
+                                                            type="button"
+                                                            className="faculty-records__row-toggle"
+                                                            onClick={() => toggleStudent(student.enrollmentId)}
+                                                            aria-expanded={isExpanded}
+                                                            aria-label={isExpanded ? "Collapse row" : "Expand row"}
+                                                        >
+                                                            <FiChevronDown
+                                                                className={`faculty-records__row-toggle-icon${isExpanded ? " faculty-records__row-toggle-icon--open" : ""}`}
+                                                                aria-hidden="true"
+                                                            />
+                                                        </button>
+                                                    </div>
+                                                </td>
+
+                                                {/* Grade cells — hidden on mobile */}
+                                                {records.subjects.map((subject) => {
+                                                    const subjectGrade = student.subjects.find(
+                                                        (sg) => sg.subjectId === subject.subjectId,
+                                                    );
+                                                    if (!subjectGrade || !subjectGrade.enrolled) {
+                                                        return (
+                                                            <td key={subject.subjectId} className="faculty-records__grade-cell faculty-records__desktop-cell">
+                                                                <span
+                                                                    className="faculty-records__grade faculty-records__grade--off"
+                                                                    title="Not enrolled in this subject"
+                                                                >
+                                                                    —
+                                                                </span>
+                                                            </td>
+                                                        );
+                                                    }
+                                                    const isFrozen = subjectGrade.source === "frozen";
+                                                    const hasGrade = subjectGrade.grade !== null;
                                                     return (
-                                                        <td key={subject.subjectId} className="data-table__td data-table__td--center">
+                                                        <td key={subject.subjectId} className="faculty-records__grade-cell faculty-records__desktop-cell">
                                                             <span
-                                                                className="faculty-records__grade faculty-records__grade--off"
-                                                                title="Not enrolled in this subject"
+                                                                className={`faculty-records__grade faculty-records__grade--${isFrozen ? "frozen" : hasGrade ? "live" : "missing"}`}
+                                                                title={
+                                                                    isFrozen
+                                                                        ? `Frozen on ${formatSubmittedAt(student.submittedAt) ?? "submission"}`
+                                                                        : hasGrade
+                                                                          ? "Live — recalculated from current scores"
+                                                                          : "No grade yet — blocks submission"
+                                                                }
                                                             >
-                                                                —
+                                                                {isFrozen && <FiLock className="faculty-records__grade-lock" aria-hidden="true" />}
+                                                                {formatGrade(subjectGrade.grade)}
                                                             </span>
                                                         </td>
                                                     );
-                                                }
-                                                const isFrozen = subjectGrade.source === "frozen";
-                                                const hasGrade = subjectGrade.grade !== null;
-                                                return (
-                                                    <td key={subject.subjectId} className="data-table__td data-table__td--center">
-                                                        <span
-                                                            className={`faculty-records__grade faculty-records__grade--${isFrozen ? "frozen" : hasGrade ? "live" : "missing"}`}
-                                                            title={
-                                                                isFrozen
-                                                                    ? `Frozen on ${formatSubmittedAt(student.submittedAt) ?? "submission"}`
-                                                                    : hasGrade
-                                                                      ? "Live — recalculated from current scores"
-                                                                      : "No grade yet — blocks submission"
-                                                            }
-                                                        >
-                                                            {isFrozen && <FiLock className="faculty-records__grade-lock" aria-hidden="true" />}
-                                                            {formatGrade(subjectGrade.grade)}
-                                                        </span>
-                                                    </td>
-                                                );
-                                            })}
+                                                })}
 
-                                            <td className="data-table__td">
-                                                {isSubmitted ? (
-                                                    <span className="faculty-records__status faculty-records__status--submitted inline-flex flex-col items-start gap-0.5">
-                                                        <span className="inline-flex items-center gap-1 text-[0.6875rem] font-bold">
-                                                            <FiCheckCircle aria-hidden="true" />
-                                                            Submitted
-                                                        </span>
-                                                        {formatSubmittedAt(student.submittedAt) && (
-                                                            <span className="text-[0.625rem] opacity-80">
-                                                                {formatSubmittedAt(student.submittedAt)}
+                                                {/* Status cell — hidden on mobile */}
+                                                <td className="faculty-records__grade-cell faculty-records__cell-status faculty-records__desktop-cell">
+                                                    {isSubmitted ? (
+                                                        <span className="faculty-records__status faculty-records__status--submitted inline-flex flex-col items-start gap-0.5">
+                                                            <span className="inline-flex items-center gap-1 text-[0.6875rem] font-bold">
+                                                                <FiCheckCircle aria-hidden="true" />
+                                                                Submitted
                                                             </span>
-                                                        )}
-                                                    </span>
-                                                ) : (
-                                                    <span className="faculty-records__status faculty-records__status--pending inline-flex items-center gap-1 text-[0.6875rem] font-bold">
-                                                        <FiClock aria-hidden="true" />
-                                                        Pending
-                                                    </span>
-                                                )}
-                                            </td>
+                                                            {formatSubmittedAt(student.submittedAt) && (
+                                                                <span className="text-[0.625rem] opacity-80">
+                                                                    {formatSubmittedAt(student.submittedAt)}
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="faculty-records__status faculty-records__status--pending inline-flex items-center gap-1 text-[0.6875rem] font-bold">
+                                                            <FiClock aria-hidden="true" />
+                                                            Pending
+                                                        </span>
+                                                    )}
+                                                </td>
 
-                                            <td className="data-table__td data-table__td--actions">
-                                                {isSubmitted ? (
-                                                    <button
-                                                        type="button"
-                                                        className="faculty-records__reopen inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[0.6875rem] font-bold"
-                                                        disabled={submissionsLocked}
-                                                        onClick={() => setReopenTarget(student)}
+                                                {/* Action cell — hidden on mobile */}
+                                                <td className="faculty-records__grade-cell faculty-records__cell-action faculty-records__desktop-cell">
+                                                    {isSubmitted ? (
+                                                        <button
+                                                            type="button"
+                                                            className="faculty-records__reopen inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[0.6875rem] font-bold"
+                                                            disabled={submissionsLocked}
+                                                            onClick={() => setReopenTarget(student)}
+                                                        >
+                                                            <FiRefreshCw aria-hidden="true" />
+                                                            Reopen
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            ref={
+                                                                reviewing?.enrollmentId === student.enrollmentId
+                                                                    ? reviewTriggerRef
+                                                                    : undefined
+                                                            }
+                                                            className="faculty-records__review inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-[0.6875rem] font-bold"
+                                                            disabled={isBusy || submissionsLocked}
+                                                            onClick={() => setReviewing(student)}
+                                                        >
+                                                            {isBusy ? (
+                                                                <FiRefreshCw className="animate-spin" aria-hidden="true" />
+                                                            ) : (
+                                                                <FiSend aria-hidden="true" />
+                                                            )}
+                                                            {isBusy ? "Submitting…" : "Review & Submit"}
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+
+                                            {/* Mobile accordion row */}
+                                            {isExpanded && (
+                                                <tr className="faculty-records__accordion-row" key={`${student.enrollmentId}-accordion`}>
+                                                    <td
+                                                        colSpan={records.subjects.length + 3}
+                                                        className="faculty-records__accordion-cell"
                                                     >
-                                                        <FiRefreshCw aria-hidden="true" />
-                                                        Reopen
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        type="button"
-                                                        ref={
-                                                            reviewing?.enrollmentId === student.enrollmentId
-                                                                ? reviewTriggerRef
-                                                                : undefined
-                                                        }
-                                                        className="faculty-records__review inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-[0.6875rem] font-bold"
-                                                        disabled={isBusy || submissionsLocked}
-                                                        onClick={() => setReviewing(student)}
-                                                    >
-                                                        {isBusy ? (
-                                                            <FiRefreshCw className="animate-spin" aria-hidden="true" />
-                                                        ) : (
-                                                            <FiSend aria-hidden="true" />
-                                                        )}
-                                                        {isBusy ? "Submitting…" : "Review & Submit"}
-                                                    </button>
-                                                )}
-                                            </td>
-                                        </tr>
+                                                        <div className="faculty-records__accordion-content">
+                                                            {/* Subject grades list */}
+                                                            {records.subjects.map((subject) => {
+                                                                const subjectGrade = student.subjects.find(
+                                                                    (sg) => sg.subjectId === subject.subjectId,
+                                                                );
+                                                                if (!subjectGrade || !subjectGrade.enrolled) return null;
+                                                                const isFrozen = subjectGrade.source === "frozen";
+                                                                const hasGrade = subjectGrade.grade !== null;
+                                                                return (
+                                                                    <div key={subject.subjectId} className="faculty-records__accordion-grade-row">
+                                                                        <div className="faculty-records__accordion-subject">
+                                                                            <span className="faculty-records__accordion-subject-name">
+                                                                                {subject.subjectName}
+                                                                            </span>
+                                                                            <span className="faculty-records__accordion-subject-code">
+                                                                                {subject.subjectCode}
+                                                                            </span>
+                                                                        </div>
+                                                                        <span
+                                                                            className={`faculty-records__grade faculty-records__grade--${isFrozen ? "frozen" : hasGrade ? "live" : "missing"}`}
+                                                                        >
+                                                                            {isFrozen && <FiLock className="faculty-records__grade-lock" aria-hidden="true" />}
+                                                                            {formatGrade(subjectGrade.grade)}
+                                                                        </span>
+                                                                    </div>
+                                                                );
+                                                            })}
+
+                                                            {/* Status + Action row */}
+                                                            <div className="faculty-records__accordion-footer">
+                                                                <div>
+                                                                    {isSubmitted ? (
+                                                                        <span className="faculty-records__status faculty-records__status--submitted inline-flex flex-col items-start gap-0.5">
+                                                                            <span className="inline-flex items-center gap-1 text-[0.6875rem] font-bold">
+                                                                                <FiCheckCircle aria-hidden="true" />
+                                                                                Submitted
+                                                                            </span>
+                                                                            {formatSubmittedAt(student.submittedAt) && (
+                                                                                <span className="text-[0.625rem] opacity-80">
+                                                                                    {formatSubmittedAt(student.submittedAt)}
+                                                                                </span>
+                                                                            )}
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="faculty-records__status faculty-records__status--pending inline-flex items-center gap-1 text-[0.6875rem] font-bold">
+                                                                            <FiClock aria-hidden="true" />
+                                                                            Pending
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <div>
+                                                                    {isSubmitted ? (
+                                                                        <button
+                                                                            type="button"
+                                                                            className="faculty-records__reopen inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[0.6875rem] font-bold"
+                                                                            disabled={submissionsLocked}
+                                                                            onClick={() => setReopenTarget(student)}
+                                                                        >
+                                                                            <FiRefreshCw aria-hidden="true" />
+                                                                            Reopen
+                                                                        </button>
+                                                                    ) : (
+                                                                        <button
+                                                                            type="button"
+                                                                            className="faculty-records__review inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-[0.6875rem] font-bold"
+                                                                            disabled={isBusy || submissionsLocked}
+                                                                            onClick={() => setReviewing(student)}
+                                                                        >
+                                                                            {isBusy ? (
+                                                                                <FiRefreshCw className="animate-spin" aria-hidden="true" />
+                                                                            ) : (
+                                                                                <FiSend aria-hidden="true" />
+                                                                            )}
+                                                                            {isBusy ? "Submitting…" : "Review & Submit"}
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </>
                                     );
                                 })}
                             </tbody>

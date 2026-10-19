@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiBookOpen, FiClipboard, FiClock, FiHome, FiUsers } from "react-icons/fi";
+import { PiGraduationCapDuotone } from "react-icons/pi";
 
 import { getAPICall } from "../../api/api";
 import { PageHeader, PageSection, PageShell, StatGrid, StatTile } from "../../components/PageLayout";
@@ -156,7 +157,7 @@ export default function FacultyClasses() {
                 <StatTile label="Weekly Load" value={`${weeklyHours} hrs`} icon={FiClock} />
             </StatGrid>
 
-            {/* Class cards with gradebook buttons */}
+            {/* Class cards — ModuLearn pattern */}
             <PageSection
                 className="faculty-classes__card"
                 title="Gradebook"
@@ -164,57 +165,69 @@ export default function FacultyClasses() {
                 actions={<span className="page__meta">{`${classes.length} ${classes.length === 1 ? "class" : "classes"}`}</span>}
                 flush
             >
-                <div className="faculty-classes__grid grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
-                    {classes.map((classItem) => (
-                        <article
-                            className="faculty-classes__class flex flex-col overflow-hidden rounded-xl border"
-                            key={classItem.classId}
-                        >
-                            <div className="faculty-classes__class-head flex items-start justify-between gap-3 p-5 pb-4">
-                                <div className="faculty-classes__class-heading min-w-0">
-                                    <span className="faculty-classes__class-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
-                                        Grade {classItem.classGradeLevel}
-                                    </span>
-                                    <h4 className="faculty-classes__class-name mt-1 truncate text-[1.0625rem] font-bold">
-                                        {classItem.classSection}
-                                    </h4>
-                                    <p className="faculty-classes__class-room mt-0.5 font-mono text-[0.6875rem]">
-                                        Classroom #{classItem.classId} &middot; {studentCountFor(classItem.classId)} students
-                                    </p>
-                                </div>
-                                <span className="faculty-classes__class-icon inline-flex h-9 w-9 items-center justify-center rounded-lg text-lg" aria-hidden="true">
-                                    <FiHome />
-                                </span>
-                            </div>
+                <div className="fc-grid">
+                    {classes.map((classItem) => {
+                        return (
+                            <article className="fc-card" key={classItem.classId}>
+                                {/* Top accent bar */}
+                                <div className="fc-card__accent" aria-hidden="true" />
 
-                            <div className="faculty-classes__class-body flex flex-1 flex-col gap-2 p-4 pt-0">
-                                {classItem.subjects.map((subject) => (
-                                    <div className="faculty-classes__subject flex items-center gap-3 rounded-lg border p-2.5" key={subject.subjectId}>
-                                        <span className="faculty-classes__subject-code inline-flex h-8 w-12 shrink-0 items-center justify-center rounded-md font-mono text-[0.625rem] font-bold" aria-hidden="true">
-                                            {subject.subjectCode}
-                                        </span>
-                                        <div className="min-w-0 flex-1">
-                                            <span className="faculty-classes__subject-name block truncate text-[0.8125rem] font-bold">
-                                                {subject.subjectName}
-                                            </span>
-                                            <span className="faculty-classes__subject-meta block font-mono text-[0.6875rem]">
-                                                {subject.subjectCode} &middot; {subject.subjectUnit} unit{subject.subjectUnit === 1 ? "" : "s"}
+                                {/* Card header: icon badge + title/pills */}
+                                <div className="fc-card__head">
+                                    <div className="fc-card__icon-wrap" aria-hidden="true">
+                                        <PiGraduationCapDuotone className="fc-card__icon" />
+                                    </div>
+                                    <div className="fc-card__title-col">
+                                        <h4 className="fc-card__title">
+                                            Grade {classItem.classGradeLevel} - {classItem.classSection}
+                                        </h4>
+                                        <div className="fc-card__pills">
+                                            <span className="fc-pill fc-pill--grade">{classItem.classGradeLevel}</span>
+                                            <span className="fc-pill fc-pill--section">Section {classItem.classSection}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="fc-card__divider" />
+
+                                {/* Enrolled count row */}
+                                <div className="fc-card__info-row">
+                                    <div className="fc-card__info-item">
+                                        <span className="fc-card__info-label">ENROLLED</span>
+                                        <div className="fc-card__info-val-row">
+                                            <FiUsers className="fc-card__info-icon" aria-hidden="true" />
+                                            <span className="fc-card__info-value">
+                                                {studentCountFor(classItem.classId)}
                                             </span>
                                         </div>
-                                        <button
-                                            type="button"
-                                            className="faculty-classes__subject-action inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[0.6875rem] font-bold"
-                                            onClick={() => navigate(`/faculty/classes/${subject.classSubjectId}/gradebook`)}
-                                            aria-label={`Open gradebook for ${subject.subjectName}`}
-                                        >
-                                            <FiClipboard aria-hidden="true" />
-                                            Gradebook
-                                        </button>
                                     </div>
-                                ))}
-                            </div>
-                        </article>
-                    ))}
+                                </div>
+
+                                <div className="fc-card__divider" />
+
+                                {/* Subjects section */}
+                                <div className="fc-card__subjects">
+                                    <span className="fc-card__subjects-label">
+                                        SUBJECTS ({classItem.subjects.length})
+                                    </span>
+                                    <div className="fc-card__subject-chips">
+                                        {classItem.subjects.map((subject) => (
+                                            <button
+                                                key={subject.subjectId}
+                                                type="button"
+                                                className="fc-subject-chip"
+                                                onClick={() => navigate(`/faculty/classes/${subject.classSubjectId}/gradebook`)}
+                                                aria-label={`Open gradebook for ${subject.subjectName}`}
+                                            >
+                                                <FiClipboard className="fc-subject-chip__icon" aria-hidden="true" />
+                                                {subject.subjectName}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </article>
+                        );
+                    })}
                 </div>
             </PageSection>
         </PageShell>

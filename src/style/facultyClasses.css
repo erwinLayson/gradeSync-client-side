@@ -10,6 +10,236 @@
    lives as Tailwind utilities directly in FacultyClasses.tsx.
    ============================================================ */
 
+/* ============================================================
+   ModuLearn-inspired classroom card system
+   fc-grid / fc-card / fc-pill / fc-subject-chip
+   ============================================================ */
+
+/* Grid wrapper */
+.fc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  padding: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .fc-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card shell */
+.fc-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-white);
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.fc-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-light);
+}
+
+/* Top accent bar */
+.fc-card__accent {
+  height: 4px;
+  background: var(--gradient-brand);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+/* Card header */
+.fc-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  padding: 1rem 1.125rem 0.875rem;
+}
+
+/* Graduation cap icon badge */
+.fc-card__icon-wrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.625rem;
+  height: 2.625rem;
+  border-radius: 50%;
+  background: var(--accent-light);
+  border: 1.5px solid var(--primary-light);
+  color: var(--primary);
+}
+
+.fc-card__icon {
+  font-size: 1.375rem;
+}
+
+/* Title column */
+.fc-card__title-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.fc-card__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+/* Pills row */
+.fc-card__pills {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+/* Base pill */
+.fc-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+/* Grade level pill — amber-ish with green twist */
+.fc-pill--grade {
+  color: #92400e;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+}
+
+/* Section pill */
+.fc-pill--section {
+  color: var(--primary-dark);
+  background: var(--accent-light);
+  border: 1px solid var(--primary-light);
+}
+
+/* Horizontal divider */
+.fc-card__divider {
+  height: 1px;
+  margin: 0 1.125rem;
+  background: var(--neutral-border);
+}
+
+/* Info row (Capacity, etc.) */
+.fc-card__info-row {
+  display: flex;
+  gap: 2rem;
+  padding: 0.75rem 1.125rem;
+}
+
+.fc-card__info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.fc-card__info-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.fc-card__info-val-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.fc-card__info-icon {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.fc-card__info-value {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+/* Subjects section */
+.fc-card__subjects {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1.125rem 1rem;
+}
+
+.fc-card__subjects-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.fc-card__subject-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* Subject chip (clickable pill) */
+.fc-subject-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  border: 1px solid var(--primary-light);
+  background: var(--accent-light);
+  color: var(--primary-dark);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.fc-subject-chip:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px -2px rgb(0 0 0 / 0.18);
+}
+
+.fc-subject-chip:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.fc-subject-chip__icon {
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+
+
 /* ---------- Hero banner ---------- */
 .faculty-classes__hero {
   background: var(--gradient-brand);
