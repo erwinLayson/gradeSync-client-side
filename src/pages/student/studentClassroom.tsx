@@ -422,6 +422,15 @@ export default function StudentClassroom() {
                     ? selectedClass.subjects.filter((s) => s.name === selectedSubjectFilter)
                     : selectedClass.subjects;
 
+                const validQuarterGrades = filteredSubjects
+                    .map((s) => s.quarters[activeQuarter - 1])
+                    .filter((g): g is number => typeof g === "number" && !Number.isNaN(g));
+
+                const averageQuarterGrade =
+                    validQuarterGrades.length > 0
+                        ? (validQuarterGrades.reduce((sum, g) => sum + g, 0) / validQuarterGrades.length).toFixed(2)
+                        : "—";
+
                 interface DateGroup {
                     key: string;
                     monthDay: string;
@@ -664,6 +673,32 @@ export default function StudentClassroom() {
                                                     </tr>
                                                 );
                                             })}
+
+                                            {/* AVERAGE summary row */}
+                                            <tr className="student-classes__matrix-avg">
+                                                <td
+                                                    className={`student-classes__matrix-subject-td student-classes__sticky-col font-extrabold text-neutral-900 text-xs uppercase tracking-wider ${
+                                                        isSubjectCollapsed ? "student-classes__matrix-subject-td--collapsed text-center" : ""
+                                                    }`}
+                                                >
+                                                    {isSubjectCollapsed ? (
+                                                        <>
+                                                            <span className="md:hidden inline text-[0.6875rem] font-bold text-neutral-700">AVG</span>
+                                                            <span className="hidden md:inline">AVERAGE</span>
+                                                        </>
+                                                    ) : (
+                                                        "AVERAGE"
+                                                    )}
+                                                </td>
+                                                {displayActivities.map((act) => (
+                                                    <td key={act.id} className="student-classes__matrix-act-col text-neutral-400">
+                                                        —
+                                                    </td>
+                                                ))}
+                                                <td className="student-classes__matrix-grade-col text-sm font-bold text-neutral-800">
+                                                    {averageQuarterGrade}
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>

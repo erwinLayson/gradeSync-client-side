@@ -643,6 +643,7 @@ thead th.student-classes__sticky-date-blank {
 }
 
 .student-classes__matrix-avg {
+  border-top: 2px solid #cbd5e1;
   background: #f8fafc;
 }
 
