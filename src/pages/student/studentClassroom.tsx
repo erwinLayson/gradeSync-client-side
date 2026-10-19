@@ -271,61 +271,6 @@ export default function StudentClassroom() {
                 </div>
             </div>
 
-            {/* Subjects and Faculty Table (ModuLearn style) */}
-            <section className="student-classes__modu-table-card" aria-label="Class subjects">
-                <div className="border-b px-5 py-4">
-                    <h3 className="text-[0.9375rem] font-bold text-neutral-900">
-                        Subjects ({selectedClass.subjects.length})
-                    </h3>
-                    <p className="mt-0.5 text-[0.8125rem] text-neutral-500">
-                        Assigned subjects and faculty members for {selectedClass.section}.
-                    </p>
-                </div>
-                <div className="data-table__wrap">
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th scope="col" className="data-table__th w-1/2">Subject</th>
-                                <th scope="col" className="data-table__th w-1/3">Teacher</th>
-                                <th scope="col" className="data-table__th data-table__th--center w-24">Units</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {selectedClass.subjects.map((subject) => (
-                                <tr key={subject.classSubjectId ?? subject.name} className="data-table__row">
-                                    <td className="data-table__td">
-                                        <div className="flex items-center gap-3">
-                                            <span className="student-classes__subjects-subject-icon inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm" aria-hidden="true">
-                                                <FiBookOpen />
-                                            </span>
-                                            <div className="min-w-0">
-                                                <p className="truncate font-semibold text-neutral-900 text-sm">
-                                                    {subject.name}
-                                                </p>
-                                                <p className="student-classes__subjects-subject-code mt-0.5 truncate text-xs">
-                                                    {subject.code}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="data-table__td">
-                                        <p className="flex items-center gap-1.5 text-sm text-neutral-700">
-                                            <FiUser className="shrink-0 text-neutral-400" aria-hidden="true" />
-                                            {subject.faculty ?? "—"}
-                                        </p>
-                                    </td>
-                                    <td className="data-table__td data-table__td--center">
-                                        <span className="inline-flex items-center justify-center rounded-md bg-neutral-100 px-2 py-1 text-xs font-semibold text-neutral-700">
-                                            {subject.unit ?? "—"} {subject.unit === 1 ? "unit" : "units"}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
             {/* ==================== Tabs + quarter selector ==================== */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                 <div className="flex gap-2 rounded-xl border border-neutral-200 bg-white p-1 shadow-sm">
