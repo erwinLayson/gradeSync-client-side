@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiBookOpen, FiClipboard, FiClock, FiHome, FiUsers } from "react-icons/fi";
+import { FiClipboard, FiHome, FiUsers } from "react-icons/fi";
 import { PiGraduationCapDuotone } from "react-icons/pi";
 
 import { getAPICall } from "../../api/api";
-import { PageHeader, PageSection, PageShell, StatGrid, StatTile } from "../../components/PageLayout";
+import { PageSection, PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
 import { useUser } from "../../hooks/useUser";
 
@@ -87,13 +87,6 @@ export default function FacultyClasses() {
         }
         return [...map.values()];
     }, [subjectDetails]);
-
-    const totalStudents = useMemo(
-        () => classes.reduce((sum, c) => sum + (classrooms.find((cl) => cl.id === c.classId)?.totalStudent ?? 0), 0),
-        [classes, classrooms]
-    );
-    const totalSubjects = subjectDetails?.length ?? 0;
-    const weeklyHours = subjectDetails?.reduce((sum, row) => sum + Number(row.subjectUnit), 0) ?? 0;
 
     function studentCountFor(classId: number): number {
         return classrooms.find((cl) => cl.id === classId)?.totalStudent ?? 0;
