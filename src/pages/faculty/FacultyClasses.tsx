@@ -142,20 +142,6 @@ export default function FacultyClasses() {
     // ==================== Main content ====================
     return (
         <PageShell className="faculty-classes">
-            {/* Header */}
-            <PageHeader
-                title={faculty.fullname}
-                description={faculty.email}
-                meta={`${classes.length} ${classes.length === 1 ? "class" : "classes"}`}
-            />
-
-            {/* Quick stats */}
-            <StatGrid>
-                <StatTile label="Classes" value={classes.length} icon={FiHome} />
-                <StatTile label="Students" value={totalStudents} icon={FiUsers} />
-                <StatTile label="Subjects" value={totalSubjects} icon={FiBookOpen} />
-                <StatTile label="Weekly Load" value={`${weeklyHours} hrs`} icon={FiClock} />
-            </StatGrid>
 
             {/* Class cards — ModuLearn pattern */}
             <PageSection
