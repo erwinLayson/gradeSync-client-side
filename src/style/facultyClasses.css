@@ -777,3 +777,52 @@
     transition: none;
   }
 }
+
+/* ============================================================
+   Mobile Preview Expandable / Collapsible Student Rows
+   ============================================================ */
+
+.faculty-classes__row-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.faculty-classes__row-toggle:hover {
+  background: var(--accent-light);
+  border-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.faculty-classes__accordion-row td {
+  border-bottom: 1px solid var(--neutral-border);
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+}
+
+.faculty-classes__accordion-card {
+  position: sticky;
+  left: 0.5rem;
+  max-width: calc(100vw - 2.5rem);
+  background: var(--surface-white);
+  border: 1px solid var(--neutral-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base);
+}
+
+@media (min-width: 640px) {
+  .faculty-classes__accordion-card {
+    left: 1rem;
+    max-width: 48rem;
+  }
+}
+

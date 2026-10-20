@@ -1,5 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
-import { FiBookOpen, FiGrid, FiHome, FiList, FiUsers } from "react-icons/fi";
+import { Fragment, useCallback, useEffect, useState } from "react";
+import {
+    FiBookOpen,
+    FiChevronDown,
+    FiChevronLeft,
+    FiChevronRight,
+    FiChevronUp,
+    FiGrid,
+    FiHome,
+    FiInfo,
+    FiList,
+    FiMail,
+    FiUsers,
+} from "react-icons/fi";
 import { getAPICall } from "../../api/api";
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
@@ -42,6 +54,15 @@ interface StudentGrades {
 
 type ViewMode = "roster" | "grades";
 
+function getInitials(name: string): string {
+    return name
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((w) => w[0]?.toUpperCase() ?? "")
+        .join("");
+}
+
 export default function FacultyMyClass() {
     const { user, loading: userLoading } = useUser();
     const { quarters, numQuarters } = useAcademicSettings();
@@ -57,6 +78,32 @@ export default function FacultyMyClass() {
     // Grades data
     const [studentGrades, setStudentGrades] = useState<StudentGrades[]>([]);
     const [loadingGrades, setLoadingGrades] = useState(false);
+
+    // ================ Mobile preview collapse / expand state ================
+    const [isStudentColCollapsed, setIsStudentColCollapsed] = useState<boolean>(false);
+    const [expandedRosterStudentIds, setExpandedRosterStudentIds] = useState<Set<number>>(new Set());
+
+    const toggleRosterStudentRow = useCallback((enrollmentId: number) => {
+        setExpandedRosterStudentIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(enrollmentId)) {
+                next.delete(enrollmentId);
+            } else {
+                next.add(enrollmentId);
+            }
+            return next;
+        });
+    }, []);
+
+    const toggleAllRosterStudents = useCallback(() => {
+        const studentList = roster?.students ?? [];
+        setExpandedRosterStudentIds((prev) => {
+            if (prev.size === studentList.length) {
+                return new Set();
+            }
+            return new Set(studentList.map((s) => s.enrollmentId));
+        });
+    }, [roster]);
 
     // Fetch adviser's class + roster
     useEffect(() => {
@@ -151,14 +198,14 @@ export default function FacultyMyClass() {
         } finally {
             setLoadingGrades(false);
         }
-    }, [adviserClass, roster]);
+    }, [adviserClass, roster, quarters]);
 
-    // Fetch grades when switching to grades view
-    useEffect(() => {
-        if (viewMode === "grades" && studentGrades.length === 0) {
-            fetchGrades();
+    const handleSwitchToGrades = useCallback(() => {
+        setViewMode("grades");
+        if (studentGrades.length === 0) {
+            void fetchGrades();
         }
-    }, [viewMode, studentGrades.length, fetchGrades]);
+    }, [fetchGrades, studentGrades.length]);
 
     // Loading state
     if (userLoading || loading) {
@@ -262,7 +309,7 @@ export default function FacultyMyClass() {
                             ? "border-blue-500 bg-blue-500 text-white"
                             : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                     }`}
-                    onClick={() => setViewMode("grades")}
+                    onClick={handleSwitchToGrades}
                 >
                     <FiGrid aria-hidden="true" />
                     Graded
@@ -285,6 +332,23 @@ export default function FacultyMyClass() {
                             )}
                         </div>
 
+                        {/* Mobile preview helper & toggle toolbar */}
+                        {!loadingRoster && students.length > 0 && (
+                            <div className="mt-3 flex md:hidden items-center justify-between px-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-xs">
+                                <div className="flex items-center gap-1.5 text-neutral-600">
+                                    <FiInfo className="w-3.5 h-3.5 text-[#176B3A] shrink-0" />
+                                    <span>Tap student name to expand details</span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={toggleAllRosterStudents}
+                                    className="px-2.5 py-1 text-xs font-semibold rounded-md border border-neutral-300 bg-white text-neutral-800 shadow-2xs hover:bg-neutral-100 active:scale-95 transition cursor-pointer"
+                                >
+                                    {expandedRosterStudentIds.size === students.length ? "Collapse All" : "Expand All"}
+                                </button>
+                            </div>
+                        )}
+
                         <div className="data-table__wrap mt-4">
                             {loadingRoster ? (
                                 <div className="p-5"><Skeleton count={4} lines={1} height="2.75rem" gap="0.75rem" /></div>
@@ -301,27 +365,119 @@ export default function FacultyMyClass() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {students.map((student) => (
-                                            <tr key={student.enrollmentId} className="data-table__row">
-                                                <td className="data-table__td data-table__td--mono">
-                                                    {student.studentLrn}
-                                                </td>
-                                                <td className="data-table__td">
-                                                    <span className="data-table__value">{student.fullname}</span>
-                                                    <span className="data-table__sub">Student ID #{student.studentId}</span>
-                                                </td>
-                                                <td className="data-table__td data-table__td--center">
-                                                    <span className={`faculty-classes__sex inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold capitalize faculty-classes__sex--${student.studentSex.toLowerCase()}`}>
-                                                        {student.studentSex}
-                                                    </span>
-                                                </td>
-                                                <td className="data-table__td data-table__td--center">{student.studentAge}</td>
-                                                <td className="data-table__td data-table__td--muted">{student.studentBirthdate}</td>
-                                                <td className="data-table__td data-table__td--muted">
-                                                    <span className="data-table__truncate">{student.studentEmail}</span>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {students.map((student) => {
+                                            const isRowExpanded = expandedRosterStudentIds.has(student.enrollmentId);
+                                            return (
+                                                <Fragment key={student.enrollmentId}>
+                                                    <tr className={`data-table__row transition-colors ${isRowExpanded ? "bg-emerald-50/30" : ""}`}>
+                                                        <td className="data-table__td data-table__td--mono">
+                                                            {student.studentLrn}
+                                                        </td>
+                                                        <td className="data-table__td">
+                                                            <div className="flex items-center justify-between gap-2">
+                                                                <div
+                                                                    className="flex flex-col min-w-0 cursor-pointer select-none group"
+                                                                    onClick={() => toggleRosterStudentRow(student.enrollmentId)}
+                                                                    title="Click to expand/collapse student profile"
+                                                                >
+                                                                    <span className="data-table__value group-hover:text-[#176B3A] transition-colors">{student.fullname}</span>
+                                                                    <span className="data-table__sub">Student ID #{student.studentId}</span>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        toggleRosterStudentRow(student.enrollmentId);
+                                                                    }}
+                                                                    className={`p-1 rounded-md transition-colors cursor-pointer shrink-0 ${
+                                                                        isRowExpanded
+                                                                            ? "bg-emerald-100/80 text-[#176B3A]"
+                                                                            : "hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700"
+                                                                    }`}
+                                                                    title={isRowExpanded ? "Collapse student details" : "Expand student details"}
+                                                                    aria-label={isRowExpanded ? "Collapse student details" : "Expand student details"}
+                                                                    aria-expanded={isRowExpanded}
+                                                                >
+                                                                    {isRowExpanded ? (
+                                                                        <FiChevronUp className="w-4 h-4 text-[#176B3A]" />
+                                                                    ) : (
+                                                                        <FiChevronDown className="w-4 h-4" />
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                        <td className="data-table__td data-table__td--center">
+                                                            <span className={`faculty-classes__sex inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold capitalize faculty-classes__sex--${student.studentSex.toLowerCase()}`}>
+                                                                {student.studentSex}
+                                                            </span>
+                                                        </td>
+                                                        <td className="data-table__td data-table__td--center">{student.studentAge}</td>
+                                                        <td className="data-table__td data-table__td--muted">{student.studentBirthdate ?? "—"}</td>
+                                                        <td className="data-table__td data-table__td--muted">
+                                                            <span className="data-table__truncate">{student.studentEmail}</span>
+                                                        </td>
+                                                    </tr>
+
+                                                    {/* Mobile / Compact Expanded Roster Row */}
+                                                    {isRowExpanded && (
+                                                        <tr className="bg-[#F7FAF8] border-b border-gray-200">
+                                                            <td colSpan={6} className="p-3 sm:p-4">
+                                                                <div className="faculty-classes__accordion-card sticky left-2 sm:left-4 max-w-[calc(100vw-2.5rem)] sm:max-w-2xl rounded-xl border border-gray-200 bg-white p-4 shadow-sm space-y-3">
+                                                                    <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
+                                                                        <div className="flex items-center gap-2.5">
+                                                                            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#EAF5EE] text-[#176B3A] font-bold text-xs border border-[#176B3A]/20">
+                                                                                {getInitials(student.fullname)}
+                                                                            </span>
+                                                                            <div>
+                                                                                <h4 className="font-bold text-sm text-gray-900">{student.fullname}</h4>
+                                                                                <p className="text-xs text-gray-500 font-mono">Student ID #{student.studentId}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => toggleRosterStudentRow(student.enrollmentId)}
+                                                                            className="p-1 rounded text-gray-400 hover:text-gray-700 cursor-pointer"
+                                                                            title="Collapse row"
+                                                                        >
+                                                                            <FiChevronUp className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+
+                                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                                                                        <div className="p-2 rounded-lg bg-gray-50 border border-gray-100">
+                                                                            <span className="text-[0.625rem] font-bold uppercase text-gray-400 block">LRN</span>
+                                                                            <span className="font-mono font-bold text-gray-800">{student.studentLrn}</span>
+                                                                        </div>
+                                                                        <div className="p-2 rounded-lg bg-gray-50 border border-gray-100">
+                                                                            <span className="text-[0.625rem] font-bold uppercase text-gray-400 block">Sex</span>
+                                                                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold capitalize mt-0.5 faculty-classes__sex--${student.studentSex.toLowerCase()}`}>
+                                                                                {student.studentSex}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="p-2 rounded-lg bg-gray-50 border border-gray-100">
+                                                                            <span className="text-[0.625rem] font-bold uppercase text-gray-400 block">Age</span>
+                                                                            <span className="font-bold text-gray-800">{student.studentAge} yrs old</span>
+                                                                        </div>
+                                                                        <div className="p-2 rounded-lg bg-gray-50 border border-gray-100">
+                                                                            <span className="text-[0.625rem] font-bold uppercase text-gray-400 block">Birthdate</span>
+                                                                            <span className="text-gray-700">{student.studentBirthdate ?? "—"}</span>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-between text-xs">
+                                                                        <span className="text-gray-500 flex items-center gap-1.5">
+                                                                            <FiMail className="w-3.5 h-3.5 text-gray-400" />
+                                                                            Email:
+                                                                        </span>
+                                                                        <span className="font-mono text-gray-800 truncate select-all">{student.studentEmail}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </Fragment>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             ) : (
@@ -361,12 +517,36 @@ export default function FacultyMyClass() {
                             // three-digit grade readable.
                             <table
                                 className="data-table"
-                                style={{ minWidth: `${12 + facultiesWithSubjects.length * quarters.length * 4}rem` }}
+                                style={{ minWidth: isStudentColCollapsed ? `${6 + facultiesWithSubjects.length * quarters.length * 4}rem` : `${12 + facultiesWithSubjects.length * quarters.length * 4}rem` }}
                             >
                                 <thead>
                                     <tr>
-                                        <th rowSpan={2} scope="col" className="data-table__th data-table__sticky w-48">
-                                            Student
+                                        <th
+                                            rowSpan={2}
+                                            scope="col"
+                                            className={`data-table__th data-table__sticky transition-all ${
+                                                isStudentColCollapsed ? "w-16 min-w-[4rem] text-center" : "w-48"
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between gap-1.5">
+                                                <span className="flex items-center gap-1.5 truncate">
+                                                    <FiUsers className="w-4 h-4 text-gray-400 shrink-0" />
+                                                    {!isStudentColCollapsed && <span>Student</span>}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsStudentColCollapsed((prev) => !prev)}
+                                                    className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-800 transition-colors cursor-pointer shrink-0"
+                                                    title={isStudentColCollapsed ? "Expand student column" : "Collapse student column"}
+                                                    aria-label={isStudentColCollapsed ? "Expand student column" : "Collapse student column"}
+                                                >
+                                                    {isStudentColCollapsed ? (
+                                                        <FiChevronRight className="w-4 h-4 text-[#176B3A]" />
+                                                    ) : (
+                                                        <FiChevronLeft className="w-4 h-4" />
+                                                    )}
+                                                </button>
+                                            </div>
                                         </th>
                                         {facultiesWithSubjects.map((s) => (
                                             <th key={s.classSubjectId} colSpan={quarters.length} scope="colgroup" className="data-table__th text-center">
@@ -386,32 +566,58 @@ export default function FacultyMyClass() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {studentGrades.map((sg) => (
-                                        <tr key={sg.enrollmentId} className="data-table__row">
-                                            <td className="data-table__td data-table__td--primary data-table__sticky">
-                                                {sg.fullname}
-                                            </td>
-                                            {facultiesWithSubjects.flatMap((s) =>
-                                                quarters.map((q) => {
-                                                    const grade = sg.grades[s.classSubjectId]?.[q]?.quarterGrade;
-                                                    return (
-                                                        <td key={`${sg.enrollmentId}-${s.classSubjectId}-q${q}`} className="data-table__td data-table__td--center">
-                                                            {grade != null ? (
-                                                                <span className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-md text-[0.75rem] font-bold ${
-                                                                    isPassing(grade) ? "text-green-700"
-                                                                    : "text-red-700"
-                                                                }`}>
-                                                                    {grade.toFixed(1)}
+                                    {studentGrades.map((sg) => {
+                                        const studentMeta = roster?.students.find((s) => s.enrollmentId === sg.enrollmentId);
+
+                                        return (
+                                            <tr key={sg.enrollmentId} className="data-table__row transition-colors">
+                                                    <td className="data-table__td data-table__td--primary data-table__sticky">
+                                                        {isStudentColCollapsed ? (
+                                                            <span
+                                                                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#EAF5EE] text-[#176B3A] font-bold text-xs border border-[#176B3A]/20"
+                                                                title={sg.fullname}
+                                                            >
+                                                                {getInitials(sg.fullname)}
+                                                            </span>
+                                                        ) : (
+                                                            <div className="flex flex-col min-w-0">
+                                                                <span className="data-table__value truncate font-bold text-[0.8125rem]">
+                                                                    {sg.fullname}
                                                                 </span>
-                                                            ) : (
-                                                                <span className="text-gray-400">—</span>
-                                                            )}
-                                                        </td>
-                                                    );
-                                                })
-                                            )}
-                                        </tr>
-                                    ))}
+                                                                {studentMeta?.studentLrn ? (
+                                                                    <span className="data-table__sub font-mono text-[0.6875rem] text-gray-400">
+                                                                        LRN {studentMeta.studentLrn}
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="data-table__sub font-mono text-[0.6875rem] text-gray-400">
+                                                                        ID #{sg.enrollmentId}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    {facultiesWithSubjects.flatMap((s) =>
+                                                        quarters.map((q) => {
+                                                            const grade = sg.grades[s.classSubjectId]?.[q]?.quarterGrade;
+                                                            return (
+                                                                <td key={`${sg.enrollmentId}-${s.classSubjectId}-q${q}`} className="data-table__td data-table__td--center">
+                                                                    {grade != null ? (
+                                                                        <span className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-md text-[0.75rem] font-bold ${
+                                                                            isPassing(grade) ? "text-green-700"
+                                                                            : "text-red-700"
+                                                                        }`}>
+                                                                            {grade.toFixed(1)}
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="text-gray-400">—</span>
+                                                                    )}
+                                                                </td>
+                                                            );
+                                                        })
+                                                    )}
+                                                </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         ) : (
