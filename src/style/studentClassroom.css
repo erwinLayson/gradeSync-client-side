@@ -721,4 +721,17 @@ thead th.student-classes__sticky-date-blank {
   line-height: 1.2;
 }
 
+.student-classes__badge-att {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  background: #eaf5ee;
+  color: #176B3A;
+  border: 1px solid #a7f3d0;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
 
