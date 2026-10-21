@@ -129,7 +129,9 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
     const search = searchParams.get("search") ?? "";
     const statusParam = searchParams.get("status");
     const status: StudentStatusFilter =
-        statusParam === "inactive" || statusParam === "all" ? statusParam : "active";
+        statusParam === "inactive" || statusParam === "all" || statusParam === "enrolled" || statusParam === "unenrolled"
+            ? statusParam
+            : "active";
     const sortParam = searchParams.get("sort");
     const sort: StudentSortKey =
         sortParam === "lrn" || sortParam === "email" || sortParam === "id" ? sortParam : "name";
@@ -831,6 +833,8 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
                                 aria-label="Filter by student status"
                             >
                                 <option value="active">Active</option>
+                                <option value="enrolled">Enrolled</option>
+                                <option value="unenrolled">Unenrolled</option>
                                 <option value="inactive">Inactive</option>
                                 <option value="all">All</option>
                             </select>

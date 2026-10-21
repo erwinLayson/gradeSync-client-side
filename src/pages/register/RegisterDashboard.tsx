@@ -1,4 +1,4 @@
-import { FiChevronRight, FiFileText, FiInbox, FiUserPlus, FiUsers } from "react-icons/fi";
+import { FiChevronRight, FiClipboard, FiFileText, FiInbox, FiUserPlus, FiUsers } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
@@ -7,8 +7,7 @@ import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 /**
  * Register (registration/enrollment staff) landing page.
  *
- * Register's work is enrollment + SF10 printing, so this is a small launcher
- * into the enrollment workspace rather than a full analytics dashboard.
+ * Register handles enrollment, student records, SF10 printing, and the submission tracker.
  * See docs/register-role-implementation-plan.md.
  */
 export default function RegisterDashboard() {
@@ -20,8 +19,8 @@ export default function RegisterDashboard() {
   return (
     <PageShell className="register-dashboard">
       <PageHeader
-        title="Enrollment Workspace"
-        description="Enroll students, register new learners, and print SF10 records."
+        title="Enrollment & Records Workspace"
+        description="Enroll students, register learners, print SF10 records, and track class grade submissions."
         meta={
           enrollmentOpen === false
             ? "Enrollment closed"
@@ -31,7 +30,7 @@ export default function RegisterDashboard() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <PageSection className="register-dashboard__action">
           <span
             className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--accent-soft,#e8f0ff)] text-xl text-[var(--accent,#1d4ed8)]"
@@ -50,6 +49,28 @@ export default function RegisterDashboard() {
             onClick={() => navigate("/register/students")}
           >
             Open student records
+            <FiChevronRight aria-hidden="true" />
+          </button>
+        </PageSection>
+
+        <PageSection className="register-dashboard__action">
+          <span
+            className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--accent-soft,#e8f0ff)] text-xl text-[var(--accent,#1d4ed8)]"
+            aria-hidden="true"
+          >
+            <FiClipboard />
+          </span>
+          <h3 className="mt-4 text-base font-bold text-neutral-900">Submission tracker</h3>
+          <p className="mt-1 text-[0.8125rem] text-neutral-500">
+            Track quarterly grade submissions across all classes, inspect pending student records,
+            and advance the active school quarter.
+          </p>
+          <button
+            type="button"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent,#1d4ed8)] px-4 py-2.5 text-[0.8125rem] font-semibold text-white"
+            onClick={() => navigate("/register/student-records")}
+          >
+            Open tracker
             <FiChevronRight aria-hidden="true" />
           </button>
         </PageSection>

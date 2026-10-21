@@ -27,7 +27,7 @@ export interface NewStudentProps {
     sex: string
 }
 
-export type StudentStatusFilter = "active" | "inactive" | "all";
+export type StudentStatusFilter = "active" | "enrolled" | "unenrolled" | "inactive" | "all";
 export type StudentSortKey = "name" | "lrn" | "email" | "id";
 export type SortDirection = "asc" | "desc";
 

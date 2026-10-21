@@ -86,7 +86,6 @@ export const DASHBOARD_LINKS = {
     {
       title: "Records",
       sections: [
-        { label: "Submission Tracker", path: "/admin/student-records", icon: FaClipboardList },
         { label: "Reports", path: "/admin/reports", icon: FaChartLine },
       ]
     },
@@ -148,6 +147,12 @@ export const DASHBOARD_LINKS = {
       sections: [
         { label: "Students", path: "/register/students", icon: FaUserGraduate },
         { label: "Enrollments", path: "/register/enrollments", icon: FaClipboardList },
+      ]
+    },
+    {
+      title: "Records",
+      sections: [
+        { label: "Submission Tracker", path: "/register/student-records", icon: FaClipboardList },
       ]
     },
     {

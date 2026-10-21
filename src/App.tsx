@@ -15,7 +15,6 @@ import AdminClassrooms from './pages/admin/AdminClassrooms'
 import AdminSubjects from './pages/admin/AdminSubjects'
 import AdminFaculties from './pages/admin/AdminFaculties'
 import AdminReports from './pages/admin/Admin-Reports'
-import AdminStudentRecords from './pages/admin/AdminStudentRecords'
 import AdminSettings from './pages/admin/AdminSettings'
 // Faculty Pages
 import FacultyDashboard from './pages/faculty/FacultyDashboard'
@@ -37,6 +36,7 @@ import StudentProspectus from './pages/student/StudentProspectus'
 import RegisterDashboard from './pages/register/RegisterDashboard'
 import RegisterStudents from './pages/register/RegisterStudents'
 import RegisterEnrollments from './pages/register/RegisterEnrollments'
+import RegisterStudentRecords from './pages/register/RegisterStudentRecords'
 import RegisterSettings from './pages/register/RegisterSettings'
 
 // Developer Pages
@@ -84,7 +84,6 @@ function App() {
               <Route path="/admin/faculties" element={<AdminFaculties />} />
               <Route path="/admin/analytics-reports" element={<AnalyticsReports />} />
               <Route path="/admin/reports" element={<AdminReports />} />
-              <Route path="/admin/student-records" element={<AdminStudentRecords />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
             </Route>
 
@@ -140,6 +139,7 @@ function App() {
               <Route path="/register/students" element={<RegisterStudents />} />
               <Route path="/register/students/:studentId" element={<RegisterStudents />} />
               <Route path="/register/enrollments" element={<RegisterEnrollments />} />
+              <Route path="/register/student-records" element={<RegisterStudentRecords />} />
               <Route path="/register/settings" element={<RegisterSettings />} />
             </Route>
 

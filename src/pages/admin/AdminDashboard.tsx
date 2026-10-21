@@ -32,7 +32,7 @@ import "../../style/adminDashboard.css";
 const QUICK_ACTIONS = [
     { label: "Enroll Student", path: "/admin/enrollments", icon: FiUserPlus, accent: false },
     { label: "Add Faculty", path: "/admin/faculties", icon: FiUserCheck, accent: false },
-    { label: "Gradebook", path: "/admin/student-records", icon: FiClipboard, accent: false },
+    { label: "Classrooms", path: "/admin/classrooms", icon: FiBookOpen, accent: false },
     { label: "Reports", path: "/admin/reports", icon: FiFileText, accent: true },
 ] as const;
 

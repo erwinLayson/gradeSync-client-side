@@ -5,9 +5,7 @@ import {
   FiCheckCircle,
   FiChevronDown,
   FiChevronRight,
-  FiFileText,
   FiLock,
-  FiPrinter,
   FiSearch,
   FiUsers,
   FiX,
@@ -17,7 +15,7 @@ import "../style/adminEnrollments.css";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { API, getAPICall, postAPICall } from "../api/api";
+import { getAPICall, postAPICall } from "../api/api";
 
 // Hooks
 import useClassroom from "../hooks/useClassroom.ts";
@@ -26,7 +24,7 @@ import useSubjects from "../hooks/useSubject.ts";
 // Components
 import { ConfirmDialog } from "./ConfirmDialog";
 import { PageHeader, PageShell } from "./PageLayout";
-import StudentPastGradesModal, { type PastGradesView } from "../pages/admin/StudentPastGradesModal";
+import type { PastGradesView } from "../pages/admin/StudentPastGradesModal";
 
 // Types
 import type {
@@ -55,13 +53,6 @@ export interface EnrollmentWorkspaceProps {
    * able to create/activate school years.
    */
   allowSchoolYearCreation?: boolean;
-  /**
-   * Inspect a candidate's already-submitted past grades before enrolling.
-   * Both Admin and Register have access to past grades.
-   */
-  allowPastGrades?: boolean;
-  /** Print the SF10 / Form-137 student record for the selected student. */
-  allowSf10Print?: boolean;
 }
 
 const CAPACITY = 40;
@@ -87,8 +78,6 @@ function getInitials(name: string): string {
  */
 export default function EnrollmentWorkspace({
   allowSchoolYearCreation = false,
-  allowPastGrades = true,
-  allowSf10Print = false,
 }: EnrollmentWorkspaceProps) {
   // ============ Student Search ============
   const [students, setStudents] = useState<StudentResponseProps[] | null>(null);
@@ -110,7 +99,6 @@ export default function EnrollmentWorkspace({
   // ============ Past Grades (Selected Student) ============
   const [pastGrades, setPastGrades] = useState<PastGradesView | null>(null);
   const [pastGradesLoading, setPastGradesLoading] = useState(false);
-  const [pastGradesModalOpen, setPastGradesModalOpen] = useState(false);
   const [expandedYears, setExpandedYears] = useState<Record<number, boolean>>({});
 
   // ============ School Year ============
@@ -125,9 +113,6 @@ export default function EnrollmentWorkspace({
   const [creatingSchoolYear, setCreatingSchoolYear] = useState(false);
   const [confirmCreateOpen, setConfirmCreateOpen] = useState(false);
   const createTriggerRef = useRef<HTMLButtonElement>(null);
-
-  // ============ SF10 (Form-137) PDF ============
-  const [pdfLoading, setPdfLoading] = useState(false);
 
   // ================== Debounce Search Input ==================
   useEffect(() => {
@@ -383,7 +368,6 @@ export default function EnrollmentWorkspace({
   }
 
   const closeCreateConfirm = useCallback(() => setConfirmCreateOpen(false), []);
-  const closePastGradesModal = useCallback(() => setPastGradesModalOpen(false), []);
 
   // ================== Create School Year ==================
   async function handleCreateSchoolYear() {
@@ -402,27 +386,6 @@ export default function EnrollmentWorkspace({
       // Handled by axios interceptor
     } finally {
       setCreatingSchoolYear(false);
-    }
-  }
-
-  // ================== SF10 / Form-137 Printing ==================
-  async function openStudentRecordPdf(student: StudentResponseProps) {
-    if (pdfLoading) return;
-    setPdfLoading(true);
-    const pdfTab = window.open("", "_blank");
-    try {
-      const response = await API.get(`/student-records/${student.id}/pdf`, { responseType: "blob" });
-      const blobUrl = URL.createObjectURL(response.data as Blob);
-      if (pdfTab) {
-        pdfTab.location.href = blobUrl;
-      } else {
-        window.open(blobUrl, "_blank");
-      }
-      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
-    } catch {
-      pdfTab?.close();
-    } finally {
-      setPdfLoading(false);
     }
   }
 
@@ -638,30 +601,6 @@ export default function EnrollmentWorkspace({
                               : "No previous school years on record (New student / Transferee)."}
                         </p>
                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {allowPastGrades && (
-                        <button
-                          type="button"
-                          onClick={() => setPastGradesModalOpen(true)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1 text-xs font-bold text-neutral-700 transition hover:border-[var(--primary)] hover:bg-neutral-50"
-                        >
-                          <FiFileText size={12} />
-                          Full academic record
-                        </button>
-                      )}
-                      {allowSf10Print && (
-                        <button
-                          type="button"
-                          onClick={() => openStudentRecordPdf(selectedStudent)}
-                          disabled={pdfLoading}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1 text-xs font-bold text-neutral-700 transition hover:border-[var(--primary)] hover:bg-neutral-50 disabled:opacity-50"
-                        >
-                          <FiPrinter size={12} />
-                          {pdfLoading ? "Preparing…" : "Print SF10"}
-                        </button>
-                      )}
                     </div>
                   </div>
 
@@ -1192,15 +1131,7 @@ export default function EnrollmentWorkspace({
         />
       )}
 
-      {/* ============ Past Submitted Grades Modal ============ */}
-      {allowPastGrades && selectedStudent && (
-        <StudentPastGradesModal
-          studentId={selectedStudent.id}
-          studentName={selectedStudent.fullname}
-          open={pastGradesModalOpen}
-          onClose={closePastGradesModal}
-        />
-      )}
+      
     </PageShell>
   );
 }
