@@ -587,12 +587,12 @@ export default function AdminDashboard() {
 // ==================== Students per School Year sub-component ====================
 
 function StudentsPerSchoolYearCard({ loading: parentLoading }: { loading: boolean }) {
-    const [chartData, setChartData] = useState<{ startYear: string; endYear: string; count: number }[]>([]);
+    const [chartData, setChartData] = useState<{ schoolYearId?: number; startYear: string; endYear: string; count: number }[]>([]);
     const [chartLoading, setChartLoading] = useState(true);
 
     useEffect(() => {
         let cancelled = false;
-        getAPICall<{ studentsPerSchoolYear: { startYear: string; endYear: string; count: number }[] }>("/analytics", { toast: false })
+        getAPICall<{ studentsPerSchoolYear: { schoolYearId?: number; startYear: string; endYear: string; count: number }[] }>("/analytics", { toast: false })
             .then((response) => {
                 if (!cancelled) {
                     const raw = response.data?.studentsPerSchoolYear;
@@ -674,7 +674,7 @@ function StudentsPerSchoolYearCard({ loading: parentLoading }: { loading: boolea
                         {chartData.map((row, index) => {
                             const [x, y] = enrollmentLinePoints.split(" ")[index]!.split(",").map(Number);
                             return (
-                                <g key={row.startYear}>
+                                <g key={row.schoolYearId ? `sy-${row.schoolYearId}` : `${row.startYear}-${row.endYear}-${index}`}>
                                     <text
                                         x={x}
                                         y={y - 9}
@@ -691,8 +691,8 @@ function StudentsPerSchoolYearCard({ loading: parentLoading }: { loading: boolea
                         })}
                     </svg>
                     <div className="mt-2 flex gap-3 border-t pt-2.5">
-                        {chartData.map((row) => (
-                            <span key={row.startYear} className="analytics__bar-label flex-1 text-center text-[0.75rem]">
+                        {chartData.map((row, index) => (
+                            <span key={row.schoolYearId ? `lbl-${row.schoolYearId}` : `${row.startYear}-${row.endYear}-${index}`} className="analytics__bar-label flex-1 text-center text-[0.75rem]">
                                 {row.startYear}
                             </span>
                         ))}

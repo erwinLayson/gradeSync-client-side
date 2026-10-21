@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { FiPlus, FiX, FiArrowLeft, FiEdit, FiTrash2, FiHome, FiUsers, FiBookOpen, FiUserPlus, FiUserCheck, FiMoreVertical, FiEye } from "react-icons/fi";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FiPlus, FiX, FiArrowLeft, FiEdit, FiTrash2, FiHome, FiUsers, FiBookOpen, FiUserPlus, FiUserCheck, FiMoreVertical, FiEye, FiLayers, FiChevronRight } from "react-icons/fi";
 
 import { 
     getAPICall, 
@@ -40,6 +40,41 @@ import { ModalDialog } from "../../components/ModalDialog";
 export default function AdminClassrooms() {
 // Classsroom data states
 const {classrooms, refetchClassroom, loading, setLoading} = useClassroom<ClassroomResponseProps[]>()
+const [selectedGradeLevel, setSelectedGradeLevel] = useState<number | null>(null);
+
+// Group classrooms by gradeLevel
+const gradeLevelGroups = useMemo(() => {
+    if (!classrooms || classrooms.length === 0) return [];
+    const map = new Map<number, {
+        gradeLevel: number;
+        classrooms: ClassroomResponseProps[];
+        totalStudents: number;
+    }>();
+
+    for (const c of classrooms) {
+        const gl = Number(c.gradeLevel);
+        const existing = map.get(gl);
+        if (existing) {
+            existing.classrooms.push(c);
+            existing.totalStudents += Number(c.totalStudent ?? 0);
+        } else {
+            map.set(gl, {
+                gradeLevel: gl,
+                classrooms: [c],
+                totalStudents: Number(c.totalStudent ?? 0)
+            });
+        }
+    }
+
+    return Array.from(map.values()).sort((a, b) => a.gradeLevel - b.gradeLevel);
+}, [classrooms]);
+
+// Filter classrooms for the currently selected grade level
+const classroomsInSelectedGrade = useMemo(() => {
+    if (selectedGradeLevel === null || !classrooms) return [];
+    return classrooms.filter((c) => Number(c.gradeLevel) === selectedGradeLevel);
+}, [classrooms, selectedGradeLevel]);
+
 const [classroomFacultiesWithSubject, setClassroomFacultiesWithSubject] = useState<ClassroomFacultiesWithSubjectProps[] | null>(null);
 const [newClassroom, setNewClassroom] = useState<Omit<ClassroomResponseProps, "id" | "gradeLevel" | "totalStudent"> & { gradeLevel: string }>({
 section: "",
@@ -115,6 +150,9 @@ try {
     setLoading(true);
     const response = await getAPICall<ClassroomWithStudentsProps>(`/class/${classroomId}/students`);
 
+    if (response.data?.gradeLevel) {
+        setSelectedGradeLevel(Number(response.data.gradeLevel));
+    }
     setSelectedClassroom(response.data ?? null);
 }catch {
     // Error toast is handled by the axios interceptor in api.ts
@@ -132,7 +170,7 @@ setSelectedSubjectIds([]);
 triggerRef.current?.focus();
 }, []);
 
-function handleModalClose() {
+const handleModalClose = useCallback(() => {
 closeModal();
 setNewClassroom({section: "", gradeLevel: ""});
 setSelectedSubjectIds([]);
@@ -145,7 +183,7 @@ setAllFaculties(null);
 setAdviserTakenBy({});
 setEditingClassroom(null);
 setSubjectsNotInClass(null);
-}
+}, [closeModal]);
 
 // Open the assign-adviser modal: loads the faculty list and preselects the current adviser.
 // Also builds the map of faculties who already advise another class (one class per faculty).
@@ -544,8 +582,20 @@ return (
 <PageShell className="classrooms">
 {/* classroom list  */}
 <PageHeader
-    title={selectedClassroom ? `Classroom — Grade ${selectedClassroom.gradeLevel} ${selectedClassroom.section}` : "Classrooms"}
-    description={selectedClassroom ? `Viewing details for Grade ${selectedClassroom.gradeLevel} – ${selectedClassroom.section}` : "Manage school classrooms and sections."}
+    title={
+        selectedClassroom
+            ? `Classroom — Grade ${selectedClassroom.gradeLevel} ${selectedClassroom.section}`
+            : selectedGradeLevel !== null
+            ? `Grade ${selectedGradeLevel} Classrooms`
+            : "Classrooms"
+    }
+    description={
+        selectedClassroom
+            ? `Viewing details for Grade ${selectedClassroom.gradeLevel} – ${selectedClassroom.section}`
+            : selectedGradeLevel !== null
+            ? `Viewing all sections and classrooms in Grade ${selectedGradeLevel}.`
+            : "Manage school classrooms organized by grade level."
+    }
     actions={
         selectedClassroom ? (
             <div className="flex items-center gap-2">
@@ -560,47 +610,172 @@ return (
                     aria-label="Back to classroom list"
                 >
                     <FiArrowLeft />
-                    <span className="text-sm font-bold">Back to List</span>
+                    <span className="text-sm font-bold">Back to Grade {selectedClassroom.gradeLevel}</span>
+                </button>
+            </div>
+        ) : selectedGradeLevel !== null ? (
+            <div className="flex items-center gap-2">
+                <button
+                    type="button"
+                    className="classrooms__back inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
+                    onClick={() => setSelectedGradeLevel(null)}
+                    aria-label="Back to all grade levels"
+                >
+                    <FiArrowLeft />
+                    <span className="text-sm font-bold">All Grade Levels</span>
                 </button>
 
+                <span className="classrooms__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
+                    {classroomsInSelectedGrade.length} {classroomsInSelectedGrade.length === 1 ? "classroom" : "classrooms"}
+                </span>
+
+                <button
+                    ref={triggerRef}
+                    type="button"
+                    className="classrooms__add inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold"
+                    onClick={() => {
+                        setNewClassroom({ section: "", gradeLevel: String(selectedGradeLevel) });
+                        setIsModalOpen(true);
+                        setModalStatus("create-class");
+                    }}
+                    aria-label="Open create classroom form"
+                >
+                    <FiPlus aria-hidden="true" />
+                    <span className="hidden md:block">Add Classroom</span>
+                </button>
+
+                <button
+                    type="button"
+                    className="classrooms__refresh inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
+                    onClick={() => refetchClassroom()}
+                    aria-label="Refresh classroom list"
+                >
+                    <span className="classrooms__refresh-icon" aria-hidden="true">⟳</span>
+                    <span className="hidden md:block">Refresh</span>
+                </button>
             </div>
         ) : (
-        <>
-            <span className="classrooms__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">{classrooms?.length ?? 0} {classrooms?.length === 1 ? "classroom" : "classrooms"}</span>
-            <button
-                ref={triggerRef}
-                type="button"
-                className="classrooms__add inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold"
-                onClick={() => (
-                    setIsModalOpen(true),
-                    setModalStatus("create-class")
-                )}
-                aria-label="Open create classroom form"
-            >
-                <FiPlus aria-hidden="true" />
-                <span className="hidden md:block">Add Classroom</span>
-            </button>
+            <div className="flex items-center gap-2">
+                <span className="classrooms__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
+                    {gradeLevelGroups.length} {gradeLevelGroups.length === 1 ? "grade level" : "grade levels"} · {classrooms?.length ?? 0} {classrooms?.length === 1 ? "classroom" : "classrooms"}
+                </span>
 
-            <button
-                type="button"
-                className="classrooms__refresh inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
-                onClick={() => refetchClassroom()}
-                aria-label="Refresh classroom list"
-            >
-                <span className="classrooms__refresh-icon" aria-hidden="true">⟳</span>
-                <span className="hidden md:block">Refresh</span>
-            </button>
-        </>
-    )}
+                <button
+                    ref={triggerRef}
+                    type="button"
+                    className="classrooms__add inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold"
+                    onClick={() => {
+                        setNewClassroom({ section: "", gradeLevel: "" });
+                        setIsModalOpen(true);
+                        setModalStatus("create-class");
+                    }}
+                    aria-label="Open create classroom form"
+                >
+                    <FiPlus aria-hidden="true" />
+                    <span className="hidden md:block">Add Classroom</span>
+                </button>
+
+                <button
+                    type="button"
+                    className="classrooms__refresh inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-semibold"
+                    onClick={() => refetchClassroom()}
+                    aria-label="Refresh classroom list"
+                >
+                    <span className="classrooms__refresh-icon" aria-hidden="true">⟳</span>
+                    <span className="hidden md:block">Refresh</span>
+                </button>
+            </div>
+        )
+    }
 />
 <PageSection className="classrooms__card" flush>
 
-    {/*=================== Classroom Card ========================*/}
-    {!selectedClassroom && (
+    {/* =================== Layer 1: Grade Level Cards =================== */}
+    {!selectedClassroom && selectedGradeLevel === null && (
         <div>
-            {classrooms && classrooms.length > 0 ? (
+            {gradeLevelGroups && gradeLevelGroups.length > 0 ? (
+                <div className="classrooms__grades-grid grid grid-cols-1 gap-5 p-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {gradeLevelGroups.map((group) => (
+                        <article
+                            key={group.gradeLevel}
+                            className="classrooms__grade-card flex cursor-pointer flex-col overflow-hidden rounded-xl border"
+                            onClick={() => setSelectedGradeLevel(group.gradeLevel)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    setSelectedGradeLevel(group.gradeLevel);
+                                }
+                            }}
+                            aria-label={`View classrooms for Grade ${group.gradeLevel}`}
+                        >
+                            <div className="classrooms__grade-card-head flex items-start justify-between gap-3 p-5 pb-4">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="classrooms__grade-badge-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg font-bold">
+                                        <FiLayers aria-hidden="true" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <span className="classrooms__item-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
+                                            Grade Level
+                                        </span>
+                                        <h3 className="classrooms__item-name mt-0.5 truncate text-[1.125rem] font-bold">
+                                            Grade {group.gradeLevel}
+                                        </h3>
+                                    </div>
+                                </div>
+                                <span className="classrooms__grade-pill shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold">
+                                    {group.classrooms.length} {group.classrooms.length === 1 ? "Classroom" : "Classrooms"}
+                                </span>
+                            </div>
+
+                            <div className="classrooms__grade-card-body flex flex-1 flex-col justify-between p-5 pt-4">
+                                <div>
+                                    <div className="flex items-center gap-2 text-[0.8125rem] font-semibold text-[var(--primary-dark)]">
+                                        <FiUsers aria-hidden="true" className="text-[0.9375rem]" />
+                                        <span>
+                                            <strong>{group.totalStudents}</strong> {group.totalStudents === 1 ? "Enrolled Student" : "Enrolled Students"}
+                                        </span>
+                                    </div>
+
+                                    <div className="mt-3 flex flex-wrap gap-1.5">
+                                        {group.classrooms.map((c) => (
+                                            <span
+                                                key={c.id}
+                                                className="classrooms__section-tag inline-block rounded-md px-2 py-0.5 text-xs font-medium"
+                                                title={`${c.section} (#${c.id})`}
+                                            >
+                                                {c.section}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="classrooms__grade-card-footer mt-4 flex items-center justify-between border-t pt-3 text-xs font-semibold">
+                                    <span className="classrooms__grade-cta">View Sections</span>
+                                    <FiChevronRight className="classrooms__grade-cta-arrow text-sm" aria-hidden="true" />
+                                </div>
+                            </div>
+                        </article>
+                    ))}
+                </div>
+            ) : (
+                <EmptyState
+                    className="classrooms__empty"
+                    icon={<FiHome />}
+                    title="No classrooms found"
+                    description="Classrooms will appear here once they are created."
+                />
+            )}
+        </div>
+    )}
+
+    {/* =================== Layer 2: Classrooms in Selected Grade =================== */}
+    {!selectedClassroom && selectedGradeLevel !== null && (
+        <div>
+            {classroomsInSelectedGrade && classroomsInSelectedGrade.length > 0 ? (
                 <div className="classrooms__grid grid grid-cols-1 gap-4 p-6 sm:grid-cols-2">
-                    {classrooms.map((classroom) => (
+                    {classroomsInSelectedGrade.map((classroom) => (
                         <article className="classrooms__item flex cursor-pointer flex-col overflow-hidden rounded-xl border" key={classroom.id} id={String(classroom.id)} onClick={handleSelectedClassroom}>
                             <div className="classrooms__item-head flex items-start justify-between gap-3 p-5 pb-4">
                                 <div className="classrooms__item-heading min-w-0">
@@ -709,8 +884,21 @@ return (
                 <EmptyState
                     className="classrooms__empty"
                     icon={<FiHome />}
-                    title="No classrooms found"
-                    description="Classrooms will appear here once they are created."
+                    title={`No classrooms found in Grade ${selectedGradeLevel}`}
+                    description="There are currently no classrooms or sections created for this grade level."
+                    action={
+                        <button
+                            type="button"
+                            className="classrooms__add mt-3 inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold"
+                            onClick={() => {
+                                setNewClassroom({ section: "", gradeLevel: String(selectedGradeLevel) });
+                                setIsModalOpen(true);
+                                setModalStatus("create-class");
+                            }}
+                        >
+                            <FiPlus aria-hidden="true" /> Add Classroom to Grade {selectedGradeLevel}
+                        </button>
+                    }
                 />
             )}
         </div>

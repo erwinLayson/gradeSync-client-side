@@ -54,35 +54,54 @@ export function ModalDialog({
   lockClose = false,
 }: ModalDialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const wasOpenRef = useRef(false);
+
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  const lockCloseRef = useRef(lockClose);
+  lockCloseRef.current = lockClose;
+
+  const restoreFocusRefActual = useRef(restoreFocusRef);
+  restoreFocusRefActual.current = restoreFocusRef;
 
   const closeAndRestoreFocus = useCallback(() => {
-    onClose();
-    // The trigger always lives outside the dialog, so focus can move to it
-    // synchronously before the dialog unmounts.
-    restoreFocusRef?.current?.focus();
-  }, [onClose, restoreFocusRef]);
+    onCloseRef.current();
+    restoreFocusRefActual.current?.current?.focus();
+  }, []);
 
   function handleOverlayMouseDown(event: MouseEvent<HTMLDivElement>) {
-    if (event.target === event.currentTarget && !lockClose) {
+    if (event.target === event.currentTarget && !lockCloseRef.current) {
       closeAndRestoreFocus();
     }
   }
 
+  // Move focus into the dialog ONLY when it transitions from closed to open.
+  useEffect(() => {
+    if (!open) {
+      wasOpenRef.current = false;
+      return;
+    }
+
+    if (!wasOpenRef.current) {
+      wasOpenRef.current = true;
+      const focusTarget =
+        initialFocusRef?.current ??
+        panelRef.current?.querySelector<HTMLElement>(
+          "[autofocus], button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])",
+        );
+      requestAnimationFrame(() => focusTarget?.focus());
+    }
+  }, [open, initialFocusRef]);
+
+  // Trap focus and manage Escape / body scroll while open.
   useEffect(() => {
     if (!open) return;
-
-    // Move focus into the dialog so it starts inside the trapped region.
-    const focusTarget =
-      initialFocusRef?.current ??
-      panelRef.current?.querySelector<HTMLElement>(
-        "[autofocus], button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])",
-      );
-    requestAnimationFrame(() => focusTarget?.focus());
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
-        if (!lockClose) closeAndRestoreFocus();
+        if (!lockCloseRef.current) closeAndRestoreFocus();
         return;
       }
 
@@ -114,7 +133,7 @@ export function ModalDialog({
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
     };
-  }, [open, closeAndRestoreFocus, lockClose, initialFocusRef]);
+  }, [open, closeAndRestoreFocus]);
 
   if (!open) return null;
 

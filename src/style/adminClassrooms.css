@@ -1170,3 +1170,82 @@
   background: #fef2f2;
   color: #b91c1c;
 }
+
+/* ============================================================
+   Grade Level Layer (Cards & overview)
+   ============================================================ */
+
+.classrooms__grade-card {
+  background: var(--surface-white);
+  border-color: var(--neutral-border);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.classrooms__grade-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.classrooms__grade-card:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.classrooms__grade-card-head {
+  background: var(--gradient-brand);
+  color: var(--text-on-dark);
+}
+
+.classrooms__grade-badge-icon {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--text-on-dark);
+  border: 1px solid var(--border-on-dark);
+}
+
+.classrooms__grade-pill {
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--text-on-dark);
+  border: 1px solid var(--border-on-dark);
+}
+
+.classrooms__grade-card-body {
+  border-top: 1px solid var(--neutral-border);
+  background: var(--surface-white);
+}
+
+.classrooms__section-tag {
+  background: var(--surface-bg);
+  color: var(--primary-dark);
+  border: 1px solid var(--neutral-border);
+  font-family: var(--font-sans);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.classrooms__grade-card:hover .classrooms__section-tag {
+  background: var(--primary-light);
+  border-color: rgba(23, 107, 58, 0.2);
+}
+
+.classrooms__grade-card-footer {
+  border-color: var(--neutral-border);
+  color: var(--primary);
+}
+
+.classrooms__grade-cta {
+  color: var(--primary);
+  transition: color var(--transition-fast);
+}
+
+.classrooms__grade-card:hover .classrooms__grade-cta {
+  color: var(--primary-dark);
+}
+
+.classrooms__grade-cta-arrow {
+  transition: transform var(--transition-base);
+}
+
+.classrooms__grade-card:hover .classrooms__grade-cta-arrow {
+  transform: translateX(4px);
+}
+
