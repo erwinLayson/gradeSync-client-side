@@ -20,7 +20,6 @@ import {
 } from "react-icons/fi";
 
 import { useAcademicSettings } from "../hooks/useAcademicSettings";
-import useClassroom from "../hooks/useClassroom";
 
 import type {
     StudentResponseProps,
@@ -31,8 +30,6 @@ import type {
     SortDirection,
 } from "../constant/students.js";
 import type { StudentClassesData } from "../constant/studentClasses.js";
-import type { ClassroomResponseProps } from "../constant/classrooms.js";
-
 import "../style/adminStudent.css";
 
 // Components
@@ -96,7 +93,6 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
     const { studentId: studentIdParam } = useParams<{ studentId?: string }>();
     const [searchParams, setSearchParams] = useSearchParams();
     const { quarters } = useAcademicSettings();
-    const { classrooms } = useClassroom<ClassroomResponseProps[]>();
 
     /* =================== Create / Edit student modal =================== */
     const [modalStatus, setModalStatus] = useState<ModalStatus>(null);
@@ -134,7 +130,6 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
     const statusParam = searchParams.get("status");
     const status: StudentStatusFilter =
         statusParam === "inactive" || statusParam === "all" ? statusParam : "active";
-    const classId = searchParams.get("classId") ?? "";
     const sortParam = searchParams.get("sort");
     const sort: StudentSortKey =
         sortParam === "lrn" || sortParam === "email" || sortParam === "id" ? sortParam : "name";
@@ -189,7 +184,6 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
                 const params = new URLSearchParams();
                 if (search) params.set("search", search);
                 params.set("status", status);
-                if (classId) params.set("classId", classId);
                 params.set("page", String(page));
                 params.set("pageSize", String(pageSize));
                 params.set("sort", sort);
@@ -230,7 +224,7 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
         return () => {
             cancelled = true;
         };
-    }, [studentIdParam, search, status, classId, page, pageSize, sort, dir, refreshKey, setSearchParams]);
+    }, [studentIdParam, search, status, page, pageSize, sort, dir, refreshKey, setSearchParams]);
 
     /* =================== Fetch the selected student + history =================== */
     useEffect(() => {
@@ -512,7 +506,7 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
     const firstRow = total === 0 ? 0 : (page - 1) * pageSize + 1;
     const lastRow = Math.min(page * pageSize, total);
-    const hasActiveFilter = Boolean(search) || status !== "active" || Boolean(classId);
+    const hasActiveFilter = Boolean(search) || status !== "active";
 
     /* =================== Details screen =================== */
     if (studentIdParam) {
@@ -839,23 +833,6 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                                 <option value="all">All</option>
-                            </select>
-                        </label>
-
-                        <label className="students__filter">
-                            <span className="students__filter-label">Classroom</span>
-                            <select
-                                className="students__filter-select"
-                                value={classId}
-                                onChange={(event) => updateParams({ classId: event.target.value || undefined })}
-                                aria-label="Filter by classroom"
-                            >
-                                <option value="">All classrooms</option>
-                                {(classrooms ?? []).map((classroom) => (
-                                    <option key={classroom.id} value={String(classroom.id)}>
-                                        Grade {classroom.gradeLevel} — {classroom.section}
-                                    </option>
-                                ))}
                             </select>
                         </label>
                     </div>
