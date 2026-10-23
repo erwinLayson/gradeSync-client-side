@@ -51,7 +51,11 @@ export default function StudentProspectus() {
                 if (cancelled) return;
                 setStudent(response.data?.student ?? null);
                 // Server returns newest first; show the permanent record chronologically.
-                setYears([...(response.data?.classes ?? [])].reverse());
+                // Only completed school years (with a computed general average) are displayed in prospectus.
+                const completedYears = (response.data?.classes ?? []).filter(
+                    (cls) => cls.generalAverage !== null
+                );
+                setYears([...completedYears].reverse());
             } catch {
                 // Error toast is handled by the axios interceptor in api.ts
             } finally {
@@ -98,9 +102,9 @@ export default function StudentProspectus() {
                         <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600" aria-hidden="true">
                             <FiBookOpen />
                         </span>
-                        <p className="mt-3 text-sm font-bold text-neutral-800">No academic records yet</p>
+                        <p className="mt-3 text-sm font-bold text-neutral-800">No completed academic records yet</p>
                         <p className="mt-1 text-[0.8125rem] text-neutral-500">
-                            Your report card records will appear here once you have been enrolled.
+                            Your permanent academic records will appear here once you have completed a school year. Current in-progress classes can be viewed in My Classroom.
                         </p>
                     </div>
                 </PageSection>

@@ -12,6 +12,10 @@ export interface AttendanceMatrixStudent {
     studentId: number;
     studentLrn: string;
     fullname: string;
+    firstname?: string;
+    middlename?: string | null;
+    lastname?: string;
+    suffix?: string | null;
 }
 
 /** One cell of the class-wide attendance matrix: a student on a date. */

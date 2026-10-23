@@ -4,6 +4,8 @@ import {
     FiGrid,
     FiPlus,
     FiRefreshCw,
+    FiRotateCcw,
+    FiSave,
     FiUserCheck,
     FiUsers,
     FiX,
@@ -33,12 +35,6 @@ import "../../style/facultyAttendance.css";
 
 // ================= Types =================
 
-/** The minimal student shape the grid rows and their cell writes need. */
-interface AttendanceStudentRef {
-    enrollmentId: number;
-    fullname: string;
-    studentLrn: string;
-}
 
 /** A school year filter value: a specific year id, or "all". */
 type SchoolYearFilter = number | "all";
@@ -144,6 +140,25 @@ function toPositiveInt(value: string | null): number | null {
     return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 }
 
+/** Formats student name in "lastname, firstname middlename" format */
+function formatStudentName(student: AttendanceMatrix["students"][number]): string {
+    if (student.lastname && student.firstname) {
+        const middle = student.middlename ? ` ${student.middlename}` : "";
+        const suffix = student.suffix ? ` ${student.suffix}` : "";
+        return `${student.lastname}, ${student.firstname}${middle}${suffix}`;
+    }
+    if (student.fullname.includes(",")) {
+        return student.fullname;
+    }
+    const parts = student.fullname.trim().split(/\s+/);
+    if (parts.length >= 2) {
+        const last = parts[parts.length - 1];
+        const rest = parts.slice(0, parts.length - 1).join(" ");
+        return `${last}, ${rest}`;
+    }
+    return student.fullname;
+}
+
 export default function FacultyAttendance() {
     const { user, loading: userLoading } = useUser();
     const { quarters, currentQuarter, loading: settingsLoading } = useAcademicSettings();
@@ -176,14 +191,14 @@ export default function FacultyAttendance() {
 
     // ---- The grid ----
     const [matrix, setMatrix] = useState<AttendanceMatrix | null>(null);
-    // Live cell state: "enrollmentId|date" -> status. Seeded from the fetched
-    // matrix, then updated optimistically while a save is in flight.
+    // Pristine cell state from the server: "enrollmentId:date" -> status
+    const [serverCells, setServerCells] = useState<Record<string, AttendanceStatus>>({});
+    // Editable draft cell state: "enrollmentId:date" -> status
     const [cells, setCells] = useState<Record<string, AttendanceStatus>>({});
     // The filter key the current matrix/cells belong to; loading is derived from
     // it (see matrixLoading below).
     const [loadedKey, setLoadedKey] = useState<string | null>(null);
-    const [savingCell, setSavingCell] = useState<string | null>(null);
-    const [savingColumn, setSavingColumn] = useState<string | null>(null);
+    const [savingBulk, setSavingBulk] = useState(false);
     // Guards against stale responses when switching subject/filters quickly.
     const matrixRequestRef = useRef(0);
 
@@ -332,6 +347,7 @@ export default function FacultyAttendance() {
                         seeded[cellKey(record.enrollmentId, record.date)] = record.status;
                     }
                 }
+                setServerCells(seeded);
                 setCells(seeded);
 
                 // A day opened from "Create Attendance" stops being pending as
@@ -354,6 +370,7 @@ export default function FacultyAttendance() {
             .catch(() => {
                 if (matrixRequestRef.current !== requestId) return;
                 setMatrix(null);
+                setServerCells({});
                 setCells({});
             })
             .finally(() => {
@@ -389,7 +406,44 @@ export default function FacultyAttendance() {
     // A specific quarter must be selected to write: every attendance row stores
     // the faculty-chosen quarter, so "All quarters" is a read-only view.
     const canEdit = quarterFilter !== ALL_QUARTERS;
-    const busy = savingCell !== null || savingColumn !== null;
+    const busy = savingBulk;
+
+    // Track dirty keys and modified dates for bulk saving
+    const dirtyKeys = useMemo(() => {
+        const set = new Set<string>();
+        for (const k of Object.keys(cells)) {
+            if (cells[k] !== serverCells[k]) {
+                set.add(k);
+            }
+        }
+        for (const k of Object.keys(serverCells)) {
+            if (cells[k] !== serverCells[k]) {
+                set.add(k);
+            }
+        }
+        return set;
+    }, [cells, serverCells]);
+
+    const unsavedCount = dirtyKeys.size;
+    const dirtyDates = useMemo(() => {
+        const dates = new Set<string>();
+        for (const k of dirtyKeys) {
+            const parts = k.split("|");
+            if (parts[1]) dates.add(parts[1]);
+        }
+        return Array.from(dates);
+    }, [dirtyKeys]);
+
+    // Warn on accidental tab close when there are unsaved attendance changes
+    useEffect(() => {
+        if (unsavedCount === 0) return;
+        const handler = (e: BeforeUnloadEvent) => {
+            e.preventDefault();
+            e.returnValue = "";
+        };
+        window.addEventListener("beforeunload", handler);
+        return () => window.removeEventListener("beforeunload", handler);
+    }, [unsavedCount]);
 
     const rowStats = useMemo(() => {
         const stats = new Map<number, { present: number; recorded: number }>();
@@ -425,87 +479,129 @@ export default function FacultyAttendance() {
 
     // ==================== Grid handlers ====================
 
-    // Toggle one cell: unrecorded -> Present -> Absent -> Present. The write is
-    // scoped to that single student and date, so nothing else is ever touched.
-    async function handleToggleCell(student: AttendanceStudentRef, date: string) {
-        // `canEdit` already means "a specific quarter is selected", and TS narrows
-        // quarterFilter to a number through it.
-        if (!canEdit || selectedSubjectId === null || busy) return;
+    // Set a cell's draft attendance value (1 for present, 0 for absent, undefined for cleared)
+    function handleSetCellValue(enrollmentId: number, date: string, status: AttendanceStatus | undefined) {
+        if (!canEdit || busy) return;
+        const key = cellKey(enrollmentId, date);
+        setCells((prev) => {
+            const next = { ...prev };
+            if (status === undefined) {
+                delete next[key];
+            } else {
+                next[key] = status;
+            }
+            return next;
+        });
+    }
+
+    // Fast keyboard focus navigation between inputs
+    function focusCell(sIdx: number, dIdx: number) {
+        const clampedS = Math.max(0, Math.min(students.length - 1, sIdx));
+        const clampedD = Math.max(0, Math.min(gridDates.length - 1, dIdx));
+        const el = document.getElementById(`att-cell-${clampedS}-${clampedD}`) as HTMLInputElement | null;
+        el?.focus();
+        el?.select();
+    }
+
+    // Fill one date column with 1 (present) for all students in draft
+    function handleMarkDatePresent(date: string) {
+        if (!canEdit || busy || students.length === 0) return;
+        setCells((prev) => {
+            const next = { ...prev };
+            for (const student of students) {
+                next[cellKey(student.enrollmentId, date)] = "present";
+            }
+            return next;
+        });
+    }
+
+    // Bulk save all unsaved attendance entries across modified dates
+    async function handleBulkSaveAttendance() {
+        if (!canEdit || selectedSubjectId === null || busy || dirtyKeys.size === 0) return;
+        setSavingBulk(true);
         const quarter = quarterFilter;
-
-        const key = cellKey(student.enrollmentId, date);
-        const previous = cells[key];
-        const next: AttendanceStatus = previous === "present" ? "absent" : "present";
-
-        setCells((prev) => ({ ...prev, [key]: next }));
-        setSavingCell(key);
         try {
-            await postAPICall<AttendanceSavePayload, unknown>(
-                "/attendance",
-                {
-                    classSubjectId: selectedSubjectId,
-                    date,
-                    quarter,
-                    entries: [{ enrollmentId: student.enrollmentId, status: next }],
-                },
-                { toast: false },
-            );
-        } catch {
-            // Roll back the optimistic cell; the interceptor already toasted.
-            setCells((prev) => {
-                const reverted = { ...prev };
-                if (previous === undefined) delete reverted[key];
-                else reverted[key] = previous;
-                return reverted;
+            for (const date of dirtyDates) {
+                const entries: { enrollmentId: number; status: "present" | "absent" }[] = [];
+                for (const student of students) {
+                    const key = cellKey(student.enrollmentId, date);
+                    const status = cells[key];
+                    if (status === "present" || status === "absent") {
+                        entries.push({
+                            enrollmentId: student.enrollmentId,
+                            status,
+                        });
+                    }
+                }
+                await postAPICall<AttendanceSavePayload, unknown>(
+                    "/attendance",
+                    {
+                        classSubjectId: selectedSubjectId,
+                        date,
+                        quarter,
+                        entries,
+                    },
+                    { toast: false }
+                );
+            }
+            setServerCells({ ...cells });
+
+            // Merge the saved days into the local matrix so a day that was just
+            // opened from "Create Attendance" (a pending column) stays on screen
+            // once its pending marker is dropped below. Without this the column
+            // — and its freshly saved statuses — would vanish until a refresh.
+            const savedDates = new Set(dirtyDates);
+            const savedRecords: AttendanceMatrix["records"] = [];
+            for (const date of dirtyDates) {
+                for (const student of students) {
+                    const status = cells[cellKey(student.enrollmentId, date)];
+                    if (status === "present" || status === "absent") {
+                        savedRecords.push({
+                            enrollmentId: student.enrollmentId,
+                            date,
+                            status,
+                            quarter,
+                        });
+                    }
+                }
+            }
+            const savedCells = new Set(savedRecords.map((r) => cellKey(r.enrollmentId, r.date)));
+            setMatrix((prev) => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    dates: [...new Set([...prev.dates, ...savedDates])].sort(),
+                    records: [
+                        ...prev.records.filter((r) => !savedCells.has(cellKey(r.enrollmentId, r.date))),
+                        ...savedRecords,
+                    ],
+                };
             });
+
+            const key = gridKey(selectedSubjectId, schoolYearFilter, quarterFilter, dateFrom, dateTo);
+            setPendingDays((prev) => {
+                const pending = prev[key];
+                if (!pending || pending.length === 0) return prev;
+                const remaining = pending.filter((d) => !dirtyDates.includes(d));
+                if (remaining.length === pending.length) return prev;
+                const next = { ...prev };
+                if (remaining.length === 0) delete next[key];
+                else next[key] = remaining;
+                return next;
+            });
+            toast.success(`Attendance successfully recorded! (${dirtyKeys.size} ${dirtyKeys.size === 1 ? "entry" : "entries"} saved across ${dirtyDates.length} ${dirtyDates.length === 1 ? "date" : "dates"})`);
+        } catch {
+            toast.error("Failed to save attendance. Please try again.");
         } finally {
-            setSavingCell(null);
+            setSavingBulk(false);
         }
     }
 
-    // Fill one date column for the whole visible roster at once (the spreadsheet
-    // equivalent of the old sheet's "Mark All Present").
-    async function handleMarkDatePresent(date: string) {
-        if (!canEdit || selectedSubjectId === null || busy) return;
-        if (students.length === 0) return;
-        const quarter = quarterFilter;
-
-        const keys = students.map((student) => cellKey(student.enrollmentId, date));
-        const previous = keys.map((key) => cells[key]);
-        setCells((prev) => {
-            const next = { ...prev };
-            for (const key of keys) next[key] = "present";
-            return next;
-        });
-        setSavingColumn(date);
-        try {
-            await postAPICall<AttendanceSavePayload, unknown>(
-                "/attendance",
-                {
-                    classSubjectId: selectedSubjectId,
-                    date,
-                    quarter,
-                    entries: students.map((student) => ({
-                        enrollmentId: student.enrollmentId,
-                        status: "present" as const,
-                    })),
-                },
-                { toast: false },
-            );
-            toast.success(`${formatLongDate(date)} — all ${students.length} students marked present.`);
-        } catch {
-            setCells((prev) => {
-                const reverted = { ...prev };
-                keys.forEach((key, index) => {
-                    const before = previous[index];
-                    if (before === undefined) delete reverted[key];
-                    else reverted[key] = before;
-                });
-                return reverted;
-            });
-        } finally {
-            setSavingColumn(null);
-        }
+    // Discard draft changes and restore pristine server values
+    function handleDiscardChanges() {
+        if (dirtyKeys.size === 0) return;
+        setCells({ ...serverCells });
+        toast.info("Unsaved attendance changes discarded.");
     }
 
     // ==================== "Create Attendance" dialog ====================
@@ -579,6 +675,16 @@ export default function FacultyAttendance() {
                 return;
             }
 
+            // A day that already has attendance for this subject is not a new
+            // day: creating it again would overwrite the saved records, so the
+            // dialog reports the conflict and stays open instead.
+            if (existing.length > 0) {
+                setCreateError(
+                    `Attendance for ${formatLongDate(date)} has already been created. Pick a different date.`,
+                );
+                return;
+            }
+
             const key = gridKey(classSubjectId, schoolYearFilter, quarter, dateFrom, dateTo);
             const alreadyPending = (pendingDays[key] ?? NO_PENDING_DATES).includes(date);
 
@@ -587,7 +693,7 @@ export default function FacultyAttendance() {
             setSelectedSubjectId(classSubjectId);
             setQuarterFilter(quarter);
 
-            if (existing.length > 0 || alreadyPending) {
+            if (alreadyPending) {
                 closeCreateDialog();
                 toast.info(`${formatLongDate(date)} is already open on the grid.`);
                 return;
@@ -901,25 +1007,57 @@ export default function FacultyAttendance() {
                                     &middot; {gridFilterLabel}
                                 </p>
                             </div>
-                            <div className="faculty-attendance__legend flex flex-wrap items-center gap-3 text-[0.6875rem] font-bold">
-                                <span className="faculty-attendance__legend-item inline-flex items-center gap-1.5">
-                                    <span className="faculty-attendance__legend-swatch faculty-attendance__legend-swatch--present inline-flex items-center justify-center" aria-hidden="true">
-                                        <FiCheck />
+                            <div className="flex flex-wrap items-center gap-4">
+                                <div className="faculty-attendance__legend flex flex-wrap items-center gap-3 text-[0.6875rem] font-bold">
+                                    <span className="faculty-attendance__legend-item inline-flex items-center gap-1.5">
+                                        <span className="faculty-attendance__legend-swatch faculty-attendance__legend-swatch--present inline-flex items-center justify-center font-bold text-[0.6875rem]" aria-hidden="true">
+                                            1
+                                        </span>
+                                        [1] Present
                                     </span>
-                                    Present
-                                </span>
-                                <span className="faculty-attendance__legend-item inline-flex items-center gap-1.5">
-                                    <span className="faculty-attendance__legend-swatch faculty-attendance__legend-swatch--absent inline-flex items-center justify-center" aria-hidden="true">
-                                        <FiX />
+                                    <span className="faculty-attendance__legend-item inline-flex items-center gap-1.5">
+                                        <span className="faculty-attendance__legend-swatch faculty-attendance__legend-swatch--absent inline-flex items-center justify-center font-bold text-[0.6875rem]" aria-hidden="true">
+                                            0
+                                        </span>
+                                        [0] Absent
                                     </span>
-                                    Absent
-                                </span>
-                                <span className="faculty-attendance__legend-item inline-flex items-center gap-1.5">
-                                    <span className="faculty-attendance__legend-swatch faculty-attendance__legend-swatch--none inline-flex items-center justify-center" aria-hidden="true">
-                                        ·
+                                    <span className="faculty-attendance__legend-item inline-flex items-center gap-1.5">
+                                        <span className="faculty-attendance__legend-swatch faculty-attendance__legend-swatch--none inline-flex items-center justify-center font-bold text-[0.6875rem]" aria-hidden="true">
+                                            ·
+                                        </span>
+                                        [·] Not recorded
                                     </span>
-                                    Not recorded
-                                </span>
+                                </div>
+
+                                {canEdit && (
+                                    <div className="flex items-center gap-2">
+                                        {unsavedCount > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={handleDiscardChanges}
+                                                disabled={savingBulk}
+                                                className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:opacity-50"
+                                                title="Discard unsaved changes"
+                                            >
+                                                <FiRotateCcw className="text-xs" aria-hidden="true" />
+                                                Discard
+                                            </button>
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={handleBulkSaveAttendance}
+                                            disabled={savingBulk || unsavedCount === 0}
+                                            className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold shadow-sm transition ${
+                                                unsavedCount > 0
+                                                    ? "bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.98] ring-2 ring-emerald-400/50"
+                                                    : "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+                                            }`}
+                                        >
+                                            <FiSave className="text-xs" aria-hidden="true" />
+                                            {savingBulk ? "Recording..." : unsavedCount > 0 ? `Record Attendance (${unsavedCount})` : "Record Attendance"}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -1028,7 +1166,7 @@ export default function FacultyAttendance() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {students.map((student) => {
+                                        {students.map((student, studentIndex) => {
                                             const stats = rowStats.get(student.enrollmentId) ?? { present: 0, recorded: 0 };
                                             const rate =
                                                 stats.recorded > 0
@@ -1040,7 +1178,7 @@ export default function FacultyAttendance() {
                                                         <span className="faculty-attendance__student-cell flex items-center gap-2.5 text-left">
                                                             <span className="min-w-0">
                                                                 <span className="faculty-attendance__student-name block truncate text-[0.8125rem] font-bold">
-                                                                    {student.fullname}
+                                                                    {formatStudentName(student)}
                                                                 </span>
                                                                 <span className="faculty-attendance__student-lrn mt-0.5 block font-mono text-[0.625rem]">
                                                                     {student.studentLrn}
@@ -1049,35 +1187,78 @@ export default function FacultyAttendance() {
                                                         </span>
                                                     </th>
 
-                                                    {gridDates.map((date) => {
+                                                    {gridDates.map((date, dateIndex) => {
                                                         const key = cellKey(student.enrollmentId, date);
                                                         const status = cells[key];
-                                                        const isSaving = savingCell === key || savingColumn === date;
-                                                        const label = status === "present" ? "Present" : status === "absent" ? "Absent" : "Not recorded";
+                                                        const isDirty = dirtyKeys.has(key);
+                                                        const displayVal = status === "present" ? "1" : status === "absent" ? "0" : "";
+                                                        const label = status === "present" ? "Present (1)" : status === "absent" ? "Absent (0)" : "Not recorded";
                                                         return (
                                                             <td key={date} className="faculty-attendance__grid-cell px-1 py-1.5 text-center">
-                                                                <button
-                                                                    type="button"
-                                                                    className={`faculty-attendance__cell faculty-attendance__cell--${status ?? "none"}${
-                                                                        isSaving ? " faculty-attendance__cell--saving" : ""
-                                                                    }`}
-                                                                    onClick={() => handleToggleCell(student, date)}
-                                                                    disabled={!canEdit || busy}
-                                                                    aria-label={`${student.fullname} on ${formatLongDate(date)}: ${label}. ${
-                                                                        canEdit
-                                                                            ? `Click to mark ${status === "present" ? "absent" : "present"}.`
-                                                                            : "Pick a specific quarter to edit."
-                                                                    }`}
-                                                                    title={`${formatShortDate(date)} — ${label}`}
-                                                                >
-                                                                    {status === "present" ? (
-                                                                        <FiCheck aria-hidden="true" />
-                                                                    ) : status === "absent" ? (
-                                                                        <FiX aria-hidden="true" />
-                                                                    ) : (
-                                                                        <span aria-hidden="true">·</span>
+                                                                <div className="relative inline-flex items-center justify-center">
+                                                                    <input
+                                                                        id={`att-cell-${studentIndex}-${dateIndex}`}
+                                                                        type="text"
+                                                                        inputMode="numeric"
+                                                                        pattern="[01]*"
+                                                                        maxLength={1}
+                                                                        value={displayVal}
+                                                                        placeholder="·"
+                                                                        disabled={!canEdit || savingBulk}
+                                                                        className={`faculty-attendance__input-cell faculty-attendance__input-cell--${
+                                                                            status ?? "none"
+                                                                        }${isDirty ? " faculty-attendance__input-cell--dirty" : ""}`}
+                                                                        onFocus={(e) => e.target.select()}
+                                                                        onKeyDown={(e) => {
+                                                                            if (e.key === "1") {
+                                                                                e.preventDefault();
+                                                                                handleSetCellValue(student.enrollmentId, date, "present");
+                                                                                focusCell(studentIndex + 1, dateIndex);
+                                                                            } else if (e.key === "0") {
+                                                                                e.preventDefault();
+                                                                                handleSetCellValue(student.enrollmentId, date, "absent");
+                                                                                focusCell(studentIndex + 1, dateIndex);
+                                                                            } else if (e.key === "Backspace" || e.key === "Delete") {
+                                                                                e.preventDefault();
+                                                                                handleSetCellValue(student.enrollmentId, date, undefined);
+                                                                            } else if (e.key === "Enter" || e.key === "ArrowDown") {
+                                                                                e.preventDefault();
+                                                                                focusCell(studentIndex + 1, dateIndex);
+                                                                            } else if (e.key === "ArrowUp") {
+                                                                                e.preventDefault();
+                                                                                focusCell(studentIndex - 1, dateIndex);
+                                                                            } else if (e.key === "ArrowRight") {
+                                                                                e.preventDefault();
+                                                                                focusCell(studentIndex, dateIndex + 1);
+                                                                            } else if (e.key === "ArrowLeft") {
+                                                                                e.preventDefault();
+                                                                                focusCell(studentIndex, dateIndex - 1);
+                                                                            }
+                                                                        }}
+                                                                        onChange={(e) => {
+                                                                            const raw = e.target.value.trim();
+                                                                            const char = raw.slice(-1);
+                                                                            if (char === "1") {
+                                                                                handleSetCellValue(student.enrollmentId, date, "present");
+                                                                                focusCell(studentIndex + 1, dateIndex);
+                                                                            } else if (char === "0") {
+                                                                                handleSetCellValue(student.enrollmentId, date, "absent");
+                                                                                focusCell(studentIndex + 1, dateIndex);
+                                                                            } else if (char === "") {
+                                                                                handleSetCellValue(student.enrollmentId, date, undefined);
+                                                                            }
+                                                                        }}
+                                                                        aria-label={`${formatStudentName(student)} on ${formatLongDate(date)}: ${label}. Type 1 for Present, 0 for Absent, Backspace to clear.`}
+                                                                        title={`${formatShortDate(date)}: ${label} (Type 1 for Present, 0 for Absent)`}
+                                                                    />
+                                                                    {isDirty && (
+                                                                        <span
+                                                                            className="pointer-events-none absolute -top-1 -right-1 h-2 w-2 rounded-full bg-amber-500 ring-1 ring-white"
+                                                                            title="Unsaved change"
+                                                                            aria-hidden="true"
+                                                                        />
                                                                     )}
-                                                                </button>
+                                                                </div>
                                                             </td>
                                                         );
                                                     })}
@@ -1115,11 +1296,43 @@ export default function FacultyAttendance() {
                             <p className="faculty-attendance__foot-note flex items-center gap-2 text-[0.8125rem]">
                                 <FiCalendar aria-hidden="true" />
                                 {canEdit
-                                    ? "Tap a cell to toggle Present / Absent, or the header tick to fill a day."
+                                    ? "Type 1 for Present, 0 for Absent, Backspace to clear. Press Enter/Arrows to navigate. Click 'Record Attendance' to save in bulk."
                                     : "Pick a quarter to edit attendance — or use Create Attendance to open a day."}
                             </p>
                         </div>
                     </div>
+
+                    {/* Floating sticky bar for unsaved changes */}
+                    {canEdit && unsavedCount > 0 && (
+                        <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-white/95 p-3.5 shadow-2xl backdrop-blur-md">
+                            <div className="flex items-center gap-2">
+                                <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className="text-xs font-semibold text-gray-800">
+                                    <strong className="font-bold text-emerald-700">{unsavedCount}</strong> unsaved attendance change{unsavedCount === 1 ? "" : "s"} across {dirtyDates.length} day{dirtyDates.length === 1 ? "" : "s"}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={handleDiscardChanges}
+                                    disabled={savingBulk}
+                                    className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                                >
+                                    <FiRotateCcw className="text-xs" />
+                                    Discard
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleBulkSaveAttendance}
+                                    disabled={savingBulk || unsavedCount === 0}
+                                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-md hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+                                >
+                                    <FiSave className="text-xs" />
+                                    {savingBulk ? "Recording..." : `Record Attendance (${unsavedCount})`}
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
                     {/* ==================== Create-attendance dialog ==================== */}
                     {/* A day with no records has no column, and a column is the only

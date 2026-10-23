@@ -511,6 +511,60 @@
   opacity: 0.55;
 }
 
+/* Bulk Attendance Input Cells (1 = Present, 0 = Absent) */
+.faculty-attendance__input-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  padding: 0;
+  text-align: center;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+  cursor: text;
+}
+
+.faculty-attendance__input-cell:focus {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 1px;
+  border-color: var(--primary);
+  background: #ffffff !important;
+  color: #111827 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.faculty-attendance__input-cell:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.faculty-attendance__input-cell--present {
+  color: #065f46;
+  background: #d1fae5;
+  border-color: #a7f3d0;
+}
+
+.faculty-attendance__input-cell--absent {
+  color: #b91c1c;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.faculty-attendance__input-cell--none {
+  color: var(--text-placeholder);
+  background: var(--surface-bg);
+  border: 1px dashed var(--neutral-border);
+}
+
+.faculty-attendance__input-cell--dirty {
+  border-color: #f59e0b !important;
+}
+
 /* Marks a column opened from "Create Attendance" that has no record yet, so an
    otherwise empty day never looks like a glitch. */
 .faculty-attendance__grid-new {
