@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toast, subscribeToasts, type ToastItem } from "../toast";
+import { toast, subscribeToasts, type ToastItem } from "../helper/toast";
 
 describe("toast helper", () => {
   it("pushes toast items to subscribers with correct type and duration", () => {

@@ -3,9 +3,9 @@ import {
   PASSING_GRADE,
   isPassing,
   computeFlatQuarterGradePreview,
-} from "../grades";
-import type { Assessment } from "../../constant/assessment";
-import type { GradeWeights } from "../../constant/gradingWeights";
+} from "../helper/grades";
+import type { Assessment } from "../constant/assessment";
+import type { GradeWeights } from "../constant/gradingWeights";
 
 describe("grades helper", () => {
   describe("PASSING_GRADE & isPassing", () => {

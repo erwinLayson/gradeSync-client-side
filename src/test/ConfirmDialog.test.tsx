@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ConfirmDialog } from "../ConfirmDialog";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 
 describe("ConfirmDialog component", () => {
   it("does not render when open is false", () => {

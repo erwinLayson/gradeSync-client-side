@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { Validate } from "../validate";
-import { subscribeToasts, type ToastItem } from "../toast";
+import { Validate } from "../helper/validate";
+import { subscribeToasts, type ToastItem } from "../helper/toast";
 
 describe("Validate helper", () => {
   it("returns true when all fields have valid non-empty values", () => {
