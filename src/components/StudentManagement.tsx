@@ -122,6 +122,8 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
     const [detailLoading, setDetailLoading] = useState(false);
     const [detailError, setDetailError] = useState(false);
     const [pdfLoading, setPdfLoading] = useState(false);
+    const [printModalOpen, setPrintModalOpen] = useState(false);
+    const [selectedEnrollmentIds, setSelectedEnrollmentIds] = useState<number[]>([]);
     // School years the administrator has collapsed in the academic history.
     const [collapsedYears, setCollapsedYears] = useState<Set<number>>(new Set());
 
@@ -267,7 +269,7 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
     }, [studentIdParam, refreshKey]);
 
     /* =================== Student record PDF (SF10) =================== */
-    async function openStudentRecordPdf(student: StudentResponseProps) {
+    async function openStudentRecordPdf(student: StudentResponseProps, enrollmentIds?: number[]) {
         if (pdfLoading) return;
         setPdfLoading(true);
         // Open the tab synchronously inside the click gesture so popup blockers
@@ -276,7 +278,10 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
         try {
             // Fetch as a blob so the httpOnly login_token cookie travels with the
             // request (a plain tab navigation to the endpoint would not send it).
-            const response = await API.get(`/student-records/${student.id}/pdf`, { responseType: "blob" });
+            const query = enrollmentIds && enrollmentIds.length > 0
+                ? `?enrollmentIds=${enrollmentIds.join(",")}`
+                : "";
+            const response = await API.get(`/student-records/${student.id}/pdf${query}`, { responseType: "blob" });
             const blobUrl = URL.createObjectURL(response.data as Blob);
             if (pdfTab) {
                 pdfTab.location.href = blobUrl;
@@ -292,6 +297,162 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
             setPdfLoading(false);
         }
     }
+
+    function handlePrintClick(student: StudentResponseProps) {
+        if (!academicHistory || academicHistory.classes.length === 0) {
+            openStudentRecordPdf(student);
+            return;
+        }
+        setSelectedEnrollmentIds(academicHistory.classes.map((cls) => cls.enrollmentId));
+        setPrintModalOpen(true);
+    }
+
+    function toggleEnrollmentSelection(enrollmentId: number) {
+        setSelectedEnrollmentIds((prev) =>
+            prev.includes(enrollmentId)
+                ? prev.filter((id) => id !== enrollmentId)
+                : [...prev, enrollmentId]
+        );
+    }
+
+    function selectAllEnrollments() {
+        if (!academicHistory) return;
+        setSelectedEnrollmentIds(academicHistory.classes.map((cls) => cls.enrollmentId));
+    }
+
+    function clearAllEnrollments() {
+        setSelectedEnrollmentIds([]);
+    }
+
+    const printModal = (
+            <ModalDialog
+                open={printModalOpen}
+                onClose={() => setPrintModalOpen(false)}
+                labelledById="print-records-modal-title"
+                className="students-modal__panel w-full max-w-[34rem] overflow-hidden rounded-2xl border border-[var(--neutral-border)] bg-white shadow-2xl"
+            >
+                <header className="students-modal__header flex items-start justify-between gap-4 p-6 pb-4 border-b">
+                    <div className="students-modal__heading">
+                        <span className="students-modal__eyebrow">SF10 / Form-137</span>
+                        <h3 id="print-records-modal-title" className="students-modal__title mt-0.5 text-xl font-bold">
+                            Select School Years to Print
+                        </h3>
+                        <p className="students-modal__subtitle mt-1 text-[0.8125rem] text-neutral-500">
+                            Choose which school year academic records to include in the printable document for {viewStudent?.fullname}.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        className="students-modal__close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg cursor-pointer text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                        onClick={() => setPrintModalOpen(false)}
+                        aria-label="Close modal"
+                    >
+                        <FiX aria-hidden="true" />
+                    </button>
+                </header>
+
+                <div className="p-6 flex flex-col gap-4 max-h-[60vh] overflow-y-auto">
+                    {/* Quick selection toolbar */}
+                    <div className="flex items-center justify-between text-xs text-neutral-600">
+                        <span className="font-semibold">
+                            Selected: {selectedEnrollmentIds.length} of {academicHistory?.classes.length ?? 0} {academicHistory?.classes.length === 1 ? "record" : "records"}
+                        </span>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={selectAllEnrollments}
+                                className="font-medium text-blue-600 hover:underline cursor-pointer"
+                            >
+                                Select All
+                            </button>
+                            <span>·</span>
+                            <button
+                                type="button"
+                                onClick={clearAllEnrollments}
+                                className="font-medium text-neutral-500 hover:underline cursor-pointer"
+                            >
+                                Deselect All
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* List of available school year records */}
+                    <div className="flex flex-col gap-2.5">
+                        {academicHistory?.classes.map((cls) => {
+                            const isSelected = selectedEnrollmentIds.includes(cls.enrollmentId);
+                            const qCount = cls.numQuarters ?? (cls.subjects[0]?.quarters.length || 4);
+                            return (
+                                <label
+                                    key={cls.enrollmentId}
+                                    className={`flex items-start gap-3.5 p-3.5 rounded-xl border transition-all cursor-pointer ${
+                                        isSelected
+                                            ? "border-blue-500 bg-blue-50/40 shadow-xs"
+                                            : "border-neutral-200 bg-white hover:border-neutral-300"
+                                    }`}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={() => toggleEnrollmentSelection(cls.enrollmentId)}
+                                        className="mt-1 h-4 w-4 rounded border-neutral-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span className="font-bold text-sm text-neutral-900">
+                                                Grade {cls.gradeLevel} &middot; {cls.section}
+                                            </span>
+                                            <span className="text-xs font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-md">
+                                                SY {cls.schoolYear}
+                                            </span>
+                                        </div>
+                                        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-600">
+                                            <span>Adviser: <strong className="text-neutral-800">{cls.adviser ?? "—"}</strong></span>
+                                            <span>&middot;</span>
+                                            <span>{qCount} {qCount === 1 ? "Quarter" : "Quarters"}</span>
+                                            <span>&middot;</span>
+                                            <span>
+                                                Average:{" "}
+                                                <strong className={cls.generalAverage !== null && isPassing(cls.generalAverage) ? "text-emerald-700" : "text-neutral-800"}>
+                                                    {cls.generalAverage ?? "In progress"}
+                                                </strong>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </label>
+                            );
+                        })}
+                    </div>
+
+                    {/* Notice about SF10 format */}
+                    <div className="rounded-lg bg-amber-50/80 border border-amber-200/80 p-3 text-[0.75rem] text-amber-800">
+                        <strong>SF10 Layout:</strong> The official DepEd Form 137 format accommodates up to 2 school years on Page 1 (Grades 7–8) and 2 school years on Page 2 (Grades 9–10). Only your selected records will appear in the printed document.
+                    </div>
+                </div>
+
+                <footer className="students-form__footer flex items-center justify-end gap-3 p-4 px-6 border-t bg-neutral-50">
+                    <button
+                        type="button"
+                        className="students-form__cancel rounded-lg border px-4 py-2 text-sm font-semibold"
+                        onClick={() => setPrintModalOpen(false)}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        className="students-form__submit inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-white"
+                        disabled={selectedEnrollmentIds.length === 0 || pdfLoading}
+                        onClick={() => {
+                            if (!viewStudent || selectedEnrollmentIds.length === 0) return;
+                            setPrintModalOpen(false);
+                            openStudentRecordPdf(viewStudent, selectedEnrollmentIds);
+                        }}
+                    >
+                        <FiPrinter aria-hidden="true" />
+                        {pdfLoading ? "Preparing…" : `Print Selected (${selectedEnrollmentIds.length})`}
+                    </button>
+                </footer>
+            </ModalDialog>
+    );
 
     /* =================== Navigation between list and details =================== */
     const detailState = location.state as DetailLocationState;
@@ -535,7 +696,7 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
                                 <button
                                     type="button"
                                     className="students-detail__print inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[0.8125rem] font-semibold"
-                                    onClick={() => openStudentRecordPdf(viewing)}
+                                    onClick={() => handlePrintClick(viewing)}
                                     disabled={pdfLoading}
                                     aria-label={`Print SF10 for ${viewing.fullname}`}
                                     title="Print the complete SF10 / Form-137 student record"
@@ -778,6 +939,7 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
                         </div>
                     )}
                 </PageSection>
+                {printModal}
             </PageShell>
         );
     }
@@ -1087,6 +1249,8 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
                             </footer>
                         </form>
             </ModalDialog>
+
+            {printModal}
 
             {/* Delete student confirmation */}
             <ConfirmDialog
