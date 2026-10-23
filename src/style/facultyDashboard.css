@@ -622,6 +622,51 @@
   border-color: var(--neutral-border);
 }
 
+/* ---------- Honor students ---------- */
+.faculty-dashboard__honor {
+  border-color: var(--neutral-border);
+  background: var(--surface-white);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.faculty-dashboard__honor:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--primary-light);
+}
+
+.faculty-dashboard__honor-rank {
+  color: var(--text-dark);
+  background: var(--neutral-border);
+}
+
+.faculty-dashboard__honor-rank--1 {
+  color: #78350F;
+  background: linear-gradient(135deg, #FDE68A, #F59E0B);
+  box-shadow: 0 6px 14px -6px rgba(245, 158, 11, 0.6);
+}
+
+.faculty-dashboard__honor-rank--2 {
+  color: #334155;
+  background: linear-gradient(135deg, #E2E8F0, #94A3B8);
+  box-shadow: 0 6px 14px -6px rgba(148, 163, 184, 0.55);
+}
+
+.faculty-dashboard__honor-rank--3 {
+  color: #7C2D12;
+  background: linear-gradient(135deg, #FED7AA, #EA580C);
+  box-shadow: 0 6px 14px -6px rgba(234, 88, 12, 0.5);
+}
+
+.faculty-dashboard__honor-meta {
+  color: var(--text-muted);
+}
+
+.faculty-dashboard__honor-average {
+  color: var(--primary-dark);
+  background: var(--primary-light);
+}
+
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   .faculty-dashboard__hero,
@@ -631,7 +676,8 @@
 
   .faculty-dashboard__stat,
   .faculty-dashboard__action,
-  .faculty-dashboard__class {
+  .faculty-dashboard__class,
+  .faculty-dashboard__honor {
     transition: none;
   }
 

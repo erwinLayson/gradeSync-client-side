@@ -2,10 +2,8 @@ import {
     FiArrowLeft,
     FiBookOpen,
     FiCheck,
-    FiChevronDown,
     FiChevronLeft,
     FiChevronRight,
-    FiChevronUp,
     FiEdit3,
     FiPlus,
     FiSave,
@@ -215,21 +213,8 @@ export default function FacultyGradebook() {
     const [draftScores, setDraftScores] = useState<DraftScores>({});
     const [savingScores, setSavingScores] = useState<boolean>(false);
 
-    // ================ Mobile preview collapse / expand state ================
+    // ================ Mobile preview collapse state ================
     const [isStudentColCollapsed, setIsStudentColCollapsed] = useState<boolean>(false);
-    const [expandedStudentIds, setExpandedStudentIds] = useState<Set<number>>(new Set());
-
-    const toggleStudentRow = useCallback((enrollmentId: number) => {
-        setExpandedStudentIds((prev) => {
-            const next = new Set(prev);
-            if (next.has(enrollmentId)) {
-                next.delete(enrollmentId);
-            } else {
-                next.add(enrollmentId);
-            }
-            return next;
-        });
-    }, []);
 
     // ================ Component tabs (for composite subjects) ================
     const [selectedComponentId, setSelectedComponentId] = useState<number | null>(null);
@@ -994,11 +979,9 @@ export default function FacultyGradebook() {
                                         componentGrades: [],
                                         fromServer: false,
                                     };
-                                    const isRowExpanded = expandedStudentIds.has(student.enrollmentId);
 
                                     return (
-                                        <Fragment key={student.enrollmentId}>
-                                            <tr className="hover:bg-gray-50/70 transition-colors">
+                                            <tr key={student.enrollmentId} className="hover:bg-gray-50/70 transition-colors">
                                                 {/* Sticky Student Column */}
                                                 <td
                                                     className={`faculty-gradebook__sticky-col transition-all ${
@@ -1008,41 +991,23 @@ export default function FacultyGradebook() {
                                                     }`}
                                                 >
                                                     {isStudentColCollapsed ? (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => toggleStudentRow(student.enrollmentId)}
-                                                            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#EAF5EE] text-[#176B3A] font-bold text-xs border border-[#176B3A]/20 cursor-pointer shadow-2xs hover:scale-105 transition-transform"
-                                                            title={`${student.fullname}\nLRN: ${student.studentLrn}\nClick to toggle row details`}
-                                                            aria-label={`Toggle row details for ${student.fullname}`}
+                                                        <span
+                                                            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#EAF5EE] text-[#176B3A] font-bold text-xs border border-[#176B3A]/20"
+                                                            title={student.fullname}
                                                         >
                                                             {getInitials(student.fullname)}
-                                                        </button>
+                                                        </span>
                                                     ) : (
-                                                        <div className="flex items-center justify-between gap-2">
-                                                            <div className="flex flex-col min-w-0">
-                                                                <span
-                                                                    className="font-bold text-gray-900 text-[0.8125rem] leading-snug truncate"
-                                                                    title={student.fullname}
-                                                                >
-                                                                    {student.fullname}
-                                                                </span>
-                                                                <span className="text-[0.6875rem] text-gray-400 font-mono mt-0.5 truncate">
-                                                                    {student.studentLrn}
-                                                                </span>
-                                                            </div>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => toggleStudentRow(student.enrollmentId)}
-                                                                className="p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer shrink-0"
-                                                                title={isRowExpanded ? "Collapse student details" : "Expand student details"}
-                                                                aria-label={isRowExpanded ? "Collapse student details" : "Expand student details"}
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span
+                                                                className="font-bold text-gray-900 text-[0.8125rem] leading-snug truncate"
+                                                                title={student.fullname}
                                                             >
-                                                                {isRowExpanded ? (
-                                                                    <FiChevronUp className="w-3.5 h-3.5 text-[#176B3A]" />
-                                                                ) : (
-                                                                    <FiChevronDown className="w-3.5 h-3.5" />
-                                                                )}
-                                                            </button>
+                                                                {student.fullname}
+                                                            </span>
+                                                            <span className="text-[0.6875rem] text-gray-400 font-mono mt-0.5 truncate">
+                                                                {student.studentLrn}
+                                                            </span>
                                                         </div>
                                                     )}
                                                 </td>
@@ -1147,129 +1112,6 @@ export default function FacultyGradebook() {
                                                     )}
                                                 </td>
                                             </tr>
-
-                                            {/* Mobile / Compact Expanded Student Details Accordion */}
-                                            {isRowExpanded && (
-                                                <tr className="bg-[#F7FAF8] border-b border-gray-200">
-                                                    <td
-                                                        colSpan={1 + assessments.length + 3}
-                                                        className="p-3 sm:p-4"
-                                                    >
-                                                        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm space-y-3">
-                                                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
-                                                                <div>
-                                                                    <h4 className="font-bold text-sm text-gray-900">
-                                                                        {student.fullname}
-                                                                    </h4>
-                                                                    <p className="text-xs text-gray-500 font-mono">
-                                                                        LRN: {student.studentLrn}
-                                                                    </p>
-                                                                </div>
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="text-xs font-semibold text-gray-500">
-                                                                        Quarter Grade:{" "}
-                                                                        <strong
-                                                                            className={
-                                                                                isPassing(computed.quarterGrade)
-                                                                                    ? "text-[#176B3A]"
-                                                                                    : "text-red-600"
-                                                                            }
-                                                                        >
-                                                                            {computed.quarterGrade !== null
-                                                                                ? computed.quarterGrade.toFixed(2)
-                                                                                : "—"}
-                                                                        </strong>
-                                                                    </span>
-                                                                    {computed.remarks && (
-                                                                        <span
-                                                                            className={`faculty-gradebook__remarks-badge ${
-                                                                                computed.remarks === "Passed"
-                                                                                    ? "faculty-gradebook__remarks-badge--passed"
-                                                                                    : "faculty-gradebook__remarks-badge--failed"
-                                                                            }`}
-                                                                        >
-                                                                            {computed.remarks}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Assessment Score Fields for Mobile Preview */}
-                                                            <div className="space-y-3">
-                                                                <span className="text-[0.6875rem] font-bold text-gray-400 uppercase tracking-wider block">
-                                                                    Assessments & Scores
-                                                                </span>
-                                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                                                                    {activeGroups.map((group) => (
-                                                                        <div key={group.type} className="space-y-1.5 rounded-lg border border-gray-100 bg-gray-50/60 p-2.5">
-                                                                            <div
-                                                                                className="flex items-center gap-1.5 text-xs font-bold"
-                                                                                style={{ color: group.color }}
-                                                                            >
-                                                                                <span
-                                                                                    className="w-2 h-2 rounded-full"
-                                                                                    style={{ backgroundColor: group.color }}
-                                                                                />
-                                                                                <span>{group.meta.label} ({group.weight}%)</span>
-                                                                            </div>
-                                                                            <div className="space-y-1.5">
-                                                                                {group.items.map((assessment) => (
-                                                                                    <div
-                                                                                        key={assessment.id}
-                                                                                        className="flex items-center justify-between gap-2 p-1.5 rounded-md bg-white border border-gray-200 text-xs"
-                                                                                    >
-                                                                                        <div className="min-w-0">
-                                                                                            <p className="font-semibold text-gray-800 truncate" title={assessment.title}>
-                                                                                                {assessment.title}
-                                                                                            </p>
-                                                                                            <p className="text-[0.625rem] text-gray-400 font-mono">
-                                                                                                Max: {assessment.maxScore}
-                                                                                            </p>
-                                                                                        </div>
-                                                                                        <div className="flex items-center gap-1 shrink-0">
-                                                                                            <input
-                                                                                                type="number"
-                                                                                                inputMode="decimal"
-                                                                                                min={0}
-                                                                                                max={Number(assessment.maxScore)}
-                                                                                                step="0.01"
-                                                                                                value={draftRow[assessment.id] ?? ""}
-                                                                                                placeholder="—"
-                                                                                                className="w-16 rounded border border-gray-300 bg-white px-2 py-1 text-center font-mono text-xs font-bold text-gray-800 focus:border-[#176B3A] focus:outline-none"
-                                                                                                onChange={(e) =>
-                                                                                                    handleScoreChange(
-                                                                                                        student.enrollmentId,
-                                                                                                        assessment.id,
-                                                                                                        e.target.value,
-                                                                                                    )
-                                                                                                }
-                                                                                            />
-                                                                                            <span className="text-gray-400 text-[0.6875rem] font-mono">
-                                                                                                /{assessment.maxScore}
-                                                                                            </span>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                ))}
-                                                                            </div>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Attendance info */}
-                                                            <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-xs text-gray-500">
-                                                                <span>Attendance:</span>
-                                                                <span className="font-mono font-bold text-gray-800">
-                                                                    {student.attendance && student.attendance.totalDays > 0
-                                                                        ? `${student.attendance.percentage.toFixed(0)}% (${student.attendance.presentDays}/${student.attendance.totalDays} days)`
-                                                                        : "No records"}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </Fragment>
                                     );
                                 })}
                             </tbody>

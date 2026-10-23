@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import {
     FiAlertCircle,
+    FiAward,
     FiBell,
     FiBookOpen,
-    FiChevronRight,
     FiClipboard,
     FiClock,
     FiHome,
@@ -19,19 +19,19 @@ import "../../style/facultyDashboard.css";
 
 export default function FacultyDashboard() {
     const navigate = useNavigate();
-    const { quarters } = useAcademicSettings();
+    const { quarters, currentQuarter } = useAcademicSettings();
     const {
         faculty,
         classes,
         adviserClasses,
         adviserClassStats,
+        honorStudents,
         totalStudents,
         totalSubjects,
         weeklyHours,
         loading,
         error,
-        studentCountFor,
-    } = useFacultyOverview();
+    } = useFacultyOverview(currentQuarter);
 
     // ==================== Loading state ====================
     if (loading) {
@@ -257,74 +257,55 @@ export default function FacultyDashboard() {
             
             </div>
 
-            {/* ==================== Teaching Load ==================== */}
-            {classes && classes.length > 0 && (
+            {/* ==================== Honor Students (adviser-only) ==================== */}
+            {adviserClasses && adviserClasses.length > 0 && honorStudents && (
                 <div className="faculty-dashboard__card overflow-hidden rounded-2xl bg-white shadow-sm">
                     <div className="faculty-dashboard__card-head flex flex-wrap items-center justify-between gap-4 p-5">
                         <div className="faculty-dashboard__card-heading min-w-0">
-                            <h3 className="faculty-dashboard__card-title text-base font-bold">Teaching Load</h3>
+                            <h3 className="faculty-dashboard__card-title text-base font-bold">Honor Students</h3>
                             <p className="faculty-dashboard__card-subtitle mt-1 text-[0.8125rem]">
-                                All classes where you have assigned subjects
+                                Average {honorStudents.passingGrade} or higher in Grade {honorStudents.classGradeLevel} — {honorStudents.classSection} · Quarter {honorStudents.quarter}
                             </p>
                         </div>
                         <span className="faculty-dashboard__count inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
-                            {classes?.length} {classes?.length === 1 ? "class" : "classes"}
+                            <FiAward aria-hidden="true" />
+                            {honorStudents.students.length} honor {honorStudents.students.length === 1 ? "student" : "students"}
                         </span>
                     </div>
 
-                    <div className="faculty-dashboard__classes grid grid-cols-1 gap-4 p-5 sm:grid-cols-2">
-                        {classes?.map((classGroup) => (
-                            <article className="faculty-dashboard__class flex flex-col overflow-hidden rounded-xl border" key={classGroup.classId}>
-                                <div className="faculty-dashboard__class-head flex items-start justify-between gap-3 p-4 pb-3">
-                                    <div className="min-w-0">
-                                        <span className="faculty-dashboard__class-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">
-                                            Grade {classGroup.classGradeLevel}
-                                        </span>
-                                        <h4 className="faculty-dashboard__class-name mt-1 truncate text-[1.0625rem] font-bold">
-                                            {classGroup.classSection}
-                                        </h4>
-                                        <p className="faculty-dashboard__class-room mt-0.5 font-mono text-[0.6875rem]">
-                                            Classroom #{classGroup.classId}
-                                        </p>
-                                    </div>
-                                    <span className="faculty-dashboard__class-icon inline-flex h-9 w-9 items-center justify-center rounded-lg text-lg" aria-hidden="true">
-                                        <FiBookOpen />
-                                    </span>
-                                </div>
-                                <div className="faculty-dashboard__class-body flex flex-1 flex-col gap-2 p-4 pt-0">
-                                    {classGroup.subjects.map((subject) => (
-                                        <div className="faculty-dashboard__class-subject flex items-center gap-2.5 rounded-lg border p-2.5" key={subject.subjectId}>
-                                            <span className="faculty-dashboard__class-subject-code inline-flex h-7 w-12 shrink-0 items-center justify-center rounded-md text-[0.625rem] font-bold">
-                                                {subject.subjectCode}
-                                            </span>
-                                            <div className="min-w-0">
-                                                <span className="faculty-dashboard__class-subject-name block truncate text-[0.75rem] font-bold">
-                                                    {subject.subjectName}
-                                                </span>
-                                                <span className="faculty-dashboard__class-subject-meta block font-mono text-[0.625rem]">
-                                                    {subject.subjectUnit} unit{subject.subjectUnit === 1 ? "" : "s"}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="faculty-dashboard__class-foot flex items-center justify-between gap-3 p-4 pt-3">
-                                    <span className="faculty-dashboard__class-stat flex items-center gap-1.5 text-[0.75rem]">
-                                        <FiUsers aria-hidden="true" />
-                                        <strong>{studentCountFor(classGroup.classId)}</strong> students
-                                    </span>
-                                    <button
-                                        type="button"
-                                        className="faculty-dashboard__class-link inline-flex items-center gap-1 text-[0.6875rem] font-bold"
-                                        onClick={() => navigate("/faculty/classes")}
-                                        aria-label={`Open Grade ${classGroup.classGradeLevel} ${classGroup.classSection}`}
+                    {honorStudents.students.length === 0 ? (
+                        <div className="faculty-dashboard__empty flex flex-col items-center justify-center px-6 py-10 text-center">
+                            <span className="faculty-dashboard__empty-icon inline-flex h-10 w-10 items-center justify-center rounded-full" aria-hidden="true">
+                                <FiAward />
+                            </span>
+                            <p className="mt-2 text-[0.8125rem] font-bold">No honor students yet</p>
+                            <p className="mt-1 text-[0.6875rem]">
+                                No student has reached the {honorStudents.passingGrade} average for Quarter {honorStudents.quarter} yet.
+                            </p>
+                        </div>
+                    ) : (
+                        <ol className="grid grid-cols-1 gap-3 p-5 sm:grid-cols-2 xl:grid-cols-3">
+                            {honorStudents.students.map((student) => (
+                                <li className="faculty-dashboard__honor flex items-center gap-3 rounded-xl border p-3.5" key={student.enrollmentId}>
+                                    <span
+                                        className={`faculty-dashboard__honor-rank faculty-dashboard__honor-rank--${Math.min(student.rank, 3)} inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[0.8125rem] font-bold`}
+                                        aria-label={`Rank ${student.rank}`}
                                     >
-                                        View <FiChevronRight aria-hidden="true" />
-                                    </button>
-                                </div>
-                            </article>
-                        ))}
-                    </div>
+                                        {student.rank}
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                        <span className="block truncate text-[0.8125rem] font-bold">{student.fullname}</span>
+                                        <span className="faculty-dashboard__honor-meta block font-mono text-[0.6875rem]">
+                                            LRN {student.studentLrn} · {student.gradedSubjects} subject{student.gradedSubjects === 1 ? "" : "s"}
+                                        </span>
+                                    </div>
+                                    <span className="faculty-dashboard__honor-average inline-flex shrink-0 items-center rounded-lg px-2 py-1 text-[0.8125rem] font-bold">
+                                        {student.average.toFixed(2)}
+                                    </span>
+                                </li>
+                            ))}
+                        </ol>
+                    )}
                 </div>
             )}
         </PageShell>

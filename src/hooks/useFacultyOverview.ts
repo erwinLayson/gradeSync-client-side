@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { getAPICall } from "../api/api";
 import { useUser } from "./useUser";
@@ -24,6 +24,27 @@ export interface AdviserClassStat {
     femaleCount: number;
 }
 
+// One ranked student in the adviser's class honor roll.
+export interface AdviserHonorStudent {
+    rank: number;
+    enrollmentId: number;
+    studentId: number;
+    studentLrn: string;
+    fullname: string;
+    average: number;
+    gradedSubjects: number;
+}
+
+// Top students of the advised class, ranked by average quarter grade.
+export interface AdviserHonorStudents {
+    classId: number;
+    classSection: string;
+    classGradeLevel: number;
+    quarter: number;
+    passingGrade: number;
+    students: AdviserHonorStudent[];
+}
+
 export interface FacultyOverview {
     faculty: FacultyDetails;
     subjectDetails: FacultySubjectDetails[];
@@ -31,6 +52,7 @@ export interface FacultyOverview {
     classes: ClassGroup[];
     adviserClasses: ClassroomResponseProps[];
     adviserClassStats: AdviserClassStat[];
+    honorStudents: AdviserHonorStudents | null;
     totalStudents: number;
     totalSubjects: number;
     weeklyHours: number;
@@ -38,7 +60,7 @@ export interface FacultyOverview {
 
 // ================= Hook =================
 
-export function useFacultyOverview() {
+export function useFacultyOverview(quarter = 1) {
     const { user, loading: userLoading } = useUser();
     const [data, setData] = useState<FacultyOverview | null>(null);
     const [loading, setLoading] = useState(true);
@@ -133,7 +155,25 @@ export function useFacultyOverview() {
                 );
                 if (cancelled) return;
 
-                // 6. Compute summary stats
+                // 6. Honor roll for the advised class. Adviser-only: no request
+                // is sent when the faculty advises no class, and the server also
+                // returns null in that case.
+                let honorStudents: AdviserHonorStudents | null = null;
+                if (adviserClasses.length > 0) {
+                    try {
+                        const honorRes = await getAPICall<AdviserHonorStudents | null>(
+                            `/classrooms/my-advised-class/honor-students?quarter=${quarter}`,
+                            { toast: false },
+                        );
+                        if (cancelled) return;
+                        honorStudents = honorRes.data ?? null;
+                    } catch {
+                        // Non-blocking: the dashboard simply hides the honor roll.
+                    }
+                }
+                if (cancelled) return;
+
+                // 7. Compute summary stats
                 const totalStudents = adviserClasses.reduce(
                     (sum, cl) => sum + (cl.totalStudent ?? 0),
                     0,
@@ -148,6 +188,7 @@ export function useFacultyOverview() {
                     classes,
                     adviserClasses,
                     adviserClassStats,
+                    honorStudents,
                     totalStudents,
                     totalSubjects,
                     weeklyHours,
@@ -164,19 +205,11 @@ export function useFacultyOverview() {
         return () => {
             cancelled = true;
         };
-    }, [user, userLoading]);
-
-    // Derived helper: student count for a given classId
-    const studentCountFor = useMemo(() => {
-        if (!data) return () => 0;
-        const { classrooms } = data;
-        return (classId: number) => classrooms.find((cl) => cl.id === classId)?.totalStudent ?? 0;
-    }, [data]);
+    }, [user, userLoading, quarter]);
 
     return {
         ...data,
         loading: userLoading || loading,
         error,
-        studentCountFor,
     };
 }
