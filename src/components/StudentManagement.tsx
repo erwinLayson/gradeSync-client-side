@@ -642,6 +642,8 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
                                             {academicHistory.classes.map((cls) => {
                                                 const isCollapsed = collapsedYears.has(cls.enrollmentId);
                                                 const bodyId = `academic-year-${cls.enrollmentId}`;
+                                                const classQuarterCount = cls.numQuarters ?? (cls.subjects[0]?.quarters.length || quarters.length);
+                                                const classQuarters = Array.from({ length: classQuarterCount }, (_, i) => i + 1);
                                                 return (
                                                     <article key={cls.enrollmentId} className="students-detail__class overflow-hidden rounded-xl border border-neutral-200">
                                                         <div className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4">
@@ -702,7 +704,7 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
                                                                                 <th scope="col" className="data-table__th w-56">Subject</th>
                                                                                 <th scope="col" className="data-table__th w-24">Code</th>
                                                                                 <th scope="col" className="data-table__th data-table__th--center w-20">Units</th>
-                                                                                {quarters.map((q) => (
+                                                                                {classQuarters.map((q) => (
                                                                                     <th key={q} scope="col" className="data-table__th data-table__th--center w-20">Q{q}</th>
                                                                                 ))}
                                                                                 <th scope="col" className="data-table__th data-table__th--center w-20">Final</th>
@@ -719,9 +721,9 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
                                                                                     </td>
                                                                                     <td className="data-table__td data-table__td--muted">{subject.code}</td>
                                                                                     <td className="data-table__td data-table__td--center">{subject.unit ?? "—"}</td>
-                                                                                    {subject.quarters.map((quarter, index) => (
+                                                                                    {classQuarters.map((_q, index) => (
                                                                                         <td key={index} className="data-table__td data-table__td--center">
-                                                                                            {quarter ?? "—"}
+                                                                                            {subject.quarters[index] ?? "—"}
                                                                                         </td>
                                                                                     ))}
                                                                                     <td className={`data-table__td data-table__td--center data-table__td--primary${isPassing(subject.final) ? " students-detail__final--pass" : ""}`}>
@@ -748,7 +750,7 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
                                                                                         <td className="data-table__td data-table__td--center text-xs">
                                                                                             {comp.weight === null ? "—" : `${comp.weight}%`}
                                                                                         </td>
-                                                                                        {quarters.map((_quarter, index) => (
+                                                                                        {classQuarters.map((_quarter, index) => (
                                                                                             <td key={index} className="data-table__td data-table__td--center data-table__td--muted text-xs">
                                                                                                 {comp.grades[index] ?? "—"}
                                                                                             </td>

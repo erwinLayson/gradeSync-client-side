@@ -70,6 +70,7 @@ export interface StudentClass {
     adviser: string | null;
     subjects: SubjectGrade[];
     generalAverage: number | null;
+    numQuarters?: number;
 }
 
 export interface StudentClassesData {

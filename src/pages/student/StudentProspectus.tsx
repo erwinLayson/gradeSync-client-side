@@ -190,6 +190,8 @@ export default function StudentProspectus() {
                     const attendance = aggregateAttendance(year.subjects);
                     const graded = year.generalAverage !== null;
                     const promoted = graded && isPassing(year.generalAverage);
+                    const yearQuarterCount = year.numQuarters ?? (year.subjects[0]?.quarters.length || quarters.length);
+                    const yearQuarters = Array.from({ length: yearQuarterCount }, (_, i) => i + 1);
 
                     return (
                         <article key={year.enrollmentId} className="student-prospectus__year-card overflow-hidden rounded-2xl">
@@ -234,7 +236,7 @@ export default function StudentProspectus() {
                                     <thead>
                                         <tr>
                                             <th scope="col" className="data-table__th w-56">Subject</th>
-                                            {quarters.map((quarter) => (
+                                            {yearQuarters.map((quarter) => (
                                                 <th key={quarter} scope="col" className="data-table__th data-table__th--center w-20">Q{quarter}</th>
                                             ))}
                                             <th scope="col" className="data-table__th data-table__th--center w-20">Final</th>
@@ -248,7 +250,7 @@ export default function StudentProspectus() {
                                                     <span className="data-table__value">{subject.name}</span>
                                                     <span className="data-table__sub">{subject.code}</span>
                                                 </td>
-                                                {quarters.map((_quarter, index) => (
+                                                {yearQuarters.map((_quarter, index) => (
                                                     <td key={index} className="data-table__td data-table__td--center">
                                                         {subject.quarters[index] ?? "—"}
                                                     </td>
@@ -274,7 +276,7 @@ export default function StudentProspectus() {
                                             </tr>
                                         ))}
                                         <tr className="student-prospectus__grade-general data-table__row">
-                                            <td className="data-table__td" colSpan={quarters.length + 1}>
+                                            <td className="data-table__td" colSpan={yearQuarters.length + 1}>
                                                 General Average
                                             </td>
                                             <td className="data-table__td data-table__td--center data-table__td--primary">
