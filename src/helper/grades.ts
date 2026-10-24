@@ -28,6 +28,11 @@ export function isPassing(grade: number | null | undefined): boolean {
     return grade !== null && grade !== undefined && grade >= PASSING_GRADE;
 }
 
+/** Stored grades are displayed with two decimals (e.g. 83 -> "83.00"). */
+export function formatGrade(grade: number | null | undefined): string {
+    return grade === null || grade === undefined ? "-" : grade.toFixed(2);
+}
+
 export interface FlatQuarterGradePreview {
     totalScore: number;
     totalMaxScore: number;

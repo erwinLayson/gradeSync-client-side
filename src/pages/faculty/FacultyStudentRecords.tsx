@@ -19,6 +19,7 @@ import { ModalDialog } from "../../components/ModalDialog";
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
+import { formatGrade } from "../../helper/grades";
 import { toast } from "../../helper/toast";
 
 import type {
@@ -30,12 +31,6 @@ import type {
 import "../../style/facultyStudentRecords.css";
 
 // ================= Helpers =================
-
-// E8: frozen/computed grades are stored exactly, but displayed as whole numbers
-// (matching the printed DepEd form).
-function formatGrade(grade: number | null): string {
-    return grade === null ? "—" : String(Math.round(grade));
-}
 
 function formatSubmittedAt(iso: string | null): string | null {
     if (!iso) return null;

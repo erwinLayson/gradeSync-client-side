@@ -13,7 +13,7 @@ import { PageHeader, PageSection, PageShell } from "../../components/PageLayout"
 import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useUser } from "../../hooks/useUser";
-import { isPassing } from "../../helper/grades";
+import { formatGrade, isPassing } from "../../helper/grades";
 
 import type { ClassroomResponseProps, ClassroomFacultiesWithSubjectProps } from "../../constant/classrooms";
 
@@ -470,7 +470,7 @@ export default function FacultyMyClass() {
                                                                             isPassing(grade) ? "text-green-700"
                                                                             : "text-red-700"
                                                                         }`}>
-                                                                            {grade.toFixed(1)}
+                                                                            {formatGrade(grade)}
                                                                         </span>
                                                                     ) : (
                                                                         <span className="text-gray-400">—</span>

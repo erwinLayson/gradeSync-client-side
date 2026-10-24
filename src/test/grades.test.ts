@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   PASSING_GRADE,
   isPassing,
+  formatGrade,
   computeFlatQuarterGradePreview,
 } from "../helper/grades";
 import type { Assessment } from "../constant/assessment";
@@ -29,6 +30,19 @@ describe("grades helper", () => {
     it("returns false for null and undefined", () => {
       expect(isPassing(null)).toBe(false);
       expect(isPassing(undefined)).toBe(false);
+    });
+  });
+
+  describe("formatGrade", () => {
+    it("always displays two decimal places", () => {
+      expect(formatGrade(83)).toBe("83.00");
+      expect(formatGrade(83.5)).toBe("83.50");
+      expect(formatGrade(83.456)).toBe("83.46");
+    });
+
+    it("shows a dash for missing grades", () => {
+      expect(formatGrade(null)).toBe("-");
+      expect(formatGrade(undefined)).toBe("-");
     });
   });
 
