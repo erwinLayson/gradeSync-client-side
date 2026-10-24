@@ -112,7 +112,7 @@ export default function RegisterDashboard() {
           </p>
           <p className="mt-4 flex items-start gap-2 text-[0.75rem] text-amber-700">
             <FiInbox className="mt-0.5 shrink-0" aria-hidden="true" />
-            Student record editing, deletion, school-year setup, and report cards are handled by
+            Report card generation (SF9) and system settings are handled by
             the school administrator.
           </p>
         </PageSection>

@@ -49,8 +49,7 @@ interface AcademicSettingsData {
 
 export interface EnrollmentWorkspaceProps {
   /**
-   * Admin-only: create a new school year from the header. Register must not be
-   * able to create/activate school years.
+   * Admin and Register: create a new school year from the header.
    */
   allowSchoolYearCreation?: boolean;
 }
@@ -103,6 +102,7 @@ export default function EnrollmentWorkspace({
 
   // ============ School Year ============
   const [schoolYear, setSchoolYear] = useState<SchoolYear[] | null>(null);
+  const [schoolYearLoading, setSchoolYearLoading] = useState(true);
   const [selectedSchoolYearId, setSelectedSchoolYearId] = useState<number | null>(null);
 
   // ============ Enrollment Window ============
@@ -145,10 +145,16 @@ export default function EnrollmentWorkspace({
 
   useEffect(() => {
     fetchStudents();
-    getAPICall<SchoolYear[]>("/schoolYear").then((response) => {
-      setSchoolYear(response.data ?? null);
-      setSelectedSchoolYearId((current) => current ?? response.data?.[0]?.id ?? null);
-    });
+    getAPICall<SchoolYear[]>("/schoolYear")
+      .then((response) => {
+        setSchoolYear(response.data ?? []);
+        setSelectedSchoolYearId((current) => current ?? response.data?.[0]?.id ?? null);
+      })
+      .catch(() => {
+        // Keep the flow usable: an outage is not the same as "still loading".
+        setSchoolYear([]);
+      })
+      .finally(() => setSchoolYearLoading(false));
     getAPICall<AcademicSettingsData>("/academic-settings", { toast: false }).then((response) => {
       setEnrollmentOpen(Boolean(response.data?.enrollmentOpen));
     });
@@ -505,18 +511,24 @@ export default function EnrollmentWorkspace({
             <div className="max-w-md">
               <select
                 value={selectedSchoolYearId ?? ""}
-                onChange={(e) => setSelectedSchoolYearId(Number(e.target.value))}
+                onChange={(e) => {
+                  const nextId = Number(e.target.value);
+                  if (nextId) setSelectedSchoolYearId(nextId);
+                }}
                 aria-label="Select school year"
-                className="w-full rounded-lg border border-[var(--neutral-border)] bg-[var(--surface-bg)] px-3.5 py-2.5 text-xs font-semibold text-neutral-800 transition focus:border-[var(--primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+                disabled={schoolYearLoading || !schoolYear?.length}
+                className="w-full rounded-lg border border-[var(--neutral-border)] bg-[var(--surface-bg)] px-3.5 py-2.5 text-xs font-semibold text-neutral-800 transition focus:border-[var(--primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {schoolYear && schoolYear.length > 0 ? (
+                {schoolYearLoading ? (
+                  <option value="">Loading school years…</option>
+                ) : schoolYear && schoolYear.length > 0 ? (
                   schoolYear.map((sy) => (
                     <option key={sy.id} value={sy.id}>
                       {sy.startYear}–{sy.endYear} {sy.status === "ongoing" ? "— Current" : ""}
                     </option>
                   ))
                 ) : (
-                  <option value="">Loading school years…</option>
+                  <option value="">No school years available</option>
                 )}
               </select>
             </div>
@@ -1002,7 +1014,9 @@ export default function EnrollmentWorkspace({
                         {cs.code}
                       </span>
                       <span className="text-xs font-medium text-neutral-700">
-                        {cs.unit} unit{cs.unit === 1 ? "" : "s"}
+                        {cs.unit === null || cs.unit === undefined
+                          ? "No units"
+                          : `${cs.unit} unit${cs.unit === 1 ? "" : "s"}`}
                       </span>
                     </label>
                   );

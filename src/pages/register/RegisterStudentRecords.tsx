@@ -87,10 +87,7 @@ export default function RegisterStudentRecords() {
 
         async function loadContext() {
             try {
-                const [yearsResponse, settingsResponse] = await Promise.all([
-                    getAPICall<SchoolYear[]>("/schoolYear", { toast: false }),
-                    getAPICall<AcademicSettingsData>("/academic-settings", { toast: false }),
-                ]);
+                const yearsResponse = await getAPICall<SchoolYear[]>("/schoolYear", { toast: false });
                 if (cancelled) return;
 
                 const yearsData = yearsResponse.data ?? [];
@@ -98,6 +95,20 @@ export default function RegisterStudentRecords() {
                 const active = yearsData.find((sy) => Boolean(sy.isActive));
                 const initialId = active ? String(active.id) : yearsData[0] ? String(yearsData[0].id) : "";
                 setSelectedYearId(initialId);
+
+                // No school year means no summary request will run, so clear the
+                // page-level loading state here instead of leaving the skeleton
+                // up forever.
+                if (!initialId) setLoading(false);
+            } catch {
+                // Error toast is handled by the API interceptor. The tracker must
+                // still leave its loading state so the empty/error UI is reachable.
+                if (!cancelled) setLoading(false);
+            }
+
+            try {
+                const settingsResponse = await getAPICall<AcademicSettingsData>("/academic-settings", { toast: false });
+                if (cancelled) return;
 
                 const settings = settingsResponse.data;
                 if (settings) {

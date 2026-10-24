@@ -119,13 +119,19 @@ function getTotalComponentWeight(): number {
 async function handleCreateModalForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (!Validate(newSubject)) {
+    // Units and sub-components are optional: only name and code are required.
+    if (!Validate({ name: newSubject.name, code: newSubject.code })) {
         return;
     }
 
     try {
         // Call API to create subject
-        await postAPICall<NewSubject, null>('/subjects', newSubject);
+        await postAPICall<NewSubject, null>('/subjects', {
+            ...newSubject,
+            unit: newSubject.unit.trim(),
+            hasComponents: Boolean(newSubject.hasComponents),
+            components: newSubject.hasComponents ? newSubject.components ?? [] : [],
+        });
 
         setNewSubject({ name: "", code: "", unit: "", hasComponents: false, components: [] });
         fetchSubjects();
@@ -143,7 +149,7 @@ async function handleEditSubjectClick(subject: Subject) {
     setNewSubject({
         name: subject.name,
         code: subject.code,
-        unit: String(subject.unit),
+        unit: subject.unit === null || subject.unit === undefined ? "" : String(subject.unit),
         hasComponents: subject.hasComponents ?? false,
         components: [],
     });
@@ -175,12 +181,17 @@ async function handleEditModalForm(e: React.FormEvent<HTMLFormElement>) {
         return;
     }
 
-    if (!Validate(newSubject)) {
+    if (!Validate({ name: newSubject.name, code: newSubject.code })) {
         return;
     }
 
     try {
-        await putAPICall<NewSubject, null>(`/subjects/${editingSubject.id}`, newSubject);
+        await putAPICall<NewSubject, null>(`/subjects/${editingSubject.id}`, {
+            ...newSubject,
+            unit: newSubject.unit.trim(),
+            hasComponents: Boolean(newSubject.hasComponents),
+            components: newSubject.hasComponents ? newSubject.components ?? [] : [],
+        });
         await fetchSubjects();
         // Keep the detail view in sync if this subject is currently open.
         if (selectedSubject?.id === editingSubject.id) {
@@ -453,7 +464,7 @@ return (
                                             <span className="subjects__item-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">Subject ID</span>
                                             <span className="subjects__item-id font-mono text-[0.8125rem]">#{subject.id}</span>
                                         </div>
-                                        {subject.hasComponents && (
+                                        {Boolean(subject.hasComponents) && (
                                             <div className="subjects__item-stat flex min-w-0 flex-col">
                                                 <span className="subjects__item-label text-[0.625rem] font-bold uppercase tracking-[0.08em]">Type</span>
                                                 <span className="inline-flex items-center gap-1 rounded bg-green-100 px-2 py-0.5 text-[0.6875rem] font-bold text-green-700">
@@ -517,7 +528,7 @@ return (
                     </div>
 
                     {/* Components section */}
-                    {selectedSubject.hasComponents && selectedSubject.components && selectedSubject.components.length > 0 && (
+                    {Boolean(selectedSubject.hasComponents) && selectedSubject.components && selectedSubject.components.length > 0 && (
                         <section className="subjects__components border-b p-5" aria-label="Sub-components">
                             <div className="mb-3 flex items-center justify-between">
                                 <div>
@@ -699,7 +710,7 @@ return (
                                         />
                                     </div>
                                     <div className="subjects-form__field flex flex-col gap-1.5">
-                                        <label htmlFor="subject-unit" className="subjects-form__label text-[0.8125rem] font-semibold">Units</label>
+                                        <label htmlFor="subject-unit" className="subjects-form__label text-[0.8125rem] font-semibold">Units <span className="font-normal text-neutral-500">(optional)</span></label>
                                         <input
                                             id="subject-unit"
                                             type="number"
@@ -732,7 +743,7 @@ return (
                                 </div>
 
                                 {/* Components Form */}
-                                {newSubject.hasComponents && (
+                                {Boolean(newSubject.hasComponents) && (
                                     <div className="subjects-form__components rounded-lg border p-4">
                                         <div className="mb-3 flex items-center justify-between">
                                             <h4 className="text-[0.8125rem] font-bold">Sub-Components</h4>
