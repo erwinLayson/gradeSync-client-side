@@ -4,7 +4,6 @@ import { FiDownload, FiFileText, FiUsers } from "react-icons/fi";
 import { getAPICall, API } from "../../api/api";
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
-import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useUser } from "../../hooks/useUser";
 
 import type { ClassroomResponseProps } from "../../constant/classrooms";
@@ -29,20 +28,16 @@ interface ClassroomWithStudents extends ClassroomResponseProps {
     students: Student[];
 }
 
-type Quarter = number;
 
 export default function FacultyReport() {
     const { user, loading: userLoading } = useUser();
-    const { quarters } = useAcademicSettings();
 
-    const QUARTER_LABELS = Object.fromEntries(quarters.map((q) => [q, `${q === 1 ? "1st" : q === 2 ? "2nd" : q === 3 ? "3rd" : "4th"} Quarter`])) as Record<number, string>;
 
     const [adviserClass, setAdviserClass] = useState<AdvisedClassData | null>(null);
     const [roster, setRoster] = useState<ClassroomWithStudents | null>(null);
     const [loading, setLoading] = useState(true);
     const [loadingRoster, setLoadingRoster] = useState(false);
 
-    const [selectedQuarter, setSelectedQuarter] = useState<Quarter>(1);
     const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
     useEffect(() => {
@@ -134,34 +129,6 @@ export default function FacultyReport() {
                 description="DepEd Form 138 — Report Card"
                 meta={`${students.length} students`}
             />
-
-            {/* Quarter selector + Actions */}
-            <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white p-5 shadow-sm">
-                <div className="flex items-center gap-3">
-                    <span className="text-[0.8125rem] font-bold text-gray-700">Quarter:</span>
-                    <div className="flex gap-1.5">
-                        {quarters.map((q) => (
-                            <button
-                                key={q}
-                                type="button"
-                                className={`inline-flex cursor-pointer items-center rounded-lg px-4 py-2 text-[0.8125rem] font-bold transition-colors ${
-                                    selectedQuarter === q
-                                        ? "bg-blue-500 text-white shadow-sm"
-                                        : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                                }`}
-                                onClick={() => setSelectedQuarter(q)}
-                            >
-                                Q{q}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                <div className="flex items-center gap-3">
-                    <span className="text-[0.8125rem] text-gray-500">
-                        <span className="font-bold text-gray-700">{QUARTER_LABELS[selectedQuarter]}</span>
-                    </span>
-                </div>
-            </div>
 
             {/* Student list */}
             <div className="faculty-classes__card overflow-hidden rounded-2xl bg-white shadow-sm">
