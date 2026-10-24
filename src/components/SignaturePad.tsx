@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import SignaturePadLib from "signature_pad";
-import { FiCheck, FiInfo, FiSave, FiTrash2, FiX } from "react-icons/fi";
+import { FiCheck, FiEdit3, FiInfo, FiLock, FiSave, FiTrash2, FiX } from "react-icons/fi";
 
 import { getAPICall, uploadFile } from "../api/api";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -34,6 +34,7 @@ export default function SignaturePad() {
 
     const [saved, setSaved] = useState<SchoolSignatureProps | null>(null);
     const [loading, setLoading] = useState(true);
+    const [drawingEnabled, setDrawingEnabled] = useState(false);
     const [hasDrawing, setHasDrawing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -122,6 +123,7 @@ export default function SignaturePad() {
 
     function cancelDrawing() {
         clearDrawing();
+        setDrawingEnabled(false);
         setConfirmOpen(false);
     }
 
@@ -153,6 +155,7 @@ export default function SignaturePad() {
             // Only discard the drawing once the save succeeded.
             pad.clear();
             setHasDrawing(false);
+            setDrawingEnabled(false);
             setConfirmOpen(false);
 
             if (savedTimer.current !== null) window.clearTimeout(savedTimer.current);
@@ -169,7 +172,7 @@ export default function SignaturePad() {
 
     function requestSave() {
         const pad = padRef.current;
-        if (!pad || saving || loading || pad.isEmpty()) return;
+        if (!pad || !drawingEnabled || saving || loading || pad.isEmpty()) return;
         // Replacing an existing signature asks for confirmation first.
         if (saved) {
             setConfirmOpen(true);
@@ -178,7 +181,7 @@ export default function SignaturePad() {
         void persist();
     }
 
-    const canSave = hasDrawing && !saving && !loading;
+    const canSave = drawingEnabled && hasDrawing && !saving && !loading;
 
     return (
         <div className="settings__signature-block">
@@ -197,7 +200,32 @@ export default function SignaturePad() {
                             className="settings__signature-canvas"
                             aria-label="Signature drawing area"
                         />
-                        {!hasDrawing && !loading && (
+                        {!drawingEnabled && (
+                            <div className="settings__signature-lock">
+                                {loading ? (
+                                    <span className="settings__signature-empty">Loading...</span>
+                                ) : (
+                                    <>
+                                        <FiLock className="settings__signature-lock-icon" aria-hidden="true" />
+                                        <p className="settings__signature-lock-text">
+                                            Drawing is locked to prevent accidental marks.
+                                        </p>
+                                        <button
+                                            type="button"
+                                            className="settings__btn inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-[0.8125rem] font-semibold"
+                                            onClick={() => {
+                                                setError(null);
+                                                setDrawingEnabled(true);
+                                            }}
+                                        >
+                                            <FiEdit3 aria-hidden="true" />
+                                            Start signing
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        )}
+                        {drawingEnabled && !hasDrawing && !loading && (
                             <span className="settings__signature-hint" aria-hidden="true">Sign here</span>
                         )}
                     </div>
@@ -223,6 +251,17 @@ export default function SignaturePad() {
             </div>
 
             <div className="settings__signature-actions">
+                {drawingEnabled && (
+                    <button
+                        type="button"
+                        className="settings__btn settings__btn--ghost inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-[0.8125rem] font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+                        onClick={() => setDrawingEnabled(false)}
+                        disabled={saving}
+                    >
+                        <FiLock aria-hidden="true" />
+                        Lock
+                    </button>
+                )}
                 <button
                     type="button"
                     className="settings__btn settings__btn--ghost inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-[0.8125rem] font-semibold disabled:cursor-not-allowed disabled:opacity-60"

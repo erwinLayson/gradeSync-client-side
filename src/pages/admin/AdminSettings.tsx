@@ -11,6 +11,7 @@ import { useUser } from "../../hooks/useUser";
 import { invalidateSchoolInfoCache } from "../../hooks/useSchoolInfo";
 import { getAPICall, patchAPICall, putAPICall } from "../../api/api.js";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import SchoolLogoUploader from "../../components/SchoolLogoUploader";
 import SignaturePad from "../../components/SignaturePad";
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 
@@ -593,6 +594,9 @@ export default function AdminSettings() {
                         </div>
                     </footer>
                 </form>
+
+                {/* School logo — uploaded image stored in the database. */}
+                <SchoolLogoUploader />
 
                 {/* Authorized signature — drawn on a canvas, stored in the database. */}
                 <SignaturePad />

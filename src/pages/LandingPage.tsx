@@ -27,6 +27,7 @@ import {
 import { useLandingContent } from "../hooks/useLandingContent";
 import { useAuth } from "../hooks/useAuth";
 import { useUser } from "../hooks/useUser";
+import { useSchoolLogo } from "../hooks/useSchoolLogo";
 import FullscreenLoader from "../components/FullscreenLoader";
 import "../style/landingPage.css";
 
@@ -48,6 +49,8 @@ function LandingPage() {
   const { loading, auth } = useAuth();
   const { user } = useUser();
   const { content } = useLandingContent();
+  const { schoolLogo } = useSchoolLogo();
+  const brandLogo = schoolLogo ?? logo1;
   const location = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
@@ -238,7 +241,7 @@ function LandingPage() {
         <div className="landing__container">
           <a href="#home" className="landing-brand" onClick={closeNav}>
             <span className="landing-brand__logo">
-              <img src={logo1} alt={`${SCHOOL_NAME} logo`} />
+              <img src={brandLogo} alt={`${SCHOOL_NAME} logo`} />
             </span>
             <span className="landing-brand__name">{SCHOOL_NAME}</span>
           </a>
@@ -552,7 +555,7 @@ function LandingPage() {
             <div className="landing-footer__about">
               <div className="landing-footer__brand">
                 <span className="landing-footer__logo">
-                  <img src={logo1} alt={`${SCHOOL_NAME} logo`} />
+                  <img src={brandLogo} alt={`${SCHOOL_NAME} logo`} />
                 </span>
                 <div>
                   <p className="landing-footer__name">{SCHOOL_NAME}</p>

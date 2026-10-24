@@ -11,6 +11,9 @@ import "../style/sidebar.css";
 import { useAuth } from "../hooks/useAuth";
 import {useUser} from "../hooks/useUser";
 
+const FALLBACK_SCHOOL_LOGO =
+  "https://depedtacurong.org/wp-content/uploads/2024/02/241134825_394178255747167_6128050800374409151_n-1024x1024.jpg";
+
 interface SidebarProps {
   mobileOpen?: boolean;
   onMobileClose?: () => void;
@@ -22,7 +25,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const navigate = useNavigate();
   const { loading, logout } = useAuth();
   const {user} = useUser();
-  const { schoolName } = useSchoolInfo();
+  const { schoolName, schoolLogo } = useSchoolInfo();
   const [loggingOut, setLoggingOut] = useState(false);
   const logoutTriggerRef = useRef<HTMLButtonElement>(null);
   const navRef = useRef<HTMLElement>(null);
@@ -82,7 +85,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         <div className="sidebar__logo-wrap">
           <div className="sidebar__logo">
             <img
-              src="https://depedtacurong.org/wp-content/uploads/2024/02/241134825_394178255747167_6128050800374409151_n-1024x1024.jpg"
+              src={schoolLogo ?? FALLBACK_SCHOOL_LOGO}
               alt="School Logo"
             />
           </div>

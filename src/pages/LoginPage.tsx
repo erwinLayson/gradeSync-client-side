@@ -11,6 +11,7 @@ import { postAPICall } from "../api/api";
 
 import { dashboardPathFor } from "../constant/navigation";
 import { useUser } from "../hooks/useUser";
+import { useSchoolLogo } from "../hooks/useSchoolLogo";
 // Types
 import type { UserRoles } from '../constant/users'
 // Styles
@@ -25,6 +26,7 @@ interface LoginCredentials {
 function LoginPage() {
   const navigate = useNavigate()
   const { fetchUser } = useUser()
+  const { schoolLogo } = useSchoolLogo()
   const [showPassword, setShowPassword] = useState(false)
   const [rememberEmail, setRememberEmail] = useState(() =>
     localStorage.getItem("gradeSync-remembered-email") ?? ""
@@ -105,7 +107,7 @@ function LoginPage() {
             </a>
 
             <div className="login-card__logo">
-              <img src={`${logo1}`} alt="School logo" className='w-full h-full object-cover'/>
+              <img src={schoolLogo ?? logo1} alt="School logo" className='w-full h-full object-cover'/>
             </div>
             <h1 className="login-card__title">
               Welcome back

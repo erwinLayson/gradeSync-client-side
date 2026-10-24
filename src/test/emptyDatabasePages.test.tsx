@@ -95,6 +95,9 @@ const apiState = vi.hoisted(() => {
         if (path === "/school-info/signature") {
             return { signature: null };
         }
+        if (path === "/school-info/logo") {
+            return { logo: null };
+        }
         if (path === "/grading-weight-defaults") {
             return {
                 writtenWorkWeight: 20,
