@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { FiDownload, FiFileText, FiUsers } from "react-icons/fi";
+import { FiExternalLink, FiFileText, FiUsers } from "react-icons/fi";
 
 import { getAPICall, API } from "../../api/api";
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
@@ -28,7 +28,6 @@ interface ClassroomWithStudents extends ClassroomResponseProps {
     students: Student[];
 }
 
-
 export default function FacultyReport() {
     const { user, loading: userLoading } = useUser();
 
@@ -38,7 +37,7 @@ export default function FacultyReport() {
     const [loading, setLoading] = useState(true);
     const [loadingRoster, setLoadingRoster] = useState(false);
 
-    const [downloadingId, setDownloadingId] = useState<number | null>(null);
+    const [openingId, setOpeningId] = useState<number | null>(null);
 
     useEffect(() => {
         if (userLoading) return;
@@ -73,11 +72,11 @@ export default function FacultyReport() {
         return () => { cancelled = true; };
     }, [user, userLoading]);
 
-    const handleDownload = useCallback((enrollmentId: number) => {
-        setDownloadingId(enrollmentId);
+    const handleOpen = useCallback((enrollmentId: number) => {
+        setOpeningId(enrollmentId);
         const baseURL = API.defaults.baseURL as string;
         window.open(`${baseURL}/student/${enrollmentId}/report-card`, "_blank");
-        setTimeout(() => setDownloadingId(null), 1500);
+        setTimeout(() => setOpeningId(null), 1500);
     }, []);
 
 
@@ -122,7 +121,7 @@ export default function FacultyReport() {
     const students = roster?.students ?? [];
 
     return (
-        <PageShell className="faculty-classes">
+        <PageShell className="faculty-classes faculty-report">
             {/* Header */}
             <PageHeader
                 title={`Grade ${classroom.gradeLevel} — ${classroom.section}`}
@@ -133,11 +132,16 @@ export default function FacultyReport() {
             {/* Student list */}
             <div className="faculty-classes__card overflow-hidden rounded-2xl bg-white shadow-sm">
                 <div className="faculty-classes__card-head flex flex-wrap items-center justify-between gap-4 p-5">
-                    <div className="faculty-classes__card-heading min-w-0">
-                        <h3 className="faculty-classes__card-title text-base font-bold">Student Report Cards</h3>
-                        <p className="faculty-classes__card-subtitle mt-1 text-[0.8125rem]">
-                            Click &quot;Download&quot; to generate a PDF report card for each student
-                        </p>
+                    <div className="faculty-classes__card-heading flex min-w-0 items-start gap-3">
+                        <span className="faculty-report__head-icon" aria-hidden="true">
+                            <FiFileText />
+                        </span>
+                        <div className="min-w-0">
+                            <h3 className="faculty-classes__card-title text-base font-bold">Student Report Cards</h3>
+                            <p className="faculty-classes__card-subtitle mt-1 text-[0.8125rem]">
+                                Click &quot;Open PDF&quot; to view the report card for each student
+                            </p>
+                        </div>
                     </div>
                     {!loadingRoster && students.length > 0 && (
                         <span className="faculty-classes__count inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-1 text-xs font-semibold">
@@ -147,7 +151,7 @@ export default function FacultyReport() {
                     )}
                 </div>
 
-                <div className="data-table__wrap rounded-xl border">
+                <div className="data-table__wrap faculty-report__table">
                     {loadingRoster ? (
                         <div className="p-5">
                             <Skeleton count={5} lines={1} height="3.5rem" gap="0.75rem" />
@@ -157,11 +161,11 @@ export default function FacultyReport() {
                             <thead>
                                 <tr>
                                     <th scope="col" className="data-table__th data-table__th--num w-12">#</th>
-                                    <th scope="col" className="data-table__th w-32">LRN</th>
-                                    <th scope="col" className="data-table__th w-48">Student Name</th>
+                                    <th scope="col" className="data-table__th w-36">LRN</th>
+                                    <th scope="col" className="data-table__th w-56">Student Name</th>
                                     <th scope="col" className="data-table__th data-table__th--center w-16">Sex</th>
                                     <th scope="col" className="data-table__th data-table__th--center w-16">Age</th>
-                                    <th scope="col" className="data-table__th data-table__th--actions w-32">Action</th>
+                                    <th scope="col" className="data-table__th data-table__th--actions w-36">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -171,7 +175,11 @@ export default function FacultyReport() {
                                         <td className="data-table__td data-table__td--mono">
                                             {student.studentLrn}
                                         </td>
-                                        <td className="data-table__td data-table__td--primary">{student.fullname}</td>
+                                        <td className="data-table__td">
+                                            <div className="faculty-report__student">
+                                                <span className="faculty-report__student-name">{student.fullname}</span>
+                                            </div>
+                                        </td>
                                         <td className="data-table__td data-table__td--center">
                                             <span className={`faculty-classes__sex inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold capitalize faculty-classes__sex--${student.studentSex.toLowerCase()}`}>
                                                 {student.studentSex}
@@ -181,12 +189,13 @@ export default function FacultyReport() {
                                         <td className="data-table__td data-table__td--actions">
                                             <button
                                                 type="button"
-                                                className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-[0.75rem] font-bold text-blue-700 transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
-                                                onClick={() => handleDownload(student.enrollmentId)}
-                                                disabled={downloadingId === student.enrollmentId}
+                                                className="faculty-report__open"
+                                                onClick={() => handleOpen(student.enrollmentId)}
+                                                disabled={openingId === student.enrollmentId}
+                                                aria-label={`Open report card PDF for ${student.fullname}`}
                                             >
-                                                <FiDownload aria-hidden="true" />
-                                                {downloadingId === student.enrollmentId ? "Generating…" : "Download"}
+                                                <FiExternalLink aria-hidden="true" />
+                                                {openingId === student.enrollmentId ? "Opening…" : "Open PDF"}
                                             </button>
                                         </td>
                                     </tr>
