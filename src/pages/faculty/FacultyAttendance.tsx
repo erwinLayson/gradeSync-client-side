@@ -1,7 +1,9 @@
 import {
     FiCalendar,
     FiCheck,
+    FiEdit3,
     FiGrid,
+    FiLock,
     FiPlus,
     FiRefreshCw,
     FiRotateCcw,
@@ -15,10 +17,13 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { getAPICall, postAPICall } from "../../api/api";
+import { patchSingleStudentAttendance } from "../../api/amendments";
 import { ModalDialog } from "../../components/ModalDialog";
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
+import { RequestAmendmentModal } from "../../components/RequestAmendmentModal";
 import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
+import { useMyAmendments } from "../../hooks/useMyAmendments";
 import { useUser } from "../../hooks/useUser";
 import { toast } from "../../helper/toast";
 
@@ -161,7 +166,7 @@ function formatStudentName(student: AttendanceMatrix["students"][number]): strin
 
 export default function FacultyAttendance() {
     const { user, loading: userLoading } = useUser();
-    const { quarters, currentQuarter, loading: settingsLoading } = useAcademicSettings();
+    const { quarters, currentQuarter, settings, loading: settingsLoading } = useAcademicSettings();
     const [searchParams, setSearchParams] = useSearchParams();
 
     // ==================== State ====================
@@ -223,6 +228,41 @@ export default function FacultyAttendance() {
     const [pendingDays, setPendingDays] = useState<Record<string, string[]>>({});
     // The button that opened the dialog; ModalDialog returns focus to it.
     const createTriggerRef = useRef<HTMLButtonElement>(null);
+
+    // ==================== Amendment Workflow & Permissions ====================
+    const { hasActivePermission, getPendingRequest, refresh: refreshAmendments } = useMyAmendments();
+    const [amendmentTarget, setAmendmentTarget] = useState<{
+        student: AttendanceMatrix["students"][number];
+        date: string;
+        currentStatus: AttendanceStatus | null;
+    } | null>(null);
+
+    const isQuarterLocked = Boolean(
+        settings?.submissionsLocked ||
+        (quarterFilter !== ALL_QUARTERS && currentQuarter && Number(quarterFilter) < currentQuarter)
+    );
+
+    async function handleSaveAmendedAttendance(
+        student: AttendanceMatrix["students"][number],
+        date: string,
+        newStatus: AttendanceStatus
+    ) {
+        if (!selectedSubjectId || quarterFilter === ALL_QUARTERS) return;
+        try {
+            await patchSingleStudentAttendance(selectedSubjectId, student.enrollmentId, {
+                date,
+                status: newStatus,
+                quarter: Number(quarterFilter),
+                reason: "Teacher updated attendance with approved amendment",
+            });
+            toast.success("Amended attendance saved successfully.");
+            setCells((prev) => ({ ...prev, [cellKey(student.enrollmentId, date)]: newStatus }));
+            setServerCells((prev) => ({ ...prev, [cellKey(student.enrollmentId, date)]: newStatus }));
+            refreshAmendments();
+        } catch {
+            // Handled by API error interceptor
+        }
+    }
 
     // ==================== Load faculty + subject assignments + school years ====================
     useEffect(() => {
@@ -405,7 +445,8 @@ export default function FacultyAttendance() {
 
     // A specific quarter must be selected to write: every attendance row stores
     // the faculty-chosen quarter, so "All quarters" is a read-only view.
-    const canEdit = quarterFilter !== ALL_QUARTERS;
+    // If the selected quarter is locked, bulk edits are disabled.
+    const canEdit = quarterFilter !== ALL_QUARTERS && !isQuarterLocked;
     const busy = savingBulk;
 
     // Track dirty keys and modified dates for bulk saving
@@ -812,6 +853,25 @@ export default function FacultyAttendance() {
             />
 
                 <>
+                    {/* ==================== Locked Quarter Alert Banner ==================== */}
+                    {isQuarterLocked && (
+                        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-700/50 dark:bg-amber-950/30">
+                            <div className="flex items-center gap-3">
+                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
+                                    <FiLock className="w-5 h-5" aria-hidden="true" />
+                                </span>
+                                <div>
+                                    <h4 className="text-xs font-bold text-amber-900 dark:text-amber-200">
+                                        Quarter {quarterFilter} Attendance is Locked {settings?.submissionsLocked ? "(Submissions Locked)" : "(Past Quarter)"}
+                                    </h4>
+                                    <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
+                                        Historical attendance records cannot be bulk-edited. To modify an individual student's attendance, click the amendment icon on their cell to submit an Amendment Request.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* ==================== Toolbar: subject + school year + quarter + date range ==================== */}
                     <div className="faculty-attendance__toolbar flex flex-wrap items-end justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm">
                         <div className="faculty-attendance__filters flex flex-wrap items-end gap-3">
@@ -928,9 +988,12 @@ export default function FacultyAttendance() {
                             <button
                                 type="button"
                                 ref={createTriggerRef}
-                                className="faculty-attendance__save faculty-attendance__save--primary inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"
+                                className={`faculty-attendance__save faculty-attendance__save--primary inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold ${
+                                    isQuarterLocked ? "opacity-50 cursor-not-allowed" : ""
+                                }`}
                                 onClick={openCreateDialog}
-                                disabled={subjects.length === 0}
+                                disabled={subjects.length === 0 || isQuarterLocked}
+                                title={isQuarterLocked ? "Quarter is locked — attendance dates cannot be added" : undefined}
                             >
                                 <FiPlus aria-hidden="true" />
                                 Create Attendance
@@ -1193,6 +1256,22 @@ export default function FacultyAttendance() {
                                                         const isDirty = dirtyKeys.has(key);
                                                         const displayVal = status === "present" ? "1" : status === "absent" ? "0" : "";
                                                         const label = status === "present" ? "Present (1)" : status === "absent" ? "Absent (0)" : "Not recorded";
+
+                                                        const hasPermission = quarterFilter !== ALL_QUARTERS && selectedSubjectId !== null && hasActivePermission({
+                                                            enrollmentId: student.enrollmentId,
+                                                            quarter: Number(quarterFilter),
+                                                            recordType: "attendance",
+                                                            classSubjectId: selectedSubjectId,
+                                                        });
+                                                        const pendingReq = quarterFilter !== ALL_QUARTERS && selectedSubjectId !== null && getPendingRequest({
+                                                            enrollmentId: student.enrollmentId,
+                                                            quarter: Number(quarterFilter),
+                                                            recordType: "attendance",
+                                                            classSubjectId: selectedSubjectId,
+                                                        });
+                                                        const isCellLocked = isQuarterLocked && !hasPermission;
+                                                        const isDisabled = (!canEdit && !hasPermission) || savingBulk;
+
                                                         return (
                                                             <td key={date} className="faculty-attendance__grid-cell px-1 py-1.5 text-center">
                                                                 <div className="relative inline-flex items-center justify-center">
@@ -1204,12 +1283,26 @@ export default function FacultyAttendance() {
                                                                         maxLength={1}
                                                                         value={displayVal}
                                                                         placeholder="·"
-                                                                        disabled={!canEdit || savingBulk}
+                                                                        disabled={isDisabled}
                                                                         className={`faculty-attendance__input-cell faculty-attendance__input-cell--${
                                                                             status ?? "none"
-                                                                        }${isDirty ? " faculty-attendance__input-cell--dirty" : ""}`}
+                                                                        }${isDirty ? " faculty-attendance__input-cell--dirty" : ""}${
+                                                                            hasPermission ? " ring-2 ring-emerald-500 border-emerald-500 bg-emerald-50/50" : ""
+                                                                        }${isCellLocked ? " cursor-not-allowed bg-slate-100 opacity-70" : ""}`}
                                                                         onFocus={(e) => e.target.select()}
                                                                         onKeyDown={(e) => {
+                                                                            if (isQuarterLocked && hasPermission) {
+                                                                                if (e.key === "1") {
+                                                                                    e.preventDefault();
+                                                                                    handleSaveAmendedAttendance(student, date, "present");
+                                                                                    focusCell(studentIndex + 1, dateIndex);
+                                                                                } else if (e.key === "0") {
+                                                                                    e.preventDefault();
+                                                                                    handleSaveAmendedAttendance(student, date, "absent");
+                                                                                    focusCell(studentIndex + 1, dateIndex);
+                                                                                }
+                                                                                return;
+                                                                            }
                                                                             if (e.key === "1") {
                                                                                 e.preventDefault();
                                                                                 handleSetCellValue(student.enrollmentId, date, "present");
@@ -1238,6 +1331,16 @@ export default function FacultyAttendance() {
                                                                         onChange={(e) => {
                                                                             const raw = e.target.value.trim();
                                                                             const char = raw.slice(-1);
+                                                                            if (isQuarterLocked && hasPermission) {
+                                                                                if (char === "1") {
+                                                                                    handleSaveAmendedAttendance(student, date, "present");
+                                                                                    focusCell(studentIndex + 1, dateIndex);
+                                                                                } else if (char === "0") {
+                                                                                    handleSaveAmendedAttendance(student, date, "absent");
+                                                                                    focusCell(studentIndex + 1, dateIndex);
+                                                                                }
+                                                                                return;
+                                                                            }
                                                                             if (char === "1") {
                                                                                 handleSetCellValue(student.enrollmentId, date, "present");
                                                                                 focusCell(studentIndex + 1, dateIndex);
@@ -1257,6 +1360,31 @@ export default function FacultyAttendance() {
                                                                             title="Unsaved change"
                                                                             aria-hidden="true"
                                                                         />
+                                                                    )}
+                                                                    {isCellLocked && (
+                                                                        pendingReq ? (
+                                                                            <span
+                                                                                title="Amendment request pending review"
+                                                                                className="pointer-events-none absolute -top-1 -right-1 inline-flex h-3 w-3 items-center justify-center rounded-full bg-amber-500 text-white text-[8px]"
+                                                                            >
+                                                                                •
+                                                                            </span>
+                                                                        ) : (
+                                                                            <button
+                                                                                type="button"
+                                                                                title="Request Amendment"
+                                                                                onClick={() =>
+                                                                                    setAmendmentTarget({
+                                                                                        student,
+                                                                                        date,
+                                                                                        currentStatus: status ?? null,
+                                                                                    })
+                                                                                }
+                                                                                className="absolute -top-1 -right-1 inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-amber-100 text-amber-700 shadow-sm hover:bg-amber-200"
+                                                                            >
+                                                                                <FiEdit3 className="w-2.5 h-2.5" aria-hidden="true" />
+                                                                            </button>
+                                                                        )
                                                                     )}
                                                                 </div>
                                                             </td>
@@ -1470,6 +1598,35 @@ export default function FacultyAttendance() {
                             </div>
                         </form>
                     </ModalDialog>
+
+                    {/* ==================== Request Amendment Modal ==================== */}
+                    {amendmentTarget && selectedSubject && quarterFilter !== ALL_QUARTERS && (
+                        <RequestAmendmentModal
+                            isOpen={Boolean(amendmentTarget)}
+                            onClose={() => setAmendmentTarget(null)}
+                            onSuccess={() => {
+                                setAmendmentTarget(null);
+                                refreshAmendments();
+                            }}
+                            recordType="attendance"
+                            studentId={amendmentTarget.student.studentId}
+                            studentName={formatStudentName(amendmentTarget.student)}
+                            studentLrn={amendmentTarget.student.studentLrn}
+                            enrollmentId={amendmentTarget.student.enrollmentId}
+                            classSubjectId={selectedSubject.classSubjectId}
+                            subjectName={selectedSubject.subjectName}
+                            classroomId={selectedSubject.classId}
+                            classSection={selectedSubject.classSection}
+                            quarter={Number(quarterFilter)}
+                            currentValueDisplay={
+                                amendmentTarget.currentStatus
+                                    ? `${amendmentTarget.date}: ${amendmentTarget.currentStatus}`
+                                    : `${amendmentTarget.date}: Not recorded`
+                            }
+                            proposedValueLabel="Proposed Attendance Status"
+                            proposedValuePlaceholder="e.g. Present (or Excused)"
+                        />
+                    )}
                 </>
         </PageShell>
     );

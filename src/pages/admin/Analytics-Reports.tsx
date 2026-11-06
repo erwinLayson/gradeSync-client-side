@@ -17,17 +17,10 @@ import { KpiCard } from "../../components/KpiCard";
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import { SkeletonLine } from "../../components/Skeleton";
 import "../../style/skeleton.css";
+import type { SchoolYear } from "../../constant/schoolYear.js";
 import "../../style/analyticsReports.css";
 
 // ==================== Types (mirror the server /api/analytics response) ====================
-
-interface SchoolYear {
-    id: number;
-    startYear: string;
-    endYear: string;
-    // Authoritative completion marker — see plan §7.
-    status?: "ongoing" | "completed" | string;
-}
 
 interface EnrollmentByGrade {
     gradeLevel: number;

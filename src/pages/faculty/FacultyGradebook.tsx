@@ -4,7 +4,10 @@ import {
     FiCheck,
     FiChevronLeft,
     FiChevronRight,
+    FiClock,
     FiEdit3,
+    FiFileText,
+    FiLock,
     FiPlus,
     FiSave,
     FiTrash2,
@@ -23,9 +26,12 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 
 import { deleteAPICall, getAPICall, patchAPICall, postAPICall, putAPICall } from "../../api/api";
+import { patchSingleStudentScore } from "../../api/amendments";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
+import { useMyAmendments } from "../../hooks/useMyAmendments";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ModalDialog } from "../../components/ModalDialog";
+import { RequestAmendmentModal } from "../../components/RequestAmendmentModal";
 import { PageShell } from "../../components/PageLayout";
 import Skeleton from "../../components/Skeleton";
 import { toast } from "../../helper/toast";
@@ -203,7 +209,7 @@ function getInitials(name: string): string {
 export default function FacultyGradebook() {
     const navigate = useNavigate();
     const { classId } = useParams();
-    const { quarters } = useAcademicSettings();
+    const { quarters, currentQuarter, settings } = useAcademicSettings();
     const classSubjectId = Number(classId);
 
     // ================ Page Data ================
@@ -212,6 +218,36 @@ export default function FacultyGradebook() {
     const [gradeBookDetails, setGradeBookDetails] = useState<GradebookDetails | null>(null);
     const [draftScores, setDraftScores] = useState<DraftScores>({});
     const [savingScores, setSavingScores] = useState<boolean>(false);
+
+    const isQuarterLocked = Boolean(
+        settings?.submissionsLocked ||
+        (currentQuarter && quarter < currentQuarter)
+    );
+
+    // ================ Amendments & Scoped Permissions ================
+    const { hasActivePermission, getPendingRequest, refresh: refreshAmendments } = useMyAmendments();
+    const [amendmentTarget, setAmendmentTarget] = useState<{
+        student: StudentGradebookRow;
+        assessment: Assessment;
+    } | null>(null);
+
+    async function handleSaveAmendedScore(assessmentId: number, enrollmentId: number, score: number) {
+        if (Number.isNaN(score) || score < 0) {
+            toast.error("Please enter a valid numeric score.");
+            return;
+        }
+        try {
+            await patchSingleStudentScore(assessmentId, enrollmentId, {
+                score,
+                reason: "Amended score updated by teacher with approved permission",
+            });
+            toast.success("Amended score saved successfully.");
+            await fetchGradebook(quarter);
+            refreshAmendments();
+        } catch {
+            // Handled by API error interceptor
+        }
+    }
 
     // ================ Mobile preview collapse state ================
     const [isStudentColCollapsed, setIsStudentColCollapsed] = useState<boolean>(false);
@@ -623,6 +659,33 @@ export default function FacultyGradebook() {
                 </div>
             </header>
 
+            {/* ==================== Locked Quarter Alert Banner ==================== */}
+            {isQuarterLocked && (
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-700/50 dark:bg-amber-950/30">
+                    <div className="flex items-center gap-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
+                            <FiLock className="w-5 h-5" aria-hidden="true" />
+                        </span>
+                        <div>
+                            <h4 className="text-xs font-bold text-amber-900 dark:text-amber-200">
+                                Quarter {quarter} is locked {settings?.submissionsLocked ? "(Submissions Locked)" : "(Past Quarter)"}
+                            </h4>
+                            <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
+                                Scores for locked quarters cannot be bulk-edited. To modify an individual student's score, click the amendment icon on their score cell to submit a formal amendment request.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => navigate("/faculty/amendments")}
+                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-800 shadow-sm hover:bg-amber-50 dark:border-amber-700 dark:bg-slate-800 dark:text-amber-300"
+                    >
+                        <FiFileText aria-hidden="true" />
+                        View My Amendment Requests
+                    </button>
+                </div>
+            )}
+
             {/* ==================== Composite Subject Tabs (MAPEH etc.) ==================== */}
             {isCompositeSubject && components.length > 0 ? (
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-2xs">
@@ -735,8 +798,11 @@ export default function FacultyGradebook() {
 
                         <button
                             type="submit"
-                            disabled={savingWeights}
-                            className="faculty-gradebook__weights-save-btn cursor-pointer inline-flex items-center gap-2"
+                            disabled={savingWeights || isQuarterLocked}
+                            title={isQuarterLocked ? "Quarter is locked — grading weights cannot be changed" : undefined}
+                            className={`faculty-gradebook__weights-save-btn cursor-pointer inline-flex items-center gap-2 ${
+                                isQuarterLocked ? "opacity-50 cursor-not-allowed" : ""
+                            }`}
                         >
                             {savingWeights ? "Saving…" : "Save Weights"}
                         </button>
@@ -759,7 +825,11 @@ export default function FacultyGradebook() {
 
                     <div className="flex items-center gap-3">
                         {/* Save status badge */}
-                        {isDirty ? (
+                        {isQuarterLocked ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200">
+                                <FiLock className="w-3.5 h-3.5" /> Locked
+                            </span>
+                        ) : isDirty ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200">
                                 Unsaved changes
                             </span>
@@ -772,7 +842,11 @@ export default function FacultyGradebook() {
                         <button
                             type="button"
                             onClick={openCreateModal}
-                            className="faculty-gradebook__btn-secondary cursor-pointer inline-flex items-center gap-1.5"
+                            disabled={isQuarterLocked}
+                            title={isQuarterLocked ? "Quarter is locked — assessments cannot be added" : undefined}
+                            className={`faculty-gradebook__btn-secondary cursor-pointer inline-flex items-center gap-1.5 ${
+                                isQuarterLocked ? "opacity-50 cursor-not-allowed" : ""
+                            }`}
                         >
                             <FiPlus className="w-3.5 h-3.5" />
                             <span>Add Item</span>
@@ -781,8 +855,11 @@ export default function FacultyGradebook() {
                         <button
                             type="button"
                             onClick={handleSaveScores}
-                            disabled={!isDirty || savingScores}
-                            className="faculty-gradebook__btn-primary cursor-pointer inline-flex items-center gap-1.5"
+                            disabled={!isDirty || savingScores || isQuarterLocked}
+                            title={isQuarterLocked ? "Quarter is locked — bulk saves disabled" : undefined}
+                            className={`faculty-gradebook__btn-primary cursor-pointer inline-flex items-center gap-1.5 ${
+                                isQuarterLocked ? "opacity-50 cursor-not-allowed" : ""
+                            }`}
                         >
                             <FiSave className="w-3.5 h-3.5" />
                             <span>{savingScores ? "Saving…" : "Save All"}</span>
@@ -1015,28 +1092,98 @@ export default function FacultyGradebook() {
                                                 {/* Scores for Each Active Category */}
                                                 {activeGroups.map((group) => (
                                                     <Fragment key={group.type}>
-                                                        {group.items.map((assessment) => (
-                                                            <td key={assessment.id} className="text-center px-1.5 py-2">
-                                                                <input
-                                                                    type="number"
-                                                                    inputMode="decimal"
-                                                                    min={0}
-                                                                    max={Number(assessment.maxScore)}
-                                                                    step="0.01"
-                                                                    className="faculty-gradebook__score-input"
-                                                                    value={draftRow[assessment.id] ?? ""}
-                                                                    placeholder="—"
-                                                                    aria-label={`${student.fullname} score in ${assessment.title}`}
-                                                                    onChange={(e) =>
-                                                                        handleScoreChange(
-                                                                            student.enrollmentId,
-                                                                            assessment.id,
-                                                                            e.target.value,
-                                                                        )
-                                                                    }
-                                                                />
-                                                            </td>
-                                                        ))}
+                                                        {group.items.map((assessment) => {
+                                                            const hasPermission = hasActivePermission({
+                                                                enrollmentId: student.enrollmentId,
+                                                                quarter,
+                                                                recordType: "gradebook_score",
+                                                                classSubjectId: gradeBookDetails?.classSubjectId,
+                                                            });
+                                                            const pendingReq = getPendingRequest({
+                                                                enrollmentId: student.enrollmentId,
+                                                                quarter,
+                                                                recordType: "gradebook_score",
+                                                                classSubjectId: gradeBookDetails?.classSubjectId,
+                                                            });
+                                                            const isCellLocked = isQuarterLocked && !hasPermission;
+                                                            const currentVal = draftRow[assessment.id] ?? "";
+
+                                                            return (
+                                                                <td key={assessment.id} className="text-center px-1.5 py-2">
+                                                                    <div className="inline-flex items-center justify-center gap-1">
+                                                                        <input
+                                                                            type="number"
+                                                                            inputMode="decimal"
+                                                                            min={0}
+                                                                            max={Number(assessment.maxScore)}
+                                                                            step="0.01"
+                                                                            disabled={isCellLocked}
+                                                                            className={`faculty-gradebook__score-input ${
+                                                                                hasPermission
+                                                                                    ? "ring-2 ring-emerald-500 border-emerald-500 bg-emerald-50/40 text-emerald-900 font-bold"
+                                                                                    : isCellLocked
+                                                                                    ? "bg-slate-100 text-slate-500 cursor-not-allowed opacity-80"
+                                                                                    : ""
+                                                                            }`}
+                                                                            value={currentVal}
+                                                                            placeholder="—"
+                                                                            aria-label={`${student.fullname} score in ${assessment.title}`}
+                                                                            onChange={(e) =>
+                                                                                handleScoreChange(
+                                                                                    student.enrollmentId,
+                                                                                    assessment.id,
+                                                                                    e.target.value,
+                                                                                )
+                                                                            }
+                                                                        />
+
+                                                                        {/* Inline Save Amendment button when approved permission is active */}
+                                                                        {hasPermission && (
+                                                                            <button
+                                                                                type="button"
+                                                                                title="Save amended score"
+                                                                                onClick={() =>
+                                                                                    handleSaveAmendedScore(
+                                                                                        assessment.id,
+                                                                                        student.enrollmentId,
+                                                                                        Number(currentVal),
+                                                                                    )
+                                                                                }
+                                                                                className="inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded bg-emerald-600 text-white shadow hover:bg-emerald-700"
+                                                                            >
+                                                                                <FiSave className="w-3.5 h-3.5" aria-hidden="true" />
+                                                                            </button>
+                                                                        )}
+
+                                                                        {/* If cell is locked and no permission, display request amendment action or pending indicator */}
+                                                                        {isCellLocked && (
+                                                                            pendingReq ? (
+                                                                                <span
+                                                                                    title="Amendment request pending review"
+                                                                                    className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-600"
+                                                                                >
+                                                                                    <FiClock className="w-3 h-3" aria-hidden="true" />
+                                                                                </span>
+                                                                            ) : (
+                                                                                <button
+                                                                                    type="button"
+                                                                                    title="Request Amendment"
+                                                                                    onClick={() =>
+                                                                                        setAmendmentTarget({
+                                                                                            student,
+                                                                                            assessment,
+                                                                                        })
+                                                                                    }
+                                                                                    className="inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded text-slate-400 hover:bg-amber-100 hover:text-amber-700"
+                                                                                >
+                                                                                    <FiEdit3 className="w-3 h-3" aria-hidden="true" />
+                                                                                </button>
+                                                                            )
+                                                                        )}
+                                                                    </div>
+                                                                </td>
+                                                            );
+                                                        })}
                                                     </Fragment>
                                                 ))}
 
@@ -1287,6 +1434,37 @@ export default function FacultyGradebook() {
                 onConfirm={handleDeleteAssessment}
                 onClose={() => setDeletingAssessment(null)}
             />
+
+            {/* ==================== Request Amendment Modal ==================== */}
+            {amendmentTarget && gradeBookDetails && (
+                <RequestAmendmentModal
+                    isOpen={Boolean(amendmentTarget)}
+                    onClose={() => setAmendmentTarget(null)}
+                    onSuccess={() => {
+                        setAmendmentTarget(null);
+                        refreshAmendments();
+                    }}
+                    recordType="gradebook_score"
+                    studentId={amendmentTarget.student.studentId}
+                    studentName={amendmentTarget.student.fullname}
+                    studentLrn={amendmentTarget.student.studentLrn}
+                    enrollmentId={amendmentTarget.student.enrollmentId}
+                    classSubjectId={gradeBookDetails.classSubjectId}
+                    subjectName={gradeBookDetails.subjectName}
+                    classroomId={gradeBookDetails.classId}
+                    classSection={gradeBookDetails.classSection}
+                    quarter={quarter}
+                    assessmentId={amendmentTarget.assessment.id}
+                    assessmentTitle={amendmentTarget.assessment.title}
+                    currentValueDisplay={
+                        amendmentTarget.student.scores[amendmentTarget.assessment.id] !== undefined
+                            ? amendmentTarget.student.scores[amendmentTarget.assessment.id]
+                            : "None"
+                    }
+                    proposedValueLabel={`Proposed Score (Max: ${amendmentTarget.assessment.maxScore})`}
+                    proposedValuePlaceholder={`Enter score (0 - ${amendmentTarget.assessment.maxScore})`}
+                />
+            )}
         </PageShell>
     );
 }

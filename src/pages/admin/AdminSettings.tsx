@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import {
+    FiAlertCircle,
+    FiAlertTriangle,
     FiCheck,
+    FiCheckCircle,
     FiChevronDown,
     FiInfo,
     FiRefreshCw,
@@ -17,6 +20,7 @@ import { PageHeader, PageSection, PageShell } from "../../components/PageLayout"
 
 import type { SchoolInfoProps } from "../../constant/schoolInfo.js";
 import type { GradeWeights } from "../../constant/gradingWeights.js";
+import type { SchoolYear } from "../../constant/schoolYear.js";
 
 import "../../style/adminSettings.css";
 
@@ -33,16 +37,6 @@ interface AcademicSettingsData {
     numQuarters: number;
     enrollmentOpen: boolean | number;
     submissionsLocked: boolean | number;
-}
-
-interface SchoolYear {
-    id: number;
-    startYear: string;
-    endYear: string;
-    isActive?: boolean | number;
-    // Authoritative completion marker — only 'completed' unlocks faculty role
-    // changes (plan §7).
-    status?: "ongoing" | "completed" | string;
 }
 
 
@@ -336,6 +330,33 @@ export default function AdminSettings() {
     }
 
     const selectedYearCompleted = selectedSchoolYear?.status === "completed";
+
+    // ============ School-year activation ============
+    const [activatingSchoolYear, setActivatingSchoolYear] = useState(false);
+    const [confirmActivateOpen, setConfirmActivateOpen] = useState(false);
+
+    async function handleActivateSchoolYear(targetId: string | number) {
+        if (activatingSchoolYear || !targetId) return;
+        setActivatingSchoolYear(true);
+        try {
+            const response = await patchAPICall<object, SchoolYear[]>(
+                `/schoolYear/${targetId}/activate`,
+                {},
+                { toast: true }
+            );
+            const refreshed = response.data;
+            if (refreshed) {
+                setSchoolYears(refreshed);
+                const active = refreshed.find((sy) => Boolean(sy.isActive));
+                setInitialActiveSchoolYearId(active ? String(active.id) : String(targetId));
+            }
+            setConfirmActivateOpen(false);
+        } catch {
+            // Error toast handled by axios interceptor in api.ts
+        } finally {
+            setActivatingSchoolYear(false);
+        }
+    }
 
     function handleAcademicChange(event: React.ChangeEvent<HTMLSelectElement>) {
         const { name, value } = event.currentTarget;
@@ -695,6 +716,18 @@ export default function AdminSettings() {
                 flush
             >
                 <form className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3" onSubmit={handleSaveAcademic}>
+                    {schoolYears.length > 0 && !schoolYears.some((sy) => Boolean(sy.isActive)) && (
+                        <div className="col-span-full rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900" role="alert">
+                            <div className="flex items-center gap-2 font-bold text-amber-950">
+                                <FiAlertTriangle className="shrink-0 text-amber-600 text-lg" aria-hidden="true" />
+                                No School Year is Currently Active
+                            </div>
+                            <p className="mt-1 text-xs text-amber-800">
+                                Quarter advancement, student enrollment, and active gradebook submissions require an active school year.
+                                Select a school year below and click <strong>"Set as Active"</strong> to restore operational status.
+                            </p>
+                        </div>
+                    )}
                     <div className="settings__field flex flex-col gap-1.5">
                         <label htmlFor="settings-school-year" className="settings__field-label text-[0.6875rem] font-bold uppercase tracking-[0.08em]">School Year</label>
                         <select
@@ -714,6 +747,29 @@ export default function AdminSettings() {
                                 <option value="">Loading…</option>
                             )}
                         </select>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                            {selectedSchoolYear?.isActive ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">
+                                    <FiCheckCircle className="text-emerald-600" aria-hidden="true" />
+                                    Active Term
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                                    <FiAlertCircle className="text-amber-600" aria-hidden="true" />
+                                    Inactive
+                                </span>
+                            )}
+                            {!selectedSchoolYear?.isActive && selectedSchoolYear && (
+                                <button
+                                    type="button"
+                                    className="rounded-lg bg-[var(--primary,#1b4d3e)] px-3 py-1 text-xs font-bold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                                    onClick={() => setConfirmActivateOpen(true)}
+                                    disabled={activatingSchoolYear || academicLoading}
+                                >
+                                    {activatingSchoolYear ? "Activating…" : "Set as Active"}
+                                </button>
+                            )}
+                        </div>
                     </div>
                     <div className="settings__field flex flex-col gap-1.5">
                         <span className="settings__field-label text-[0.6875rem] font-bold uppercase tracking-[0.08em]">School Year Status</span>
@@ -1070,6 +1126,18 @@ export default function AdminSettings() {
                     </footer>
                 </form>
             </PageSection>
+            {/* School Year Activation Confirmation Dialog */}
+            <ConfirmDialog
+                open={confirmActivateOpen}
+                title={selectedSchoolYear ? `Set SY ${selectedSchoolYear.startYear}–${selectedSchoolYear.endYear} as Active?` : "Activate School Year?"}
+                description="Activating this school year will make it the operational term across the entire system. Ongoing enrollments and quarterly gradebook submissions will point to this school year. Any previously active school year will be set to Inactive. Historical grade records will remain completely intact."
+                confirmLabel={activatingSchoolYear ? "Activating…" : "Set as Active"}
+                confirmIcon={activatingSchoolYear ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiCheck aria-hidden="true" />}
+                tone="primary"
+                pending={activatingSchoolYear}
+                onConfirm={() => selectedSchoolYear && handleActivateSchoolYear(selectedSchoolYear.id)}
+                onClose={() => setConfirmActivateOpen(false)}
+            />
             {/* School Year Completion Confirmation Dialog */}
             <ConfirmDialog
                 open={confirmCompleteOpen}

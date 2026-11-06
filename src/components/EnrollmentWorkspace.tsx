@@ -32,13 +32,8 @@ import type {
   ClassroomFacultiesWithSubjectProps,
 } from "../constant/classrooms.ts";
 import type { StudentResponseProps } from "../constant/students";
+import type { SchoolYear } from "../constant/schoolYear.js";
 
-interface SchoolYear {
-  id: number;
-  startYear: string;
-  endYear: string;
-  status?: "ongoing" | "completed" | string;
-}
 
 interface AcademicSettingsData {
   id: number;
@@ -147,8 +142,10 @@ export default function EnrollmentWorkspace({
     fetchStudents();
     getAPICall<SchoolYear[]>("/schoolYear")
       .then((response) => {
-        setSchoolYear(response.data ?? []);
-        setSelectedSchoolYearId((current) => current ?? response.data?.[0]?.id ?? null);
+        const years = response.data ?? [];
+        setSchoolYear(years);
+        const active = years.find((sy) => Boolean(sy.isActive));
+        setSelectedSchoolYearId((current) => current ?? (active ? active.id : years[0]?.id ?? null));
       })
       .catch(() => {
         // Keep the flow usable: an outage is not the same as "still loading".

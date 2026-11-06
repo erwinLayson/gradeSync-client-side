@@ -37,6 +37,7 @@ import RegisterDashboard from './pages/register/RegisterDashboard'
 import RegisterStudents from './pages/register/RegisterStudents'
 import RegisterEnrollments from './pages/register/RegisterEnrollments'
 import RegisterStudentRecords from './pages/register/RegisterStudentRecords'
+import RegisterAmendments from './pages/register/RegisterAmendments'
 import RegisterSettings from './pages/register/RegisterSettings'
 
 // Developer Pages
@@ -84,6 +85,7 @@ function App() {
               <Route path="/admin/faculties" element={<AdminFaculties />} />
               <Route path="/admin/analytics-reports" element={<AnalyticsReports />} />
               <Route path="/admin/reports" element={<AdminReports />} />
+              <Route path="/admin/amendments" element={<RegisterAmendments />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
             </Route>
 
@@ -110,6 +112,7 @@ function App() {
                 path="/faculty/student-records"
                 element={<FacultyStudentRecords />}
               />
+              <Route path="/faculty/amendments" element={<RegisterAmendments />} />
               <Route path="/faculty/reports" element={<FacultyReport />} />
               <Route path="/faculty/settings" element={<FacultySetting />} />
             </Route>
@@ -140,6 +143,7 @@ function App() {
               <Route path="/register/students/:studentId" element={<RegisterStudents />} />
               <Route path="/register/enrollments" element={<RegisterEnrollments />} />
               <Route path="/register/student-records" element={<RegisterStudentRecords />} />
+              <Route path="/register/amendments" element={<RegisterAmendments />} />
               <Route path="/register/settings" element={<RegisterSettings />} />
             </Route>
 

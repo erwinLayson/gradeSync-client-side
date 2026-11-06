@@ -19,18 +19,11 @@ import Skeleton from "../../components/Skeleton";
 import { toast } from "../../helper/toast";
 
 import type { ClassRecordsResponse, SubmissionSummaryRow } from "../../constant/studentRecord";
+import type { SchoolYear } from "../../constant/schoolYear.js";
 
 import "../../style/adminStudentRecords.css";
 
 // ================= Types =================
-
-interface SchoolYear {
-    id: number;
-    startYear: string;
-    endYear: string;
-    isActive?: boolean | number;
-    status?: "ongoing" | "completed" | string;
-}
 
 interface AcademicSettingsData {
     id: number;
@@ -214,14 +207,16 @@ export default function RegisterStudentRecords() {
 
     const advanceBlockedReason =
         !activeYear
-            ? "No active school year — activate one in Admin Settings before advancing."
-            : currentQuarter === null
-                ? "Loading the current quarter…"
-                : currentQuarter >= numQuarters
-                    ? `Quarter ${numQuarters} is the final quarter`
-                    : !quarterComplete
-                        ? "Not all classes have completed submission for the current quarter"
-                        : null;
+            ? "No active school year — an Administrator must activate one in Admin Settings before advancing."
+            : selectedYear && String(activeYear.id) !== String(selectedYear.id)
+                ? `Quarter advancement only applies to the active school year (SY ${activeYear.startYear}–${activeYear.endYear}). Switch to the active year to advance.`
+                : currentQuarter === null
+                    ? "Loading the current quarter…"
+                    : currentQuarter >= numQuarters
+                        ? `Quarter ${numQuarters} is the final quarter`
+                        : !quarterComplete
+                            ? "Not all classes have completed submission for the current quarter"
+                            : null;
 
     const canAdvance = advanceBlockedReason === null;
 
@@ -322,18 +317,32 @@ export default function RegisterStudentRecords() {
 
             {(!activeYear || !selectedYear || String(activeYear.id) !== String(selectedYear.id)) && (
                 <div
-                    className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+                    className={`flex flex-wrap items-start justify-between gap-3 rounded-xl border px-4 py-3 text-sm ${
+                        !activeYear
+                            ? "border-amber-300 bg-amber-50 text-amber-900"
+                            : "border-blue-200 bg-blue-50 text-blue-900"
+                    }`}
                     role="status"
                 >
-                    <FiAlertTriangle className="mt-0.5 shrink-0" aria-hidden="true" />
-                    <p>
-                        <strong className="font-bold">Quarter advancement is unavailable here.</strong>{" "}
-                        {activeYear
-                            ? `The quarter is advanced for the active school year (SY ${activeYear.startYear}–${activeYear.endYear}), but you are
-                          viewing ${selectedYear ? `SY ${selectedYear.startYear}–${selectedYear.endYear}` : "no school year"}.
-                          Select the active year to advance it.`
-                            : "No school year is active. Activate one in Admin Settings before advancing the quarter."}
-                    </p>
+                    <div className="flex items-start gap-3">
+                        <FiAlertTriangle className={`mt-0.5 shrink-0 ${!activeYear ? "text-amber-600" : "text-blue-600"}`} aria-hidden="true" />
+                        <div>
+                            <strong className="font-bold">Quarter advancement is unavailable here.</strong>{" "}
+                            {activeYear
+                                ? `Quarter advancement only applies to the active school year (SY ${activeYear.startYear}–${activeYear.endYear}), but you are currently
+                              viewing ${selectedYear ? `SY ${selectedYear.startYear}–${selectedYear.endYear} (Historical)` : "no school year"}.`
+                                : "No school year is currently active. An Administrator must activate a school year in Admin Settings before quarters can be advanced."}
+                        </div>
+                    </div>
+                    {activeYear && selectedYear && String(activeYear.id) !== String(selectedYear.id) && (
+                        <button
+                            type="button"
+                            className="shrink-0 rounded-lg bg-blue-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-800"
+                            onClick={() => handleYearChange(String(activeYear.id))}
+                        >
+                            Switch to SY {activeYear.startYear}–{activeYear.endYear}
+                        </button>
+                    )}
                 </div>
             )}
 

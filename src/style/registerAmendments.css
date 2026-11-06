@@ -1,0 +1,377 @@
+/* ============================================================
+   RegisterAmendments — Amendment Review Console stylesheet
+   Supports Register staff, Administrators, and Faculty viewing
+   grade and attendance amendment requests.
+   ============================================================ */
+
+.amendments-page {
+  animation: amendments-fade-in var(--transition-base, 200ms) ease-out forwards;
+}
+
+@keyframes amendments-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- KPI Grid ---------- */
+.amendments-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.amendments-kpi {
+  background: var(--surface-white, #ffffff);
+  border: 1px solid var(--neutral-border, #e2e8f0);
+  border-radius: var(--radius-lg, 0.75rem);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: border-color var(--transition-fast, 150ms) ease;
+}
+
+.amendments-kpi:hover {
+  border-color: var(--primary-light, #94a3b8);
+}
+
+.amendments-kpi__icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-md, 0.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.amendments-kpi__icon--pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.amendments-kpi__icon--approved {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.amendments-kpi__icon--completed {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.amendments-kpi__icon--rejected {
+  background: #ffe4e6;
+  color: #be123c;
+}
+
+.amendments-kpi__content {
+  min-width: 0;
+}
+
+.amendments-kpi__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted, #64748b);
+  margin-bottom: 0.125rem;
+}
+
+.amendments-kpi__val {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-dark, #0f172a);
+  line-height: 1.2;
+}
+
+/* ---------- Filter Bar ---------- */
+.amendments-filterbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .amendments-filterbar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.amendments-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  padding: 0.25rem;
+  background: var(--surface-bg, #f1f5f9);
+  border-radius: var(--radius-lg, 0.625rem);
+}
+
+.amendments-tab {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border-radius: var(--radius-md, 0.5rem);
+  color: var(--text-muted, #64748b);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: all var(--transition-fast, 150ms) ease;
+}
+
+.amendments-tab:hover {
+  color: var(--text-dark, #0f172a);
+}
+
+.amendments-tab--active {
+  background: var(--surface-white, #ffffff);
+  color: var(--primary, #047857);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.amendments-tab__count {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 9999px;
+  background: var(--neutral-border, #e2e8f0);
+  color: var(--text-muted, #64748b);
+}
+
+.amendments-tab--active .amendments-tab__count {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+/* ---------- Table Layout ---------- */
+.amendments-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--neutral-border, #e2e8f0);
+  border-radius: var(--radius-lg, 0.75rem);
+  background: var(--surface-white, #ffffff);
+}
+
+.amendments-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.amendments-table th {
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted, #64748b);
+  background: var(--surface-bg, #f8fafc);
+  border-bottom: 1px solid var(--neutral-border, #e2e8f0);
+  white-space: nowrap;
+}
+
+.amendments-table td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--neutral-border, #f1f5f9);
+  vertical-align: middle;
+}
+
+.amendments-table tr:last-child td {
+  border-bottom: none;
+}
+
+.amendments-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* ---------- Badges ---------- */
+.amendment-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+/* ---------- Diff View (Comparison) ---------- */
+.amendment-diff-container {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--surface-bg, #f8fafc);
+  border: 1px solid var(--neutral-border, #e2e8f0);
+  border-radius: var(--radius-lg, 0.75rem);
+}
+
+.amendment-diff-box {
+  padding: 0.875rem;
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid transparent;
+}
+
+.amendment-diff-box--current {
+  background: #fff;
+  border-color: #fecdd3;
+}
+
+.amendment-diff-box--proposed {
+  background: #fff;
+  border-color: #a7f3d0;
+}
+
+.amendment-diff-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.amendment-diff-box--current .amendment-diff-label {
+  color: #be123c;
+}
+
+.amendment-diff-box--proposed .amendment-diff-label {
+  color: #047857;
+}
+
+.amendment-diff-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-dark, #0f172a);
+}
+
+.amendment-diff-arrow {
+  color: var(--text-muted, #94a3b8);
+  font-size: 1.25rem;
+}
+
+/* ---------- Audit Timeline ---------- */
+.amendments-audit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+  padding-left: 1.25rem;
+}
+
+.amendments-audit-list::before {
+  content: "";
+  position: absolute;
+  left: 0.375rem;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 2px;
+  background: var(--neutral-border, #e2e8f0);
+}
+
+.amendments-audit-item {
+  position: relative;
+  padding-bottom: 0.25rem;
+}
+
+.amendments-audit-dot {
+  position: absolute;
+  left: -1.25rem;
+  top: 0.35rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px var(--neutral-border, #cbd5e1);
+  background: #64748b;
+}
+
+.amendments-audit-dot--requested {
+  background: #f59e0b;
+}
+
+.amendments-audit-dot--approved {
+  background: #10b981;
+}
+
+.amendments-audit-dot--rejected {
+  background: #f43f5e;
+}
+
+.amendments-audit-dot--revoked {
+  background: #a855f7;
+}
+
+.amendments-audit-dot--modified {
+  background: #0284c7;
+}
+
+/* Dark mode overrides */
+.dark .amendments-kpi {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.dark .amendments-kpi__val {
+  color: #f8fafc;
+}
+
+.dark .amendments-tabs {
+  background: #0f172a;
+}
+
+.dark .amendments-tab--active {
+  background: #1e293b;
+  color: #34d399;
+}
+
+.dark .amendments-table-wrapper {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.dark .amendments-table th {
+  background: #0f172a;
+  border-bottom-color: #334155;
+  color: #94a3b8;
+}
+
+.dark .amendments-table td {
+  border-bottom-color: #334155;
+}
+
+.dark .amendments-table tbody tr:hover {
+  background: #1e293b/80;
+}
+
+.dark .amendment-diff-container {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.dark .amendment-diff-box--current {
+  background: #1e293b;
+  border-color: #881337;
+}
+
+.dark .amendment-diff-box--proposed {
+  background: #1e293b;
+  border-color: #064e3b;
+}
+
+.dark .amendment-diff-value {
+  color: #f8fafc;
+}

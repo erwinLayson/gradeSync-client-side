@@ -87,6 +87,7 @@ export const DASHBOARD_LINKS = {
       title: "Records",
       sections: [
         { label: "Reports", path: "/admin/reports", icon: FaChartLine },
+        { label: "Amendments", path: "/admin/amendments", icon: FaClipboardCheck },
       ]
     },
     {
@@ -107,6 +108,7 @@ export const DASHBOARD_LINKS = {
         { label: "My Class",  path: "/faculty/my-class", icon: FaSchool},
         { label: "Gradebook",  path: "/faculty/classes", icon: FaClipboardCheck},
         { label: "Student Records", path: "/faculty/student-records", icon: FaClipboardList},
+        { label: "My Amendments", path: "/faculty/amendments", icon: FaClipboardCheck },
         { label: "Reports", path: "/faculty/reports", icon: FaChartLine}
       ] 
     },
@@ -153,6 +155,7 @@ export const DASHBOARD_LINKS = {
       title: "Records",
       sections: [
         { label: "Submission Tracker", path: "/register/student-records", icon: FaClipboardList },
+        { label: "Amendments", path: "/register/amendments", icon: FaClipboardCheck },
       ]
     },
     {

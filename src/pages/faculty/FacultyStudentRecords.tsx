@@ -4,6 +4,7 @@ import {
     FiCheckCircle,
     FiChevronDown,
     FiClock,
+    FiEdit3,
     FiFileText,
     FiLock,
     FiRefreshCw,
@@ -17,8 +18,10 @@ import { getAPICall, postAPICall } from "../../api/api";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ModalDialog } from "../../components/ModalDialog";
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
+import { RequestAmendmentModal } from "../../components/RequestAmendmentModal";
 import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
+import { useMyAmendments } from "../../hooks/useMyAmendments";
 import { formatGrade } from "../../helper/grades";
 import { toast } from "../../helper/toast";
 
@@ -63,6 +66,10 @@ export default function FacultyStudentRecords() {
     // Reopen confirm target.
     const [reopenTarget, setReopenTarget] = useState<StudentClassRecordRow | null>(null);
     const [reopening, setReopening] = useState(false);
+
+    // Amendment request workflow & active scoped permissions
+    const { hasActivePermission, getPendingRequest, refresh: refreshAmendments } = useMyAmendments();
+    const [amendmentStudent, setAmendmentStudent] = useState<StudentClassRecordRow | null>(null);
     // Mobile: which student rows are expanded.
     const [expandedStudents, setExpandedStudents] = useState<Set<number>>(new Set());
 
@@ -189,6 +196,7 @@ export default function FacultyStudentRecords() {
                 {},
             );
             setReopenTarget(null);
+            refreshAmendments();
             await fetchRecords(quarter);
         } finally {
             setReopening(false);
@@ -227,16 +235,16 @@ export default function FacultyStudentRecords() {
             <PageShell className="faculty-records">
                 <PageSection className="faculty-records__empty">
                     <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <span className="faculty-records__empty-icon inline-flex h-14 w-14 items-center justify-center rounded-2xl text-2xl" aria-hidden="true">
-                        <FiFileText />
-                    </span>
-                    <h2 className="faculty-records__empty-title mt-4 text-base font-bold">
-                        No advised class found
-                    </h2>
-                    <p className="faculty-records__empty-text mt-1 max-w-md text-[0.8125rem] leading-relaxed">
-                        You are not assigned as a class adviser yet. Once the administrator assigns you to a
-                        class, its student records will appear here for quarterly submission.
-                    </p>
+                        <span className="faculty-records__empty-icon inline-flex h-14 w-14 items-center justify-center rounded-2xl text-2xl" aria-hidden="true">
+                            <FiFileText />
+                        </span>
+                        <h2 className="faculty-records__empty-title mt-4 text-base font-bold">
+                            No advised class found
+                        </h2>
+                        <p className="faculty-records__empty-text mt-1 max-w-md text-[0.8125rem] leading-relaxed">
+                            You are not assigned as a class adviser yet. Once the administrator assigns you to a
+                            class, its student records will appear here for quarterly submission.
+                        </p>
                     </div>
                 </PageSection>
             </PageShell>
@@ -461,8 +469,8 @@ export default function FacultyStudentRecords() {
                                                                     isFrozen
                                                                         ? `Frozen on ${formatSubmittedAt(student.submittedAt) ?? "submission"}`
                                                                         : hasGrade
-                                                                          ? "Live — recalculated from current scores"
-                                                                          : "No grade yet — blocks submission"
+                                                                            ? "Live — recalculated from current scores"
+                                                                            : "No grade yet — blocks submission"
                                                                 }
                                                             >
                                                                 {isFrozen && <FiLock className="faculty-records__grade-lock" aria-hidden="true" />}
@@ -497,15 +505,53 @@ export default function FacultyStudentRecords() {
                                                 {/* Action cell — hidden on mobile */}
                                                 <td className="faculty-records__grade-cell faculty-records__cell-action faculty-records__desktop-cell">
                                                     {isSubmitted ? (
-                                                        <button
-                                                            type="button"
-                                                            className="faculty-records__reopen inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[0.6875rem] font-bold"
-                                                            disabled={submissionsLocked}
-                                                            onClick={() => setReopenTarget(student)}
-                                                        >
-                                                            <FiRefreshCw aria-hidden="true" />
-                                                            Reopen
-                                                        </button>
+                                                        (() => {
+                                                            const hasPermission = hasActivePermission({
+                                                                enrollmentId: student.enrollmentId,
+                                                                quarter,
+                                                                recordType: "student_record_grade",
+                                                            });
+                                                            const pendingReq = getPendingRequest({
+                                                                enrollmentId: student.enrollmentId,
+                                                                quarter,
+                                                                recordType: "student_record_grade",
+                                                            });
+
+                                                            if (hasPermission) {
+                                                                return (
+                                                                    <button
+                                                                        type="button"
+                                                                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-500 bg-emerald-50 px-3 py-1.5 text-[0.6875rem] font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                                                        disabled={submissionsLocked}
+                                                                        onClick={() => setReopenTarget(student)}
+                                                                    >
+                                                                        <FiRefreshCw aria-hidden="true" />
+                                                                        Reopen (Approved)
+                                                                    </button>
+                                                                );
+                                                            }
+
+                                                            if (pendingReq) {
+                                                                return (
+                                                                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1 text-[0.6875rem] font-semibold text-amber-700 dark:border-amber-700/50 dark:bg-amber-950/30 dark:text-amber-300">
+                                                                        <FiClock aria-hidden="true" />
+                                                                        Amendment Pending
+                                                                    </span>
+                                                                );
+                                                            }
+
+                                                            return (
+                                                                <button
+                                                                    type="button"
+                                                                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[0.6875rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                                                                    disabled={submissionsLocked}
+                                                                    onClick={() => setAmendmentStudent(student)}
+                                                                >
+                                                                    <FiEdit3 aria-hidden="true" />
+                                                                    Request Amendment
+                                                                </button>
+                                                            );
+                                                        })()
                                                     ) : (
                                                         <button
                                                             type="button"
@@ -589,15 +635,53 @@ export default function FacultyStudentRecords() {
                                                                 </div>
                                                                 <div>
                                                                     {isSubmitted ? (
-                                                                        <button
-                                                                            type="button"
-                                                                            className="faculty-records__reopen inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[0.6875rem] font-bold"
-                                                                            disabled={submissionsLocked}
-                                                                            onClick={() => setReopenTarget(student)}
-                                                                        >
-                                                                            <FiRefreshCw aria-hidden="true" />
-                                                                            Reopen
-                                                                        </button>
+                                                                        (() => {
+                                                                            const hasPermission = hasActivePermission({
+                                                                                enrollmentId: student.enrollmentId,
+                                                                                quarter,
+                                                                                recordType: "student_record_grade",
+                                                                            });
+                                                                            const pendingReq = getPendingRequest({
+                                                                                enrollmentId: student.enrollmentId,
+                                                                                quarter,
+                                                                                recordType: "student_record_grade",
+                                                                            });
+
+                                                                            if (hasPermission) {
+                                                                                return (
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-500 bg-emerald-50 px-3 py-1.5 text-[0.6875rem] font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                                                                        disabled={submissionsLocked}
+                                                                                        onClick={() => setReopenTarget(student)}
+                                                                                    >
+                                                                                        <FiRefreshCw aria-hidden="true" />
+                                                                                        Reopen (Approved)
+                                                                                    </button>
+                                                                                );
+                                                                            }
+
+                                                                            if (pendingReq) {
+                                                                                return (
+                                                                                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1 text-[0.6875rem] font-semibold text-amber-700 dark:border-amber-700/50 dark:bg-amber-950/30 dark:text-amber-300">
+                                                                                        <FiClock aria-hidden="true" />
+                                                                                        Amendment Pending
+                                                                                    </span>
+                                                                                );
+                                                                            }
+
+                                                                            return (
+                                                                                <button
+                                                                                    type="button"
+                                                                                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[0.6875rem] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                                                                                    disabled={submissionsLocked}
+                                                                                    onClick={() => setAmendmentStudent(student)}
+                                                                                >
+                                                                                    <FiEdit3 aria-hidden="true" />
+                                                                                    Request Amendment
+                                                                                </button>
+                                                                            );
+                                                                        })()
                                                                     ) : (
                                                                         <button
                                                                             type="button"
@@ -697,13 +781,12 @@ export default function FacultyStudentRecords() {
                                                     </td>
                                                     <td className="data-table__td data-table__td--center">
                                                         <span
-                                                            className={`faculty-records__review-grade inline-flex items-center justify-center rounded-lg px-2 py-1 font-mono text-[0.8125rem] font-bold${
-                                                                subjectGrade.grade === null
-                                                                    ? " faculty-records__review-grade--missing"
-                                                                    : isFrozen
-                                                                      ? " faculty-records__review-grade--frozen"
-                                                                      : ""
-                                                            }`}
+                                                            className={`faculty-records__review-grade inline-flex items-center justify-center rounded-lg px-2 py-1 font-mono text-[0.8125rem] font-bold${subjectGrade.grade === null
+                                                                ? " faculty-records__review-grade--missing"
+                                                                : isFrozen
+                                                                    ? " faculty-records__review-grade--frozen"
+                                                                    : ""
+                                                                }`}
                                                         >
                                                             {formatGrade(subjectGrade.grade)}
                                                         </span>
@@ -712,8 +795,8 @@ export default function FacultyStudentRecords() {
                                                         {isFrozen
                                                             ? "Frozen (submitted)"
                                                             : subjectGrade.grade === null
-                                                              ? "No grade yet"
-                                                              : "Live (computed)"}
+                                                                ? "No grade yet"
+                                                                : "Live (computed)"}
                                                     </td>
                                                 </tr>
                                             );
@@ -787,14 +870,36 @@ export default function FacultyStudentRecords() {
             {/* ==================== Reopen confirm ==================== */}
             <ConfirmDialog
                 open={reopenTarget !== null}
-                title="Reopen this record?"
-                description={`Unlock ${reopenTarget?.fullname ?? "this student"}'s Quarter ${quarter} record. The frozen grades will be replaced by live values, and you can submit again to re-freeze. The previous submission timestamp is kept for the audit trail.`}
-                confirmLabel={reopening ? "Reopening…" : "Reopen"}
+                title="Reopen record with approved amendment?"
+                description={`Unlock ${reopenTarget?.fullname ?? "this student"}'s Quarter ${quarter} record using your approved amendment permission. The record will be reopened for edits and you can submit it again when finished.`}
+                confirmLabel={reopening ? "Reopening…" : "Reopen Record"}
                 confirmIcon={reopening ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : undefined}
                 pending={reopening}
                 onConfirm={handleReopen}
                 onClose={() => setReopenTarget(null)}
             />
+
+            {/* ==================== Amendment Request Modal ==================== */}
+            {amendmentStudent && classId && (
+                <RequestAmendmentModal
+                    isOpen={Boolean(amendmentStudent)}
+                    onClose={() => setAmendmentStudent(null)}
+                    onSuccess={() => {
+                        setAmendmentStudent(null);
+                        refreshAmendments();
+                    }}
+                    recordType="student_record_grade"
+                    studentId={amendmentStudent.studentId}
+                    studentName={amendmentStudent.fullname}
+                    studentLrn={amendmentStudent.studentLrn}
+                    enrollmentId={amendmentStudent.enrollmentId}
+                    classroomId={classId}
+                    classSection={records?.section}
+                    quarter={quarter}
+                    proposedValueLabel="Amendments Needed"
+                    proposedValuePlaceholder="Describe which subjects and grades require correction (e.g. English grade from 84 to 88)"
+                />
+            )}
         </PageShell>
     );
 }
