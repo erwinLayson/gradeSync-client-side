@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import {
     FiAlertTriangle,
+    FiBookOpen,
     FiCalendar,
     FiCheckCircle,
     FiClock,
+    FiLayers,
     FiRefreshCw,
     FiSkipForward,
     FiUsers,
@@ -11,6 +13,7 @@ import {
 } from "react-icons/fi";
 
 import { getAPICall, patchAPICall } from "../../api/api";
+import { getSubjectSubmissionSummary } from "../../api/studentRecord";
 import { invalidateAcademicSettingsCache, useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ModalDialog } from "../../components/ModalDialog";
@@ -18,7 +21,11 @@ import { PageHeader, PageSection, PageShell } from "../../components/PageLayout"
 import Skeleton from "../../components/Skeleton";
 import { toast } from "../../helper/toast";
 
-import type { ClassRecordsResponse, SubmissionSummaryRow } from "../../constant/studentRecord";
+import type {
+    ClassRecordsResponse,
+    SubmissionSummaryRow,
+    SubjectSubmissionSummaryRow
+} from "../../constant/studentRecord";
 import type { SchoolYear } from "../../constant/schoolYear.js";
 
 import "../../style/adminStudentRecords.css";
@@ -65,6 +72,11 @@ export default function RegisterStudentRecords() {
     const [selectedYearId, setSelectedYearId] = useState("");
     const [currentQuarter, setCurrentQuarter] = useState<number | null>(null);
     const [summary, setSummary] = useState<SubmissionSummaryRow[]>([]);
+
+    // View mode: Class Sections Rollup vs Subject Teachers Tracker
+    const [viewMode, setViewMode] = useState<"classes" | "subjects">("classes");
+    const [subjectSummary, setSubjectSummary] = useState<SubjectSubmissionSummaryRow[]>([]);
+    const [loadingSubjectSummary, setLoadingSubjectSummary] = useState(false);
 
     // Drill-down modal: class + quarter -> roster with submission statuses.
     const [drilldown, setDrilldown] = useState<DrilldownState | null>(null);
@@ -156,6 +168,25 @@ export default function RegisterStudentRecords() {
             // Error toast is handled by the API interceptor
         }
     }, [selectedYearId]);
+
+    const loadSubjectSummary = useCallback(async () => {
+        if (!selectedYearId) return;
+        setLoadingSubjectSummary(true);
+        try {
+            const res = await getSubjectSubmissionSummary(Number(selectedYearId));
+            setSubjectSummary(res.data ?? []);
+        } catch {
+            setSubjectSummary([]);
+        } finally {
+            setLoadingSubjectSummary(false);
+        }
+    }, [selectedYearId]);
+
+    useEffect(() => {
+        if (viewMode === "subjects") {
+            loadSubjectSummary();
+        }
+    }, [viewMode, loadSubjectSummary]);
 
     useEffect(() => {
         async function refreshYears() {
@@ -346,11 +377,39 @@ export default function RegisterStudentRecords() {
                 </div>
             )}
 
+            {/* ==================== View Switcher Tabs ==================== */}
+            <div className="mb-4 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-100/80 p-1.5 dark:border-slate-800 dark:bg-slate-900/60">
+                <button
+                    type="button"
+                    onClick={() => setViewMode("classes")}
+                    className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                        viewMode === "classes"
+                            ? "bg-white text-emerald-700 shadow-sm dark:bg-slate-800 dark:text-emerald-400"
+                            : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                    }`}
+                >
+                    <FiLayers className="h-4 w-4" />
+                    Class Sections Rollup ({summary.length})
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setViewMode("subjects")}
+                    className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                        viewMode === "subjects"
+                            ? "bg-white text-emerald-700 shadow-sm dark:bg-slate-800 dark:text-emerald-400"
+                            : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                    }`}
+                >
+                    <FiBookOpen className="h-4 w-4" />
+                    Subject Teachers Tracker ({subjectSummary.length > 0 ? subjectSummary.length : "..."})
+                </button>
+            </div>
+
             {/* ==================== Toolbar ==================== */}
             <PageSection
                 className="tracker__toolbar"
-                title="Class submission matrix"
-                description="Click any quarter cell to see which students still need to be submitted."
+                title={viewMode === "classes" ? "Class submission matrix" : "Subject teacher submission matrix"}
+                description={viewMode === "classes" ? "Click any quarter cell to see which students still need to be submitted." : "Monitor submission status and student coverage for every subject and assigned faculty."}
             >
                 <div className="flex flex-wrap items-center gap-2">
                     <label className="tracker__year flex items-center gap-2 rounded-lg border px-3 py-2 text-[0.8125rem] font-semibold">
@@ -384,7 +443,123 @@ export default function RegisterStudentRecords() {
 
             {/* ==================== Matrix ==================== */}
             <PageSection className="tracker__card" flush>
-                {summary.length === 0 ? (
+                {viewMode === "subjects" ? (
+                    loadingSubjectSummary ? (
+                        <div className="p-8">
+                            <Skeleton lines={6} gap="1rem" />
+                        </div>
+                    ) : subjectSummary.length === 0 ? (
+                        <div className="tracker__empty flex flex-col items-center justify-center px-6 py-20 text-center">
+                            <span className="tracker__empty-icon inline-flex h-14 w-14 items-center justify-center rounded-2xl text-2xl" aria-hidden="true">
+                                <FiBookOpen />
+                            </span>
+                            <h3 className="tracker__empty-title mt-4 text-base font-bold">No assigned subjects</h3>
+                            <p className="tracker__empty-text mt-1 max-w-md text-[0.8125rem] leading-relaxed">
+                                No subject assignments exist for this school year. Subject records will appear once faculties are assigned to subjects.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="tracker__table-wrap overflow-x-auto">
+                            <table className="tracker__table w-full min-w-[64rem] border-collapse text-sm">
+                                <thead>
+                                    <tr>
+                                        <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                            Subject
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                            Class Section
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                            Subject Teacher
+                                        </th>
+                                        <th className="px-3 py-3 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                            Students
+                                        </th>
+                                        {quarters.map((q) => (
+                                            <th key={q} className="px-3 py-3 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                                <span className="inline-flex items-center gap-1.5">
+                                                    Q{q}
+                                                    {currentQuarter === q && (
+                                                        <span className="tracker__current-chip inline-flex items-center rounded-full px-1.5 py-0.5 text-[0.5625rem] font-bold uppercase tracking-[0.06em]">
+                                                            Current
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            </th>
+                                        ))}
+                                        <th className="px-3 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                            Status
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {subjectSummary.map((row) => {
+                                        const isCurrentSubmitted = currentQuarter ? row.statusByQuarter[currentQuarter] === "submitted" : false;
+                                        return (
+                                            <tr key={row.classSubjectId}>
+                                                <td className="px-4 py-3.5">
+                                                    <div>
+                                                        <p className="font-bold text-slate-900 dark:text-white">{row.subjectName}</p>
+                                                        <p className="font-mono text-[11px] text-slate-500 dark:text-slate-400">{row.subjectCode}</p>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3.5">
+                                                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                                                        {row.classSection}
+                                                    </span>
+                                                    <span className="ml-1.5 text-xs text-slate-500">Grade {row.classGradeLevel}</span>
+                                                </td>
+                                                <td className="px-4 py-3.5">
+                                                    {row.teacherName ? (
+                                                        <span className="font-medium text-slate-900 dark:text-white">{row.teacherName}</span>
+                                                    ) : (
+                                                        <span className="italic text-rose-500 text-xs font-semibold">Unassigned</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-3 py-3.5 text-center font-mono font-bold text-slate-800 dark:text-slate-200">
+                                                    {row.totalStudents}
+                                                </td>
+                                                {quarters.map((q) => {
+                                                    const count = row.submitted[q] ?? 0;
+                                                    const isSub = row.statusByQuarter[q] === "submitted";
+                                                    return (
+                                                        <td key={q} className="px-3 py-3.5 text-center">
+                                                            <span
+                                                                className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 font-mono text-[11px] font-bold ${
+                                                                    isSub
+                                                                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                                                        : count > 0
+                                                                        ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                                                                        : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                                                                }`}
+                                                            >
+                                                                {isSub && <FiCheckCircle className="h-3 w-3" />}
+                                                                {count}/{row.totalStudents}
+                                                            </span>
+                                                        </td>
+                                                    );
+                                                })}
+                                                <td className="px-3 py-3.5">
+                                                    {isCurrentSubmitted ? (
+                                                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                            <FiCheckCircle className="h-3 w-3" />
+                                                            Submitted
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                                                            <FiClock className="h-3 w-3" />
+                                                            Pending
+                                                        </span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    )
+                ) : summary.length === 0 ? (
                     <div className="tracker__empty flex flex-col items-center justify-center px-6 py-20 text-center">
                         <span
                             className="tracker__empty-icon inline-flex h-14 w-14 items-center justify-center rounded-2xl text-2xl"

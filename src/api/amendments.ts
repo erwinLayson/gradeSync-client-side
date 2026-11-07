@@ -153,3 +153,33 @@ export const patchSingleStudentAttendance = async (
     data,
   );
 };
+
+/**
+ * Submit a unified subject amendment request (covering gradebook and/or attendance)
+ */
+export const submitSubjectRecordAmendment = async (data: {
+  enrollmentId: number;
+  classSubjectId: number;
+  quarter: number;
+  reason: string;
+  changes: import('../constant/amendment').SubjectAmendmentChanges;
+  classId?: number;
+  details?: Record<string, unknown>;
+}) => {
+  return postAPICall<typeof data, { id: number; requestNumber: string }>('/amendments/subject-record', data);
+};
+
+/**
+ * Apply approved unified subject amendment and recalculate quarter grade
+ */
+export const applyUnifiedSubjectAmendment = async (
+  permissionId: number,
+  data?: {
+    changes?: import('../constant/amendment').SubjectAmendmentChanges;
+  }
+) => {
+  return postAPICall<typeof data, { success: boolean; newQuarterGrade: number | null }>(
+    `/amendments/${permissionId}/apply`,
+    data ?? {}
+  );
+};

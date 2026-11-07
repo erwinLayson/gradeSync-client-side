@@ -30,6 +30,11 @@ interface ModalDialogProps {
   restoreFocusRef?: RefObject<HTMLElement | null>;
   /** While true, Escape and backdrop clicks do not close the dialog (in-flight work). */
   lockClose?: boolean;
+  /**
+   * Constrain the panel to the viewport and let it opt into an internal
+   * scrolling body (header/footer stay visible). Use for tall form dialogs.
+   */
+  scrollable?: boolean;
 }
 
 /**
@@ -52,6 +57,7 @@ export function ModalDialog({
   initialFocusRef,
   restoreFocusRef,
   lockClose = false,
+  scrollable = false,
 }: ModalDialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const wasOpenRef = useRef(false);
@@ -139,7 +145,7 @@ export function ModalDialog({
 
   return createPortal(
     <div
-      className="modal-dialog"
+      className={`modal-dialog${scrollable ? " modal-dialog--scrollable" : ""}`}
       role="dialog"
       aria-modal="true"
       aria-labelledby={labelledById}
@@ -147,7 +153,14 @@ export function ModalDialog({
       aria-describedby={describedById}
       onMouseDown={handleOverlayMouseDown}
     >
-      <div ref={panelRef} className={className}>
+      <div
+        ref={panelRef}
+        className={
+          scrollable
+            ? `${className ?? ""} modal-dialog__panel--scrollable`.trim()
+            : className
+        }
+      >
         {children}
       </div>
     </div>,

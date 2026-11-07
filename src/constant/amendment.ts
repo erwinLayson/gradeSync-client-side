@@ -9,7 +9,27 @@ export type AmendmentStatus =
 export type AmendmentRecordType =
   | 'gradebook_score'
   | 'student_record_grade'
-  | 'attendance';
+  | 'attendance'
+  | 'subject_record';
+
+export interface GradebookChangeItem {
+  assessmentId: number;
+  assessmentTitle?: string;
+  currentScore?: number | null;
+  proposedScore: number;
+  maxScore?: number;
+}
+
+export interface AttendanceChangeItem {
+  date: string;
+  currentStatus?: string | null;
+  proposedStatus: string;
+}
+
+export interface SubjectAmendmentChanges {
+  gradebook?: GradebookChangeItem[];
+  attendance?: AttendanceChangeItem[];
+}
 
 export type AmendmentAction =
   | 'requested'
@@ -34,6 +54,9 @@ export interface AmendmentRequestDetails {
   currentValues?: Record<string, unknown> | null;
   proposedValues?: Record<string, unknown> | null;
   studentId?: number;
+  currentQuarterGrade?: number | null;
+  projectedQuarterGrade?: number | null;
+  changes?: SubjectAmendmentChanges;
   [key: string]: unknown;
 }
 
@@ -146,6 +169,7 @@ export const AMENDMENT_RECORD_TYPE_LABELS: Record<AmendmentRecordType, string> =
   gradebook_score: 'Gradebook Assessment Score',
   student_record_grade: 'Student Record Quarterly Grade',
   attendance: 'Daily Attendance Record',
+  subject_record: 'Subject Record (Score & Attendance)',
 };
 
 export function getAmendmentStatusLabel(status?: AmendmentStatus | string | null): string {

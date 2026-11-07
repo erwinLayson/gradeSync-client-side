@@ -18,6 +18,26 @@
   animation: modal-dialog-fade var(--transition-base) ease-out forwards;
 }
 
+/* Scrollable variant: the overlay never scrolls and the panel is clamped to
+   the viewport, so the page behind stays fixed and long content scrolls in
+   the panel body instead of pushing the dialog off-screen. */
+.modal-dialog--scrollable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+.modal-dialog__panel--scrollable {
+  display: flex;
+  flex-direction: column;
+  /* Fallback first, then dvh for mobile browser UI / dynamic toolbars. */
+  max-height: calc(100vh - 2.5rem);
+  max-height: calc(100dvh - 2.5rem);
+  overflow: hidden;
+}
+
 @keyframes modal-dialog-fade {
   from {
     opacity: 0;

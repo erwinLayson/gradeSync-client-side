@@ -56,6 +56,22 @@ const mockRequests: AmendmentRequest[] = [
     }),
     status: "pending",
     created_at: "2026-11-06T10:00:00Z",
+    auditLogs: [
+      {
+        id: 1,
+        action: "requested",
+        actorUserId: 10,
+        actorName: "Maria Santos",
+        actorRole: "teacher",
+        recordType: "gradebook_score",
+        enrollmentId: 50,
+        quarter: 1,
+        targetTable: "amendment_requests",
+        targetRecordId: "1",
+        reason: "Initial submission",
+        created_at: "2026-11-06T10:00:00Z",
+      },
+    ],
   },
   {
     id: 2,
@@ -136,8 +152,10 @@ describe("RegisterAmendments Console", () => {
     render(<RegisterAmendments />);
 
     await waitFor(() => {
-      expect(screen.getByText("Record Amendments")).toBeInTheDocument();
+      expect(screen.getByText("AMD-2026-0001")).toBeInTheDocument();
     });
+
+    expect(screen.getByText("Record Amendments")).toBeInTheDocument();
 
     // Check KPIs
     expect(screen.getByText("Pending Review")).toBeInTheDocument();
@@ -353,5 +371,25 @@ describe("RegisterAmendments Console", () => {
         reason: undefined,
       });
     });
+  });
+
+  it("loads request details and audit trail without calling forbidden system audit logs API", async () => {
+    const user = userEvent.setup();
+    render(<RegisterAmendments />);
+
+    await waitFor(() => {
+      expect(screen.getByText("AMD-2026-0001")).toBeInTheDocument();
+    });
+
+    const reviewButtons = screen.getAllByRole("button", { name: /Review|View/i });
+    await user.click(reviewButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "AMD-2026-0001" })).toBeInTheDocument();
+    });
+
+    expect(amendmentApi.getAmendmentRequestById).toHaveBeenCalledWith(1);
+    expect(amendmentApi.getAmendmentAuditLogs).not.toHaveBeenCalled();
+    expect(screen.getByText("requested")).toBeInTheDocument();
   });
 });

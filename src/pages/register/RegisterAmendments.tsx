@@ -5,6 +5,7 @@ import {
   FiArrowRight,
   FiCalendar,
   FiCheckCircle,
+  FiChevronDown,
   FiClock,
   FiEye,
   FiFileText,
@@ -20,7 +21,6 @@ import {
 import {
   approveAmendmentRequest,
   getAllAmendmentRequests,
-  getAmendmentAuditLogs,
   getAmendmentRequestById,
   getMyAmendmentRequests,
   rejectAmendmentRequest,
@@ -68,6 +68,23 @@ function formatDateTime(iso?: string | null): string {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function formatDateTimeParts(iso?: string | null): { date: string; time: string } {
+  if (!iso) return { date: "—", time: "" };
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return { date: "—", time: "" };
+  return {
+    date: date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }),
+    time: date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    }),
+  };
 }
 
 function formatDate(iso?: string | null): string {
@@ -147,6 +164,30 @@ function extractDiffDisplay(
     } else if (details.proposedValues && typeof details.proposedValues === "object") {
       const val = (details.proposedValues as Record<string, unknown>).status ?? (details.proposedValues as Record<string, unknown>).value;
       proposedDisplay = val !== undefined && val !== null ? String(val) : "Unrecorded";
+    }
+  } else if (request.recordType === "subject_record") {
+    const changes = details.changes as import("../../constant/amendment").SubjectAmendmentChanges | undefined;
+    const parts: string[] = [];
+    if (changes?.gradebook && changes.gradebook.length > 0) {
+      const g = changes.gradebook[0]!;
+      parts.push(`Score: ${g.assessmentTitle ?? "Item"} → ${g.proposedScore}`);
+      proposedDisplay = `${g.proposedScore}`;
+      currentDisplay = g.currentScore !== null && g.currentScore !== undefined ? String(g.currentScore) : "—";
+    }
+    if (changes?.attendance && changes.attendance.length > 0) {
+      const a = changes.attendance[0]!;
+      parts.push(`Attendance: ${a.date} (${a.proposedStatus})`);
+      if (parts.length === 1) {
+        proposedDisplay = a.proposedStatus;
+        currentDisplay = a.currentStatus ?? "—";
+      }
+    }
+    contextNote = parts.length > 0 ? parts.join(" · ") : `Subject: ${request.subjectName ?? "Subject Record"}`;
+    if (!proposedDisplay || proposedDisplay === "None") {
+      proposedDisplay = details.proposedValue ? String(details.proposedValue) : "Modified";
+    }
+    if (!currentDisplay || currentDisplay === "None") {
+      currentDisplay = details.currentValue ? String(details.currentValue) : "—";
     }
   } else {
     // student_record_grade
@@ -254,20 +295,10 @@ export default function RegisterAmendments() {
     setLoadingAudit(true);
 
     try {
-      const [detailRes, auditRes] = await Promise.allSettled([
-        getAmendmentRequestById(req.id),
-        getAmendmentAuditLogs({ requestId: req.id }),
-      ]);
-
-      if (detailRes.status === "fulfilled" && detailRes.value?.data) {
-        setActiveRequest(detailRes.value.data);
-        if (detailRes.value.data.auditLogs?.length) {
-          setAuditLogs(detailRes.value.data.auditLogs);
-        }
-      }
-
-      if (auditRes.status === "fulfilled" && Array.isArray(auditRes.value?.data)) {
-        setAuditLogs(auditRes.value.data);
+      const detailRes = await getAmendmentRequestById(req.id);
+      if (detailRes?.data) {
+        setActiveRequest(detailRes.data);
+        setAuditLogs(detailRes.data.auditLogs ?? []);
       }
     } catch (err) {
       console.error("Failed to load full amendment details", err);
@@ -485,19 +516,18 @@ export default function RegisterAmendments() {
 
       {/* Main Table Section */}
       <PageSection
+        className="amendments-section"
         title={
-          <div className="flex items-center gap-2">
+          <div className="amendments-section__title">
             <span>Amendment Requests</span>
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-              {filteredRequests.length}
-            </span>
+            <span className="amendments-count">{filteredRequests.length}</span>
           </div>
         }
       >
         {/* Filters and Search Bar */}
-        <div className="mb-4 space-y-3">
+        <div className="amendments-toolbar-area">
           {/* Status Tabs */}
-          <div className="amendments-tabs">
+          <div className="amendments-tabs" role="group" aria-label="Filter by status">
             {(
               [
                 { key: "all", label: "All" },
@@ -518,9 +548,9 @@ export default function RegisterAmendments() {
                   key={tab.key}
                   type="button"
                   onClick={() => setStatusFilter(tab.key)}
-                  className={`amendments-tab ${
-                    statusFilter === tab.key ? "amendments-tab--active" : ""
-                  }`}
+                  aria-pressed={statusFilter === tab.key}
+                  className={`amendments-tab ${statusFilter === tab.key ? "amendments-tab--active" : ""
+                    }`}
                 >
                   <span>{tab.label}</span>
                   <span className="amendments-tab__count">{count}</span>
@@ -530,15 +560,15 @@ export default function RegisterAmendments() {
           </div>
 
           {/* Quarter, Record Type, and Search Controls */}
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-wrap items-center gap-2.5">
+          <div className="amendments-toolbar">
+            <div className="amendments-toolbar__filters">
               {/* Quarter Filter */}
-              <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                <FiCalendar className="text-slate-400" aria-hidden="true" />
+              <div className="amendments-control">
+                <FiCalendar className="amendments-control__icon" aria-hidden="true" />
                 <select
                   value={quarterFilter}
                   onChange={(e) => setQuarterFilter(e.target.value)}
-                  className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  className="amendments-control__select"
                   aria-label="Filter by Quarter"
                 >
                   <option value="all">All Quarters</option>
@@ -547,43 +577,43 @@ export default function RegisterAmendments() {
                   <option value="3">Quarter 3</option>
                   <option value="4">Quarter 4</option>
                 </select>
+                <FiChevronDown className="amendments-control__chevron" aria-hidden="true" />
               </div>
 
               {/* Record Type Filter */}
-              <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                <FiFilter className="text-slate-400" aria-hidden="true" />
+              <div className="amendments-control">
+                <FiFilter className="amendments-control__icon" aria-hidden="true" />
                 <select
                   value={recordTypeFilter}
                   onChange={(e) => setRecordTypeFilter(e.target.value)}
-                  className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  className="amendments-control__select amendments-control__select--wide"
                   aria-label="Filter by Record Type"
                 >
                   <option value="all">All Record Types</option>
+                  <option value="subject_record">Subject Record (Unified)</option>
                   <option value="gradebook_score">Gradebook Score</option>
                   <option value="student_record_grade">Student Record Grade</option>
                   <option value="attendance">Daily Attendance</option>
                 </select>
+                <FiChevronDown className="amendments-control__chevron" aria-hidden="true" />
               </div>
             </div>
 
             {/* Search Input */}
-            <div className="relative w-full md:w-80">
-              <FiSearch
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                aria-hidden="true"
-              />
+            <div className="amendments-search">
+              <FiSearch className="amendments-search__icon" aria-hidden="true" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search student, LRN, teacher, AMD-..."
-                className="w-full rounded-lg border border-slate-300 bg-white py-1.5 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 shadow-sm focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                className="amendments-search__input"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  className="amendments-search__clear"
                   aria-label="Clear search"
                 >
                   <FiX className="h-3.5 w-3.5" />
@@ -598,19 +628,19 @@ export default function RegisterAmendments() {
           <table className="amendments-table">
             <thead>
               <tr>
-                <th>Request #</th>
-                <th>Requester</th>
-                <th>Student</th>
-                <th>Target & Scope</th>
-                <th>Requested At</th>
-                <th>Status</th>
-                <th className="text-right">Action</th>
+                <th scope="col" className="amendments-table__col--request">Request #</th>
+                <th scope="col" className="amendments-table__col--requester">Requester</th>
+                <th scope="col" className="amendments-table__col--student">Student</th>
+                <th scope="col" className="amendments-table__col--target">Target &amp; Scope</th>
+                <th scope="col" className="amendments-table__col--date">Requested</th>
+                <th scope="col" className="amendments-table__col--status">Status</th>
+                <th scope="col" className="amendments-table__col--action">Action</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                <tr className="amendments-table__row amendments-table__row--message">
+                  <td colSpan={7} className="amendments-table__message">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <FiRefreshCw className="h-6 w-6 animate-spin text-emerald-600" />
                       <span className="text-xs font-medium">Loading amendment requests…</span>
@@ -618,8 +648,8 @@ export default function RegisterAmendments() {
                   </td>
                 </tr>
               ) : filteredRequests.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500 dark:text-slate-400">
+                <tr className="amendments-table__row amendments-table__row--message">
+                  <td colSpan={7} className="amendments-table__message">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <FiFileText className="h-8 w-8 text-slate-300 dark:text-slate-600" />
                       <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
@@ -634,70 +664,77 @@ export default function RegisterAmendments() {
                   </td>
                 </tr>
               ) : (
-                filteredRequests.map((req) => (
-                  <tr key={req.id}>
-                    <td>
-                      <span className="font-mono text-xs font-bold text-slate-900 dark:text-white">
-                        {req.requestNumber}
-                      </span>
-                    </td>
-                    <td>
-                      <div>
-                        <div className="font-medium text-slate-900 dark:text-white">
-                          {req.requesterName || `Faculty #${req.requesterFacultyId}`}
+                filteredRequests.map((req) => {
+                  const requestedAt = formatDateTimeParts(req.created_at);
+                  const targetMeta = [
+                    req.section ? `Grade ${req.gradeLevel ?? ""} - ${req.section}` : null,
+                    `Q${req.quarter}`,
+                    getAmendmentRecordTypeLabel(req.recordType),
+                  ]
+                    .filter(Boolean)
+                    .join(" · ");
+
+                  return (
+                    <tr key={req.id} className="amendments-table__row">
+                      <td className="amendments-table__cell amendments-table__cell--request">
+                        <span className="amendment-request-number" title={req.requestNumber}>
+                          {req.requestNumber}
+                        </span>
+                      </td>
+                      <td className="amendments-table__cell amendments-table__cell--requester">
+                        <div className="amendment-entity">
+                          <span className="amendment-entity__primary">
+                            {req.requesterName || `Faculty #${req.requesterFacultyId}`}
+                          </span>
+                          <span className="amendment-entity__meta">Teacher</span>
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                          Teacher
+                      </td>
+                      <td className="amendments-table__cell amendments-table__cell--student">
+                        <div className="amendment-entity">
+                          <span className="amendment-entity__primary amendment-entity__primary--strong">
+                            {req.studentName || `Student #${req.enrollmentId}`}
+                          </span>
+                          <span className="amendment-entity__meta amendment-entity__meta--mono">
+                            LRN: {req.studentLrn || "—"}
+                          </span>
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div>
-                        <div className="font-semibold text-slate-900 dark:text-white">
-                          {req.studentName || `Student #${req.enrollmentId}`}
+                      </td>
+                      <td className="amendments-table__cell amendments-table__cell--target">
+                        <div className="amendment-entity">
+                          <span className="amendment-entity__primary">
+                            {req.subjectName || "Quarter Final Grade"}
+                          </span>
+                          <span className="amendment-entity__meta">{targetMeta}</span>
                         </div>
-                        <div className="font-mono text-[11px] text-slate-500 dark:text-slate-400">
-                          LRN: {req.studentLrn || "—"}
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div>
-                        <div className="font-medium text-slate-800 dark:text-slate-200">
-                          {req.subjectName || "Quarter Final Grade"}
-                        </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                          {req.section ? `Grade ${req.gradeLevel ?? ""} - ${req.section} · ` : ""}
-                          Q{req.quarter} · {getAmendmentRecordTypeLabel(req.recordType)}
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="text-xs text-slate-600 dark:text-slate-300">
-                        {formatDateTime(req.created_at)}
-                      </span>
-                    </td>
-                    <td>
-                      <span
-                        className={`amendment-badge ${getAmendmentStatusBadgeClass(
-                          req.status
-                        )}`}
-                      >
-                        {getAmendmentStatusLabel(req.status)}
-                      </span>
-                    </td>
-                    <td className="text-right">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenReview(req)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-emerald-500 hover:text-emerald-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-emerald-500 dark:hover:text-emerald-400"
-                      >
-                        <FiEye className="h-3.5 w-3.5" aria-hidden="true" />
-                        <span>{canReview && req.status === "pending" ? "Review" : "View"}</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="amendments-table__cell amendments-table__cell--date">
+                        <span className="amendment-date">
+                          <span className="amendment-date__day">{requestedAt.date}</span>
+                          <span className="amendment-date__time">{requestedAt.time}</span>
+                        </span>
+                      </td>
+                      <td className="amendments-table__cell amendments-table__cell--status">
+                        <span
+                          className={`amendment-badge ${getAmendmentStatusBadgeClass(
+                            req.status
+                          )}`}
+                        >
+                          {getAmendmentStatusLabel(req.status)}
+                        </span>
+                      </td>
+                      <td className="amendments-table__cell amendments-table__cell--action">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenReview(req)}
+                          className="amendments-action-btn"
+                        >
+                          <FiEye aria-hidden="true" />
+                          <span>{canReview && req.status === "pending" ? "Review" : "View"}</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -709,17 +746,18 @@ export default function RegisterAmendments() {
         <ModalDialog
           open={Boolean(activeRequest)}
           onClose={handleCloseReview}
+          scrollable
           labelledById={reviewModalTitleId}
           className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900"
         >
           {/* Modal Header */}
-          <div className="flex items-start justify-between border-b border-slate-100 p-6 pb-4 dark:border-slate-800">
+          <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 p-4 pb-3 dark:border-slate-800 sm:p-6 sm:pb-4">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
                 <FiFileText className="h-5 w-5" aria-hidden="true" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
                   <h3
                     id={reviewModalTitleId}
                     className="text-lg font-semibold text-slate-900 dark:text-white"
@@ -750,9 +788,9 @@ export default function RegisterAmendments() {
           </div>
 
           {/* Modal Body */}
-          <div className="max-h-[75vh] overflow-y-auto p-6 space-y-5">
+          <div className="min-h-0 flex-auto space-y-5 overflow-y-auto overscroll-contain p-4 sm:p-6">
             {/* Metadata Card */}
-            <div className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-xs dark:border-slate-800 dark:bg-slate-800/40">
+            <div className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-xs dark:border-slate-800 dark:bg-slate-800/40 sm:grid-cols-2">
               <div>
                 <span className="font-semibold text-slate-500 dark:text-slate-400">
                   Requester (Faculty):
@@ -873,6 +911,60 @@ export default function RegisterAmendments() {
                   </div>
                 </div>
               </div>
+
+              {/* Subject Record Granular Changes Breakdown */}
+              {activeRequest.recordType === "subject_record" && (() => {
+                let details: any = {};
+                try {
+                  details = typeof activeRequest.details === "string" ? JSON.parse(activeRequest.details) : (activeRequest.details ?? {});
+                } catch {
+                  details = {};
+                }
+                const changes = details.changes;
+                if (!changes || (!changes.gradebook?.length && !changes.attendance?.length)) return null;
+
+                return (
+                  <div className="mt-3 space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs dark:border-slate-800 dark:bg-slate-800/40">
+                    <span className="font-bold text-slate-900 dark:text-white">
+                      Requested Modifications Breakdown:
+                    </span>
+                    {changes.gradebook && changes.gradebook.length > 0 && (
+                      <div className="space-y-1.5 pt-1">
+                        <span className="font-semibold text-slate-600 dark:text-slate-400 text-[11px]">
+                          Assessment Scores:
+                        </span>
+                        {changes.gradebook.map((g: any, i: number) => (
+                          <div key={i} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-xs dark:border-slate-700 dark:bg-slate-800">
+                            <span className="font-medium text-slate-800 dark:text-slate-200">
+                              {g.assessmentTitle ?? "Assessment Score"}
+                            </span>
+                            <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                              {g.currentScore !== null && g.currentScore !== undefined ? g.currentScore : "—"} &rarr; {g.proposedScore}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {changes.attendance && changes.attendance.length > 0 && (
+                      <div className="space-y-1.5 pt-1.5">
+                        <span className="font-semibold text-slate-600 dark:text-slate-400 text-[11px]">
+                          Subject Attendance:
+                        </span>
+                        {changes.attendance.map((a: any, i: number) => (
+                          <div key={i} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-xs dark:border-slate-700 dark:bg-slate-800">
+                            <span className="font-medium text-slate-800 dark:text-slate-200">
+                              Date: {formatDate(a.date)}
+                            </span>
+                            <span className="font-mono font-bold uppercase text-emerald-700 dark:text-emerald-400">
+                              {a.currentStatus ?? "—"} &rarr; {a.proposedStatus}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Active Permission Status (if approved or permission attached) */}
@@ -893,7 +985,7 @@ export default function RegisterAmendments() {
                   )}
                 </div>
 
-                <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-emerald-800 dark:text-emerald-300 border-t border-emerald-200/60 pt-2 dark:border-emerald-800/40">
+                <div className="mt-2 grid grid-cols-1 gap-2 text-[11px] text-emerald-800 dark:text-emerald-300 border-t border-emerald-200/60 pt-2 dark:border-emerald-800/40 sm:grid-cols-2">
                   <div>
                     <span className="font-semibold">Expires: </span>
                     {formatDateTime(activeRequest.permission.expiresAt)}
@@ -943,12 +1035,12 @@ export default function RegisterAmendments() {
                       log.action === "approved"
                         ? "amendments-audit-dot--approved"
                         : log.action === "rejected"
-                        ? "amendments-audit-dot--rejected"
-                        : log.action === "revoked"
-                        ? "amendments-audit-dot--revoked"
-                        : log.action === "modified"
-                        ? "amendments-audit-dot--modified"
-                        : "amendments-audit-dot--requested";
+                          ? "amendments-audit-dot--rejected"
+                          : log.action === "revoked"
+                            ? "amendments-audit-dot--revoked"
+                            : log.action === "modified"
+                              ? "amendments-audit-dot--modified"
+                              : "amendments-audit-dot--requested";
 
                     return (
                       <div key={log.id} className="amendments-audit-item">
@@ -983,7 +1075,7 @@ export default function RegisterAmendments() {
           </div>
 
           {/* Modal Footer Actions */}
-          <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/70 p-4 px-6 dark:border-slate-800 dark:bg-slate-800/40">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/70 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/40 sm:px-6 sm:py-4">
             <button
               type="button"
               onClick={handleCloseReview}
