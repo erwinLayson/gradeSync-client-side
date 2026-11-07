@@ -217,7 +217,7 @@ export default function FacultyAttendance() {
     const [createForm, setCreateForm] = useState<CreateAttendanceForm>({
         classSubjectId: null,
         date: "",
-        quarter: 1,
+        quarter: currentQuarter ?? 1,
     });
     const [createError, setCreateError] = useState<string | null>(null);
     // True while the dialog checks whether that day already has records.
@@ -337,12 +337,23 @@ export default function FacultyAttendance() {
     const selectedSubject =
         subjects.find((s) => s.classSubjectId === selectedSubjectId) ?? null;
 
+    const prevCurrentQuarterRef = useRef<number>(currentQuarter);
+
     // Default the quarter filter to the school's current quarter once the real
     // setting has loaded (the hook falls back to 1 while loading).
+    // When the active quarter advances, update the filter to the new quarter.
     useEffect(() => {
-        if (settingsLoading || quarterFromUrlRef.current) return;
-        quarterFromUrlRef.current = true;
-        setQuarterFilter(currentQuarter);
+        if (settingsLoading) return;
+        if (!quarterFromUrlRef.current) {
+            quarterFromUrlRef.current = true;
+            setQuarterFilter(currentQuarter);
+            prevCurrentQuarterRef.current = currentQuarter;
+            return;
+        }
+        if (prevCurrentQuarterRef.current !== currentQuarter) {
+            setQuarterFilter(currentQuarter);
+            prevCurrentQuarterRef.current = currentQuarter;
+        }
     }, [settingsLoading, currentQuarter]);
 
     // Reflect the active filters in the URL (replace, so Back isn't spammed).
@@ -651,10 +662,14 @@ export default function FacultyAttendance() {
     // the subject already on screen stays a two-tap action.
     function openCreateDialog() {
         setCreateError(null);
+        const defaultQuarter =
+            quarterFilter !== ALL_QUARTERS && Number(quarterFilter) >= currentQuarter
+                ? Number(quarterFilter)
+                : currentQuarter;
         setCreateForm({
             classSubjectId: selectedSubjectId ?? subjects[0]?.classSubjectId ?? null,
             date: toDateInputValue(new Date()),
-            quarter: quarterFilter !== ALL_QUARTERS ? quarterFilter : currentQuarter,
+            quarter: defaultQuarter,
         });
         setCreateOpen(true);
     }
@@ -679,6 +694,10 @@ export default function FacultyAttendance() {
         const target = subjects.find((subject) => subject.classSubjectId === classSubjectId) ?? null;
         if (!target) {
             setCreateError("Pick the subject this attendance is for.");
+            return;
+        }
+        if (quarter < currentQuarter) {
+            setCreateError(`Quarter ${quarter} is locked. Attendance cannot be recorded for past quarters.`);
             return;
         }
         if (!isValidDateInput(date)) {
@@ -1559,11 +1578,13 @@ export default function FacultyAttendance() {
                                             setCreateForm((prev) => ({ ...prev, quarter: Number(event.target.value) }))
                                         }
                                     >
-                                        {quarters.map((quarter) => (
-                                            <option key={quarter} value={quarter}>
-                                                Quarter {quarter}
-                                            </option>
-                                        ))}
+                                        {quarters
+                                            .filter((quarter) => quarter >= currentQuarter)
+                                            .map((quarter) => (
+                                                <option key={quarter} value={quarter}>
+                                                    Quarter {quarter}
+                                                </option>
+                                            ))}
                                     </select>
                                 </div>
                             </div>

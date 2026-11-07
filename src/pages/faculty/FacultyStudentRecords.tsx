@@ -44,8 +44,21 @@ import "../../style/facultyStudentRecords.css";
 
 export default function FacultyStudentRecords() {
     // ================= State =================
-    const { quarters } = useAcademicSettings();
-    const [quarter, setQuarter] = useState<number>(1);
+    const { quarters, currentQuarter, loading: settingsLoading } = useAcademicSettings();
+    const [quarter, setQuarter] = useState<number>(currentQuarter ?? 1);
+    const prevCurrentQuarterRef = useRef<number>(currentQuarter ?? 1);
+    const hasUserSelectedQuarterRef = useRef<boolean>(false);
+
+    useEffect(() => {
+        if (!settingsLoading && currentQuarter) {
+            if (prevCurrentQuarterRef.current !== currentQuarter || !hasUserSelectedQuarterRef.current) {
+                setQuarter(currentQuarter);
+                prevCurrentQuarterRef.current = currentQuarter;
+                hasUserSelectedQuarterRef.current = false;
+            }
+        }
+    }, [currentQuarter, settingsLoading]);
+
     const [submissionsLocked, setSubmissionsLocked] = useState(false);
 
     // Subject Teacher Hook
@@ -444,7 +457,10 @@ export default function FacultyStudentRecords() {
                                     id="subject-quarter-select"
                                     className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-bold text-slate-900 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                                     value={quarter}
-                                    onChange={(e) => setQuarter(Number(e.target.value))}
+                                    onChange={(e) => {
+                                        hasUserSelectedQuarterRef.current = true;
+                                        setQuarter(Number(e.target.value));
+                                    }}
                                 >
                                     {quarters.map((q) => (
                                         <option key={q} value={q}>Q{q}</option>

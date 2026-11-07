@@ -14,7 +14,7 @@ import {
 
 import { getAPICall, patchAPICall } from "../../api/api";
 import { getSubjectSubmissionSummary } from "../../api/studentRecord";
-import { invalidateAcademicSettingsCache, useAcademicSettings } from "../../hooks/useAcademicSettings";
+import { notifyAcademicSettingsUpdated, useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ModalDialog } from "../../components/ModalDialog";
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
@@ -269,8 +269,7 @@ export default function RegisterStudentRecords() {
             });
 
             setCurrentQuarter(nextQuarter);
-            invalidateAcademicSettingsCache();
-            window.dispatchEvent(new Event("academic-settings-updated"));
+            notifyAcademicSettingsUpdated();
 
             refetchSummary();
 

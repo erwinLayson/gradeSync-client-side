@@ -19,6 +19,7 @@ import {
     useCallback,
     useEffect,
     useMemo,
+    useRef,
     useState,
     type ChangeEvent,
     type FormEvent,
@@ -209,15 +210,27 @@ function getInitials(name: string): string {
 export default function FacultyGradebook() {
     const navigate = useNavigate();
     const { classId } = useParams();
-    const { quarters, currentQuarter, settings } = useAcademicSettings();
+    const { quarters, currentQuarter, settings, loading: settingsLoading } = useAcademicSettings();
     const classSubjectId = Number(classId);
 
     // ================ Page Data ================
     const [loading, setLoading] = useState<boolean>(true);
-    const [quarter, setQuarter] = useState<number>(1);
+    const [quarter, setQuarter] = useState<number>(currentQuarter ?? 1);
     const [gradeBookDetails, setGradeBookDetails] = useState<GradebookDetails | null>(null);
     const [draftScores, setDraftScores] = useState<DraftScores>({});
     const [savingScores, setSavingScores] = useState<boolean>(false);
+    const prevCurrentQuarterRef = useRef<number>(currentQuarter ?? 1);
+    const hasUserSelectedQuarterRef = useRef<boolean>(false);
+
+    useEffect(() => {
+        if (!settingsLoading && currentQuarter) {
+            if (prevCurrentQuarterRef.current !== currentQuarter || !hasUserSelectedQuarterRef.current) {
+                setQuarter(currentQuarter);
+                prevCurrentQuarterRef.current = currentQuarter;
+                hasUserSelectedQuarterRef.current = false;
+            }
+        }
+    }, [currentQuarter, settingsLoading]);
 
     const isQuarterLocked = Boolean(
         settings?.submissionsLocked ||
@@ -305,6 +318,7 @@ export default function FacultyGradebook() {
 
     function handleQuarterChange(targetQuarter: number) {
         if (targetQuarter === quarter) return;
+        hasUserSelectedQuarterRef.current = true;
         setLoading(true);
         setQuarter(targetQuarter);
     }
@@ -444,11 +458,19 @@ export default function FacultyGradebook() {
 
     // ================= Assessment modal handlers ================
     function openCreateModal() {
+        if (isQuarterLocked) {
+            toast.warning(`Quarter ${quarter} is locked. Assessments cannot be created for past quarters.`);
+            return;
+        }
         setModalForm({ ...EMPTY_ASSESSMENT_FORM });
         setModal({ mode: "create" });
     }
 
     function openEditModal(assessment: Assessment) {
+        if (isQuarterLocked) {
+            toast.warning(`Quarter ${quarter} is locked. Assessments cannot be modified for past quarters.`);
+            return;
+        }
         setModalForm({
             title: assessment.title,
             type: assessment.type,
@@ -470,6 +492,11 @@ export default function FacultyGradebook() {
     async function handleAssessmentSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (!gradeBookDetails || !modal || savingAssessment) return;
+
+        if (isQuarterLocked) {
+            toast.error(`Quarter ${quarter} is locked. Assessments cannot be created or modified for past quarters.`);
+            return;
+        }
 
         const title = modalForm.title.trim();
         const maxScore = Number(modalForm.maxScore);
@@ -516,6 +543,12 @@ export default function FacultyGradebook() {
 
     async function handleDeleteAssessment() {
         if (!deletingAssessment || deleting) return;
+
+        if (isQuarterLocked) {
+            toast.error(`Quarter ${quarter} is locked. Assessments cannot be deleted for past quarters.`);
+            return;
+        }
+
         setDeleting(true);
         try {
             await deleteAPICall(`/assessments/${deletingAssessment.id}`, { toast: false });
@@ -882,14 +915,21 @@ export default function FacultyGradebook() {
                         <p className="faculty-gradebook__empty-text text-xs text-gray-500 mt-1 max-w-sm">
                             Add an assessment to start recording scores for this subject and quarter.
                         </p>
-                        <button
-                            type="button"
-                            className="faculty-gradebook__btn-primary cursor-pointer mt-4 inline-flex items-center gap-1.5"
-                            onClick={openCreateModal}
-                        >
-                            <FiPlus className="w-3.5 h-3.5" />
-                            <span>Add Assessment</span>
-                        </button>
+                        {!isQuarterLocked ? (
+                            <button
+                                type="button"
+                                className="faculty-gradebook__btn-primary cursor-pointer mt-4 inline-flex items-center gap-1.5"
+                                onClick={openCreateModal}
+                            >
+                                <FiPlus className="w-3.5 h-3.5" />
+                                <span>Add Assessment</span>
+                            </button>
+                        ) : (
+                            <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold">
+                                <FiLock className="w-3.5 h-3.5 text-amber-700" />
+                                <span>Quarter {quarter} is locked — assessments cannot be added</span>
+                            </div>
+                        )}
                     </div>
                 ) : students.length === 0 ? (
                     <div className="faculty-gradebook__empty flex flex-col items-center justify-center px-6 py-16 text-center">
@@ -1019,24 +1059,26 @@ export default function FacultyGradebook() {
                                                             </span>
                                                         )}
                                                         {/* Edit / Delete quick controls */}
-                                                        <div className="flex items-center gap-1 mt-0.5 opacity-60 hover:opacity-100 transition-opacity">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => openEditModal(assessment)}
-                                                                title={`Edit ${assessment.title}`}
-                                                                className="p-1 hover:text-[#176B3A] rounded hover:bg-gray-200 cursor-pointer"
-                                                            >
-                                                                <FiEdit3 className="w-3 h-3" />
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setDeletingAssessment(assessment)}
-                                                                title={`Delete ${assessment.title}`}
-                                                                className="p-1 hover:text-red-600 rounded hover:bg-red-50 cursor-pointer"
-                                                            >
-                                                                <FiTrash2 className="w-3 h-3" />
-                                                            </button>
-                                                        </div>
+                                                        {!isQuarterLocked && (
+                                                            <div className="flex items-center gap-1 mt-0.5 opacity-60 hover:opacity-100 transition-opacity">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => openEditModal(assessment)}
+                                                                    title={`Edit ${assessment.title}`}
+                                                                    className="p-1 hover:text-[#176B3A] rounded hover:bg-gray-200 cursor-pointer"
+                                                                >
+                                                                    <FiEdit3 className="w-3 h-3" />
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setDeletingAssessment(assessment)}
+                                                                    title={`Delete ${assessment.title}`}
+                                                                    className="p-1 hover:text-red-600 rounded hover:bg-red-50 cursor-pointer"
+                                                                >
+                                                                    <FiTrash2 className="w-3 h-3" />
+                                                                </button>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </th>
                                             ))}

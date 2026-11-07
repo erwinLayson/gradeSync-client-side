@@ -24,6 +24,17 @@ export function invalidateAcademicSettingsCache() {
     cachedKey = null;
 }
 
+// Dispatches the update event locally and broadcasts to other browser tabs.
+export function notifyAcademicSettingsUpdated() {
+    invalidateAcademicSettingsCache();
+    window.dispatchEvent(new Event("academic-settings-updated"));
+    try {
+        localStorage.setItem("academic-settings-updated-at", Date.now().toString());
+    } catch {
+        // Ignore storage access errors in restricted sandbox/iframes
+    }
+}
+
 // The grading configuration lives behind two endpoints with identical payloads:
 // /academic-settings is restricted to admin/faculty, while students read the
 // same data through the student-only /students/current-quarter. Calling the
@@ -82,11 +93,22 @@ export function useAcademicSettings() {
             invalidateAcademicSettingsCache();
             load();
         };
+
+        const onStorage = (event: StorageEvent) => {
+            if (event.key === "academic-settings-updated-at") {
+                onUpdated();
+            }
+        };
+
         window.addEventListener("academic-settings-updated", onUpdated);
+        window.addEventListener("storage", onStorage);
+        window.addEventListener("focus", onUpdated);
 
         return () => {
             cancelled = true;
             window.removeEventListener("academic-settings-updated", onUpdated);
+            window.removeEventListener("storage", onStorage);
+            window.removeEventListener("focus", onUpdated);
         };
     }, [user]);
 

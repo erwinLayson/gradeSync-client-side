@@ -12,6 +12,7 @@ import {
 
 import { useUser } from "../../hooks/useUser";
 import { invalidateSchoolInfoCache } from "../../hooks/useSchoolInfo";
+import { notifyAcademicSettingsUpdated } from "../../hooks/useAcademicSettings";
 import { getAPICall, patchAPICall, putAPICall } from "../../api/api.js";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import SchoolLogoUploader from "../../components/SchoolLogoUploader";
@@ -424,7 +425,7 @@ export default function AdminSettings() {
             }
 
             setNumQuarters(newNum);
-            window.dispatchEvent(new Event("academic-settings-updated"));
+            notifyAcademicSettingsUpdated();
             handleSave("academic");
         } catch {
             // Error toast is handled by the axios interceptor in api.ts
