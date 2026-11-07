@@ -1,12 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import {
-    FiAlertTriangle,
     FiBookOpen,
     FiCheckCircle,
-    FiChevronDown,
     FiClock,
     FiEdit3,
-    FiFileText,
     FiLock,
     FiRefreshCw,
     FiSend,
@@ -22,7 +19,6 @@ import {
     getSubjectClassRecords,
     submitSubjectRecords,
     submitSingleStudentSubjectRecord,
-    reopenSubjectRecord
 } from "../../api/studentRecord";
 import { applyUnifiedSubjectAmendment } from "../../api/amendments";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
@@ -39,22 +35,11 @@ import { toast } from "../../helper/toast";
 import type {
     ClassRecordsResponse,
     StudentClassRecordRow,
-    SubmitAllResult,
     SubjectClassRecordResponse,
     SubjectStudentRow,
 } from "../../constant/studentRecord";
 
 import "../../style/facultyStudentRecords.css";
-
-// ================= Helpers =================
-
-function formatSubmittedAt(iso: string | null): string | null {
-    if (!iso) return null;
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) return null;
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
 // ================= Component =================
 
 export default function FacultyStudentRecords() {
@@ -79,7 +64,6 @@ export default function FacultyStudentRecords() {
     const [submittingSubjectEnrollmentId, setSubmittingSubjectEnrollmentId] = useState<number | null>(null);
     const [confirmSubmitAllSubject, setConfirmSubmitAllSubject] = useState(false);
     const [submittingAllSubject, setSubmittingAllSubject] = useState(false);
-    const [reopeningSubject, setReopeningSubject] = useState(false);
     const [applyingPermId, setApplyingPermId] = useState<number | null>(null);
     const [amendmentSubjectStudent, setAmendmentSubjectStudent] = useState<SubjectStudentRow | null>(null);
 
@@ -93,25 +77,8 @@ export default function FacultyStudentRecords() {
     const [reviewingAdviserStudent, setReviewingAdviserStudent] = useState<StudentClassRecordRow | null>(null);
     const reviewTriggerRef = useRef<HTMLButtonElement>(null);
     const [submittingAdviserEnrollmentId, setSubmittingAdviserEnrollmentId] = useState<number | null>(null);
-    const [confirmSubmitAllAdviser, setConfirmSubmitAllAdviser] = useState(false);
-    const [submittingAllAdviser, setSubmittingAllAdviser] = useState(false);
-    const [reopenTargetAdviser, setReopenTargetAdviser] = useState<StudentClassRecordRow | null>(null);
-    const [reopeningAdviser, setReopeningAdviser] = useState(false);
     const [amendmentAdviserStudent, setAmendmentAdviserStudent] = useState<StudentClassRecordRow | null>(null);
-
-    // Mobile accordion expansion
-    const [expandedStudents, setExpandedStudents] = useState<Set<number>>(new Set());
-
-    const { hasActivePermission, getPendingRequest, refresh: refreshAmendments } = useMyAmendments();
-
-    function toggleStudent(enrollmentId: number) {
-        setExpandedStudents((prev) => {
-            const next = new Set(prev);
-            if (next.has(enrollmentId)) next.delete(enrollmentId);
-            else next.add(enrollmentId);
-            return next;
-        });
-    }
+    const { refresh: refreshAmendments } = useMyAmendments();
 
     // Load academic settings to check if submissions are locked.
     useEffect(() => {
@@ -227,19 +194,6 @@ export default function FacultyStudentRecords() {
         }
     };
 
-    const handleReopenSubject = async () => {
-        if (!selectedSubjectId || reopeningSubject) return;
-        setReopeningSubject(true);
-        try {
-            await reopenSubjectRecord(selectedSubjectId, quarter);
-            toast.success("Subject record reopened to pending");
-            await fetchSubjectRecords(selectedSubjectId, quarter);
-            refetchSubjects();
-        } finally {
-            setReopeningSubject(false);
-        }
-    };
-
     const handleApplyAmendment = async (student: SubjectStudentRow) => {
         if (!student.activePermissionId || applyingPermId !== null) return;
         setApplyingPermId(student.activePermissionId);
@@ -281,51 +235,6 @@ export default function FacultyStudentRecords() {
             await fetchAdviserRecords(quarter);
         } finally {
             setSubmittingAdviserEnrollmentId(null);
-        }
-    };
-
-    const handleSubmitAllAdviser = async () => {
-        if (!adviserRecords?.classId || submittingAllAdviser) return;
-        setSubmittingAllAdviser(true);
-        try {
-            const response = await postAPICall<unknown, SubmitAllResult>(
-                `/student-records/class/${adviserRecords.classId}/quarter/${quarter}/submit-all`,
-                {},
-                { toast: false }
-            );
-            const result = response.data;
-            if (result) {
-                if (result.blocked.length > 0) {
-                    const names = result.blocked.map((b) => b.fullname).join(", ");
-                    toast.warning(
-                        `${result.submitted} submitted — ${result.blocked.length} blocked (missing grades): ${names}`
-                    );
-                } else if (result.submitted === 0 && result.alreadySubmitted > 0) {
-                    toast.info("All student records are already submitted for this quarter.");
-                } else {
-                    toast.success(`${result.submitted} student record${result.submitted === 1 ? "" : "s"} submitted.`);
-                }
-            }
-            setConfirmSubmitAllAdviser(false);
-            await fetchAdviserRecords(quarter);
-        } finally {
-            setSubmittingAllAdviser(false);
-        }
-    };
-
-    const handleReopenAdviser = async () => {
-        if (!adviserRecords?.classId || !reopenTargetAdviser || reopeningAdviser) return;
-        setReopeningAdviser(true);
-        try {
-            await postAPICall(
-                `/student-records/class/${adviserRecords.classId}/students/${reopenTargetAdviser.enrollmentId}/quarter/${quarter}/reopen`,
-                {}
-            );
-            setReopenTargetAdviser(null);
-            refreshAmendments();
-            await fetchAdviserRecords(quarter);
-        } finally {
-            setReopeningAdviser(false);
         }
     };
 
@@ -388,11 +297,10 @@ export default function FacultyStudentRecords() {
                     <button
                         type="button"
                         onClick={() => setViewMode("subjects")}
-                        className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
-                            viewMode === "subjects"
+                        className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${viewMode === "subjects"
                                 ? "bg-white text-emerald-700 shadow-sm dark:bg-slate-800 dark:text-emerald-400"
                                 : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-                        }`}
+                            }`}
                     >
                         <FiBookOpen className="h-4 w-4" />
                         My Assigned Subjects ({subjects.length})
@@ -400,11 +308,10 @@ export default function FacultyStudentRecords() {
                     <button
                         type="button"
                         onClick={() => setViewMode("adviser")}
-                        className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
-                            viewMode === "adviser"
+                        className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${viewMode === "adviser"
                                 ? "bg-white text-emerald-700 shadow-sm dark:bg-slate-800 dark:text-emerald-400"
                                 : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-                        }`}
+                            }`}
                     >
                         <FiUserCheck className="h-4 w-4" />
                         Advised Class Matrix ({adviserRecords?.section ?? "Adviser"})
@@ -450,22 +357,20 @@ export default function FacultyStudentRecords() {
                                         key={s.classSubjectId}
                                         type="button"
                                         onClick={() => setSelectedSubjectId(s.classSubjectId)}
-                                        className={`flex min-w-[200px] flex-col items-start rounded-xl border p-3 text-left transition-all ${
-                                            isSelected
+                                        className={`flex min-w-[200px] flex-col items-start rounded-xl border p-3 text-left transition-all ${isSelected
                                                 ? "border-emerald-500 bg-emerald-50/70 shadow-sm dark:border-emerald-600 dark:bg-emerald-950/40"
                                                 : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-850"
-                                        }`}
+                                            }`}
                                     >
                                         <div className="flex w-full items-center justify-between gap-2">
                                             <span className="truncate text-xs font-bold text-slate-900 dark:text-white">
                                                 {s.subjectName}
                                             </span>
                                             <span
-                                                className={`inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
-                                                    isSubSubmitted
+                                                className={`inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${isSubSubmitted
                                                         ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300"
                                                         : "bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300"
-                                                }`}
+                                                    }`}
                                             >
                                                 Q{quarter}: {isSubSubmitted ? "Submitted" : "Pending"}
                                             </span>
@@ -659,13 +564,12 @@ export default function FacultyStudentRecords() {
                                                     {/* Quarter Grade */}
                                                     <td className="px-4 py-3.5 text-center">
                                                         <span
-                                                            className={`inline-flex items-center gap-1 rounded-md px-2 py-1 font-mono text-xs font-bold ${
-                                                                isSubmitted
+                                                            className={`inline-flex items-center gap-1 rounded-md px-2 py-1 font-mono text-xs font-bold ${isSubmitted
                                                                     ? "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
                                                                     : student.quarterGrade !== null
-                                                                    ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
-                                                                    : "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"
-                                                            }`}
+                                                                        ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                                                        : "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"
+                                                                }`}
                                                         >
                                                             {isSubmitted && <FiLock className="h-3 w-3 text-slate-400" aria-hidden="true" />}
                                                             {formatGrade(student.quarterGrade)}
