@@ -32,8 +32,6 @@ describe('RequestAmendmentModal component', () => {
     classroomId: 3,
     classSection: 'Grade 10 - Emerald',
     quarter: 1,
-    assessmentId: 44,
-    assessmentTitle: 'Written Work #1',
     currentValueDisplay: 15,
   };
 
@@ -42,7 +40,7 @@ describe('RequestAmendmentModal component', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('renders student, assessment, and currentValue details when open', () => {
+  it('renders student, subject, and currentValue details when open', () => {
     render(<RequestAmendmentModal {...defaultProps} />);
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -50,23 +48,17 @@ describe('RequestAmendmentModal component', () => {
     expect(screen.getByText('Juan Dela Cruz')).toBeInTheDocument();
     expect(screen.getByText('LRN: 123456789012')).toBeInTheDocument();
     expect(screen.getByText('Mathematics 10')).toBeInTheDocument();
-    expect(screen.getByText('Written Work #1')).toBeInTheDocument();
     expect(screen.getByText('15')).toBeInTheDocument();
   });
 
-  it('disables submit button until proposed value and 10-char reason are entered', async () => {
+  it('disables submit button until 10-char reason is entered', async () => {
     const user = userEvent.setup();
     render(<RequestAmendmentModal {...defaultProps} />);
 
     const submitBtn = screen.getByRole('button', { name: /Submit Amendment Request/i });
     expect(submitBtn).toBeDisabled();
 
-    const valueInput = screen.getByPlaceholderText(/e\.g\. 95/i);
-    const reasonInput = screen.getByPlaceholderText(/Explain specifically why/i);
-
-    // Type proposed value only
-    await user.type(valueInput, '20');
-    expect(submitBtn).toBeDisabled();
+    const reasonInput = screen.getByPlaceholderText(/Explain why this student's records require modification/i);
 
     // Type short reason (< 10 chars)
     await user.type(reasonInput, 'Error');
@@ -104,11 +96,9 @@ describe('RequestAmendmentModal component', () => {
 
     render(<RequestAmendmentModal {...defaultProps} />);
 
-    const valueInput = screen.getByPlaceholderText(/e\.g\. 95/i);
-    const reasonInput = screen.getByPlaceholderText(/Explain specifically why/i);
+    const reasonInput = screen.getByPlaceholderText(/Explain why this student's records require modification/i);
     const submitBtn = screen.getByRole('button', { name: /Submit Amendment Request/i });
 
-    await user.type(valueInput, '25');
     await user.type(reasonInput, 'Typo in test paper scoring');
     await user.click(submitBtn);
 
@@ -122,7 +112,6 @@ describe('RequestAmendmentModal component', () => {
         studentId: 101,
         enrollmentId: 5,
         quarter: 1,
-        proposedValues: { value: '25' },
         reason: 'Typo in test paper scoring',
       }),
     );
@@ -145,6 +134,7 @@ describe('amendment constants and helpers', () => {
   it('returns appropriate labels and badges', () => {
     expect(getAmendmentStatusLabel('pending')).toBe('Pending Approval');
     expect(getAmendmentStatusLabel('approved')).toBe('Approved (Active)');
+    expect(getAmendmentStatusLabel('in_progress')).toBe('In Progress');
     expect(getAmendmentRecordTypeLabel('gradebook_score')).toBe(
       'Gradebook Assessment Score',
     );

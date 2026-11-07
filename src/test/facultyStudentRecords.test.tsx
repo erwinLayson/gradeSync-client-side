@@ -45,6 +45,22 @@ vi.mock("../api/studentRecord", () => ({
     submitSubjectRecords: vi.fn(),
     submitSingleStudentSubjectRecord: vi.fn(),
     reopenSubjectRecord: vi.fn(),
+    getSubjectStudentAmendData: vi.fn().mockResolvedValue({
+        message: "Success",
+        success: true,
+        data: {
+            permission: { id: 77, requestId: 88, status: "active", expiresAt: "2026-11-08T00:00:00Z", recordType: "subject_record" },
+            request: { id: 88, requestNumber: "AMD-2026-0001", status: "approved", reason: "Score encoding error", quarter: 1 },
+            student: { enrollmentId: 201, fullname: "Juan Dela Cruz", studentLrn: "111111111111" },
+            classSubject: { id: 101, subjectName: "Science 10", subjectCode: "SCI10", classSection: "Emerald", classGradeLevel: 10 },
+            assessments: [
+                { id: 1, title: "Written Work #1", type: "written_work", maxScore: 50, currentScore: 40 }
+            ],
+            attendance: [
+                { id: 1, date: "2026-11-03", status: "absent" }
+            ]
+        }
+    }),
 }));
 
 const mockSubjects: TeacherSubjectOption[] = [
@@ -171,6 +187,14 @@ describe("FacultyStudentRecords Component (Subject Teacher Ownership)", () => {
         expect(screen.getByText("45 / 50 days")).toBeInTheDocument();
         expect(screen.getByText("(90%)")).toBeInTheDocument();
         expect(screen.getByText("50 / 50 days")).toBeInTheDocument();
+
+        // Real component scores: Written Work, Performance Task, Quarterly Exam
+        // Juan has WW: 90.00, PT: 85.00, QA: 88.00. Maria has WW: 92.00, PT: 90.00, QA: 95.00, Q1 Grade: 92.00.
+        expect(screen.getAllByText("90.00").length).toBe(2);
+        expect(screen.getByText("85.00")).toBeInTheDocument();
+        expect(screen.getByText("88.00")).toBeInTheDocument();
+        expect(screen.getAllByText("92.00").length).toBe(2);
+        expect(screen.getByText("95.00")).toBeInTheDocument();
     });
 
     it("submits a single student's record when Submit button is clicked", async () => {
@@ -208,5 +232,77 @@ describe("FacultyStudentRecords Component (Subject Teacher Ownership)", () => {
         await user.click(screen.getByText(/Submit All Pending/i));
 
         expect(screen.getByText(/Submit all records for Science 10\?/i)).toBeInTheDocument();
+    });
+
+    it("opens AmendStudentRecordModal when clicking Amend Record for an authorized student", async () => {
+        const authorizedRecords: SubjectClassRecordResponse = {
+            ...mockSubject101Records,
+            students: [
+                {
+                    ...mockSubject101Records.students[0]!,
+                    status: "submitted",
+                    isFrozen: true,
+                    hasActiveAmendment: true,
+                    activePermissionId: 77,
+                    amendmentStatus: "approved",
+                },
+                mockSubject101Records.students[1]!,
+            ],
+        };
+
+        vi.mocked(studentRecordApi.getSubjectClassRecords).mockResolvedValue({
+            message: "Success",
+            success: true,
+            data: authorizedRecords,
+        });
+
+        const user = userEvent.setup();
+        render(<FacultyStudentRecords />);
+
+        await waitFor(() => {
+            expect(screen.getByText("Juan Dela Cruz")).toBeInTheDocument();
+        });
+
+        const amendBtn = screen.getByRole("button", { name: /Amend Record/i });
+        expect(amendBtn).toBeInTheDocument();
+
+        await user.click(amendBtn);
+
+        await waitFor(() => {
+            expect(screen.getByText("Amend Student Records")).toBeInTheDocument();
+            expect(screen.getByText(/Written Work Assessments/i)).toBeInTheDocument();
+        });
+    });
+
+    it("displays Pending Review badge and disables request button when amendment is pending", async () => {
+        const pendingRecords: SubjectClassRecordResponse = {
+            ...mockSubject101Records,
+            students: [
+                {
+                    ...mockSubject101Records.students[0]!,
+                    status: "submitted",
+                    isFrozen: true,
+                    hasActiveAmendment: false,
+                    activePermissionId: null,
+                    amendmentStatus: "pending",
+                },
+                mockSubject101Records.students[1]!,
+            ],
+        };
+
+        vi.mocked(studentRecordApi.getSubjectClassRecords).mockResolvedValue({
+            message: "Success",
+            success: true,
+            data: pendingRecords,
+        });
+
+        render(<FacultyStudentRecords />);
+
+        await waitFor(() => {
+            expect(screen.getByText("Juan Dela Cruz")).toBeInTheDocument();
+        });
+
+        expect(screen.getByText(/Pending Review/i)).toBeInTheDocument();
+        expect(screen.getByText(/Request Pending/i)).toBeInTheDocument();
     });
 });

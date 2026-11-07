@@ -175,10 +175,14 @@ export const submitSubjectRecordAmendment = async (data: {
 export const applyUnifiedSubjectAmendment = async (
   permissionId: number,
   data?: {
-    changes?: import('../constant/amendment').SubjectAmendmentChanges;
+    changes?: {
+      gradebook?: Array<{ assessmentId: number; score?: number | string | null; proposedScore?: number | string | null }>;
+      attendance?: Array<{ date: string; status?: string; proposedStatus?: string }>;
+    };
+    markAsCompleted?: boolean;
   }
 ) => {
-  return postAPICall<typeof data, { success: boolean; newQuarterGrade: number | null }>(
+  return postAPICall<typeof data, { success: boolean; modifiedCount: number; newQuarterGrade: number | null; status: string }>(
     `/amendments/${permissionId}/apply`,
     data ?? {}
   );

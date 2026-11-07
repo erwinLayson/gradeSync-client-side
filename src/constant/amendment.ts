@@ -1,6 +1,7 @@
 export type AmendmentStatus =
   | 'pending'
   | 'approved'
+  | 'in_progress'
   | 'rejected'
   | 'completed'
   | 'expired'
@@ -144,6 +145,7 @@ export interface SubmitAmendmentPayload {
 export const AMENDMENT_STATUS_LABELS: Record<AmendmentStatus, string> = {
   pending: 'Pending Approval',
   approved: 'Approved (Active)',
+  in_progress: 'In Progress',
   rejected: 'Rejected',
   completed: 'Completed',
   expired: 'Expired',
@@ -154,6 +156,8 @@ export const AMENDMENT_STATUS_BADGE_CLASSES: Record<AmendmentStatus, string> = {
   pending:
     'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60',
   approved:
+    'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60',
+  in_progress:
     'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60',
   rejected:
     'bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60',

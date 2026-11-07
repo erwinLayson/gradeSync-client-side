@@ -400,7 +400,7 @@ export default function RegisterAmendments() {
   // Metrics counts
   const kpiStats = useMemo(() => {
     const pending = requests.filter((r) => r.status === "pending").length;
-    const approved = requests.filter((r) => r.status === "approved").length;
+    const approved = requests.filter((r) => r.status === "approved" || r.status === "in_progress").length;
     const completed = requests.filter((r) => r.status === "completed").length;
     const rejected = requests.filter((r) => r.status === "rejected").length;
     return { pending, approved, completed, rejected };
@@ -533,8 +533,9 @@ export default function RegisterAmendments() {
                 { key: "all", label: "All" },
                 { key: "pending", label: "Pending" },
                 { key: "approved", label: "Approved" },
-                { key: "rejected", label: "Rejected" },
+                { key: "in_progress", label: "In Progress" },
                 { key: "completed", label: "Completed" },
+                { key: "rejected", label: "Rejected" },
                 { key: "revoked", label: "Revoked" },
               ] as const
             ).map((tab) => {
@@ -879,92 +880,143 @@ export default function RegisterAmendments() {
               </div>
             )}
 
-            {/* Comparison View (Diff) */}
+            {/* Comparison View (Diff) / Actual Modifications */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Value Comparison (Diff)
+                  {activeRequest.recordType === "subject_record"
+                    ? "Value Comparison (Audit History)"
+                    : "Value Comparison (Diff)"}
                 </h4>
-                {extractDiffDisplay(activeRequest).contextNote && (
+                {activeRequest.recordType === "subject_record" ? (
                   <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                    {extractDiffDisplay(activeRequest).contextNote}
+                    Subject: {activeRequest.subjectName ?? "Subject Record"}
                   </span>
+                ) : (
+                  extractDiffDisplay(activeRequest).contextNote && (
+                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                      {extractDiffDisplay(activeRequest).contextNote}
+                    </span>
+                  )
                 )}
               </div>
 
-              <div className="amendment-diff-container">
-                <div className="amendment-diff-box amendment-diff-box--current">
-                  <div className="amendment-diff-label">Current Value</div>
-                  <div className="amendment-diff-value">
-                    {extractDiffDisplay(activeRequest).currentDisplay}
-                  </div>
-                </div>
+              {activeRequest.recordType === "subject_record" ? (
+                (() => {
+                  const modifiedLogs = auditLogs.filter((l) => l.action === "modified");
+                  let details: any = {};
+                  try {
+                    details = typeof activeRequest.details === "string" ? JSON.parse(activeRequest.details) : (activeRequest.details ?? {});
+                  } catch {
+                    details = {};
+                  }
+                  const requestedChanges = details.changes;
 
-                <div className="amendment-diff-arrow">
-                  <FiArrowRight />
-                </div>
-
-                <div className="amendment-diff-box amendment-diff-box--proposed">
-                  <div className="amendment-diff-label">Proposed Value</div>
-                  <div className="amendment-diff-value">
-                    {extractDiffDisplay(activeRequest).proposedDisplay}
-                  </div>
-                </div>
-              </div>
-
-              {/* Subject Record Granular Changes Breakdown */}
-              {activeRequest.recordType === "subject_record" && (() => {
-                let details: any = {};
-                try {
-                  details = typeof activeRequest.details === "string" ? JSON.parse(activeRequest.details) : (activeRequest.details ?? {});
-                } catch {
-                  details = {};
-                }
-                const changes = details.changes;
-                if (!changes || (!changes.gradebook?.length && !changes.attendance?.length)) return null;
-
-                return (
-                  <div className="mt-3 space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs dark:border-slate-800 dark:bg-slate-800/40">
-                    <span className="font-bold text-slate-900 dark:text-white">
-                      Requested Modifications Breakdown:
-                    </span>
-                    {changes.gradebook && changes.gradebook.length > 0 && (
-                      <div className="space-y-1.5 pt-1">
-                        <span className="font-semibold text-slate-600 dark:text-slate-400 text-[11px]">
-                          Assessment Scores:
+                  return (
+                    <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs dark:border-slate-800 dark:bg-slate-800/40">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-900 dark:text-white">
+                          Actual Modified Fields (from Audit Log):
                         </span>
-                        {changes.gradebook.map((g: any, i: number) => (
-                          <div key={i} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-xs dark:border-slate-700 dark:bg-slate-800">
-                            <span className="font-medium text-slate-800 dark:text-slate-200">
-                              {g.assessmentTitle ?? "Assessment Score"}
-                            </span>
-                            <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                              {g.currentScore !== null && g.currentScore !== undefined ? g.currentScore : "—"} &rarr; {g.proposedScore}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {changes.attendance && changes.attendance.length > 0 && (
-                      <div className="space-y-1.5 pt-1.5">
-                        <span className="font-semibold text-slate-600 dark:text-slate-400 text-[11px]">
-                          Subject Attendance:
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+                          {modifiedLogs.length} change(s) recorded
                         </span>
-                        {changes.attendance.map((a: any, i: number) => (
-                          <div key={i} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-xs dark:border-slate-700 dark:bg-slate-800">
-                            <span className="font-medium text-slate-800 dark:text-slate-200">
-                              Date: {formatDate(a.date)}
-                            </span>
-                            <span className="font-mono font-bold uppercase text-emerald-700 dark:text-emerald-400">
-                              {a.currentStatus ?? "—"} &rarr; {a.proposedStatus}
-                            </span>
-                          </div>
-                        ))}
                       </div>
-                    )}
+
+                      {modifiedLogs.length > 0 ? (
+                        <div className="space-y-1.5 pt-1">
+                          {modifiedLogs.map((log, i) => {
+                            let diffObj: any = null;
+                            try {
+                              diffObj = typeof log.diff === "string" ? JSON.parse(log.diff) : log.diff;
+                            } catch {
+                              diffObj = null;
+                            }
+                            const record = diffObj?.record ?? (log.recordType === "attendance" ? "Attendance" : "Gradebook");
+                            const field = diffObj?.field ?? (log.beforeState as any)?.field ?? `Item #${log.id}`;
+                            const beforeVal = diffObj?.previousValue ?? (log.beforeState as any)?.score ?? (log.beforeState as any)?.status ?? "—";
+                            const afterVal = diffObj?.updatedValue ?? (log.afterState as any)?.score ?? (log.afterState as any)?.status ?? "—";
+
+                            return (
+                              <div
+                                key={log.id || i}
+                                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-xs dark:border-slate-700 dark:bg-slate-800"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                                    record === "Attendance"
+                                      ? "bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300"
+                                      : "bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300"
+                                  }`}>
+                                    {record}
+                                  </span>
+                                  <span className="font-medium text-slate-800 dark:text-slate-200">
+                                    {field}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <div className="flex items-center gap-1.5 font-mono font-bold">
+                                    <span className="rounded bg-rose-50 px-2 py-0.5 text-xs text-rose-700 dark:bg-rose-950/50 dark:text-rose-300">
+                                      {String(beforeVal)}
+                                    </span>
+                                    <FiArrowRight className="h-3 w-3 text-slate-400" />
+                                    <span className="rounded bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+                                      {String(afterVal)}
+                                    </span>
+                                  </div>
+                                  <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                                    {formatDateTime(log.created_at)}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="py-2 text-[11px] italic text-slate-500 dark:text-slate-400">
+                          {activeRequest.status === "pending"
+                            ? "Pending administrative review. No corrections performed yet."
+                            : activeRequest.status === "approved" || activeRequest.status === "in_progress"
+                            ? "Editing authorization is active. Teacher has not submitted modifications yet."
+                            : activeRequest.status === "rejected"
+                            ? "Amendment request was rejected. No changes were applied."
+                            : "No individual field modifications recorded."}
+                        </p>
+                      )}
+
+                      {/* Fallback to requested changes if legacy request format */}
+                      {modifiedLogs.length === 0 && requestedChanges && (requestedChanges.gradebook?.length || requestedChanges.attendance?.length) && (
+                        <div className="pt-2 border-t border-slate-200 dark:border-slate-700 text-[11px] text-slate-500">
+                          <span className="font-semibold">Initially Proposed: </span>
+                          {requestedChanges.gradebook?.map((g: any) => `${g.assessmentTitle ?? 'Score'}: ${g.proposedScore}`).concat(
+                            requestedChanges.attendance?.map((a: any) => `${a.date}: ${a.proposedStatus}`) ?? []
+                          ).join(", ")}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()
+              ) : (
+                <div className="amendment-diff-container">
+                  <div className="amendment-diff-box amendment-diff-box--current">
+                    <div className="amendment-diff-label">Current Value</div>
+                    <div className="amendment-diff-value">
+                      {extractDiffDisplay(activeRequest).currentDisplay}
+                    </div>
                   </div>
-                );
-              })()}
+
+                  <div className="amendment-diff-arrow">
+                    <FiArrowRight />
+                  </div>
+
+                  <div className="amendment-diff-box amendment-diff-box--proposed">
+                    <div className="amendment-diff-label">Proposed Value</div>
+                    <div className="amendment-diff-value">
+                      {extractDiffDisplay(activeRequest).proposedDisplay}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Active Permission Status (if approved or permission attached) */}

@@ -108,6 +108,48 @@ const mockRequests: AmendmentRequest[] = [
       created_at: "2026-11-05T15:00:00Z",
     },
   },
+  {
+    id: 3,
+    requestNumber: "AMD-2026-0003",
+    requesterFacultyId: 12,
+    requesterName: "Andres Bonifacio",
+    enrollmentId: 52,
+    studentName: "Jose Rizal",
+    studentLrn: "112233445566",
+    classSubjectId: 6,
+    subjectName: "Araling Panlipunan 10",
+    classId: 2,
+    section: "Emerald",
+    gradeLevel: 10,
+    quarter: 1,
+    recordType: "subject_record",
+    reason: "Attendance and Quiz score update",
+    details: JSON.stringify({}),
+    status: "completed",
+    created_at: "2026-11-06T11:00:00Z",
+    auditLogs: [
+      {
+        id: 10,
+        action: "modified",
+        actorUserId: 12,
+        actorName: "Andres Bonifacio",
+        actorRole: "teacher",
+        recordType: "subject_record",
+        enrollmentId: 52,
+        quarter: 1,
+        targetTable: "student_scores",
+        targetRecordId: "101",
+        reason: "Amended score",
+        diff: JSON.stringify({
+          record: "Gradebook",
+          field: "Written Work #2",
+          previousValue: 85,
+          updatedValue: 95,
+        }),
+        created_at: "2026-11-06T11:30:00Z",
+      },
+    ],
+  },
 ];
 
 describe("RegisterAmendments Console", () => {
@@ -232,6 +274,34 @@ describe("RegisterAmendments Console", () => {
     // Audit logs
     expect(screen.getByText("Audit Trail History")).toBeInTheDocument();
     expect(screen.getByText("requested")).toBeInTheDocument();
+  });
+
+  it("renders audit log summary of modified fields for subject_record amendments", async () => {
+    const user = userEvent.setup();
+    render(<RegisterAmendments />);
+
+    await waitFor(() => {
+      expect(screen.getByText("AMD-2026-0003")).toBeInTheDocument();
+    });
+
+    const req3Row = screen.getByText("AMD-2026-0003").closest("tr");
+    expect(req3Row).toBeInTheDocument();
+    const reviewBtn = req3Row!.querySelector("button");
+    await user.click(reviewBtn!);
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "AMD-2026-0003" })).toBeInTheDocument();
+    });
+
+    // Should render the audit summary
+    expect(screen.getByText("Actual Modified Fields (from Audit Log):")).toBeInTheDocument();
+    expect(screen.getByText("Written Work #2")).toBeInTheDocument();
+    expect(screen.getByText("85")).toBeInTheDocument();
+    expect(screen.getByText("95")).toBeInTheDocument();
+    expect(screen.getByText("1 change(s) recorded")).toBeInTheDocument();
+
+    // Should NOT render the placeholder Proposed Value: Modified
+    expect(screen.queryByText("Modified")).not.toBeInTheDocument();
   });
 
   it("handles approving a pending amendment request", async () => {

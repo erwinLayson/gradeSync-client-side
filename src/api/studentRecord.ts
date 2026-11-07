@@ -5,7 +5,8 @@ import type {
     TeacherSubjectOption,
     SubjectClassRecordResponse,
     SubjectSubmissionSummaryRow,
-    SubmissionSummaryRow
+    SubmissionSummaryRow,
+    SubjectStudentAmendData
 } from "../constant/studentRecord";
 
 /**
@@ -55,6 +56,19 @@ export const reopenSubjectRecord = async (classSubjectId: number, quarter: numbe
     return postAPICall<undefined, { status: "pending" }>(
         `/student-records/class-subjects/${classSubjectId}/quarter/${quarter}/reopen`,
         undefined
+    );
+};
+
+/**
+ * Fetch editable student assessment scores and attendance for an authorized amendment
+ */
+export const getSubjectStudentAmendData = async (
+    classSubjectId: number,
+    enrollmentId: number,
+    quarter: number
+) => {
+    return getAPICall<SubjectStudentAmendData>(
+        `/student-records/class-subjects/${classSubjectId}/students/${enrollmentId}/amend-data?quarter=${quarter}`
     );
 };
 

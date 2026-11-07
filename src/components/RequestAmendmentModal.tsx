@@ -1,13 +1,11 @@
 import { useState, useEffect, useId, type FormEvent } from 'react';
-import { FiFileText, FiX, FiInfo, FiLoader, FiCheckSquare, FiSquare } from 'react-icons/fi';
+import { FiFileText, FiX, FiLoader, FiShield } from 'react-icons/fi';
 import { ModalDialog } from './ModalDialog';
-import { submitAmendmentRequest, submitSubjectRecordAmendment } from '../api/amendments';
-import {
-  getAmendmentRecordTypeLabel,
-  type AmendmentRecordType,
-  type AmendmentRequest,
-  type SubmitAmendmentPayload,
-  type SubjectAmendmentChanges,
+import { submitAmendmentRequest } from '../api/amendments';
+import type {
+  AmendmentRecordType,
+  AmendmentRequest,
+  SubmitAmendmentPayload,
 } from '../constant/amendment';
 import { toast } from '../helper/toast';
 
@@ -46,81 +44,33 @@ export function RequestAmendmentModal({
   classroomId,
   classSection,
   quarter,
-  assessmentId,
-  assessmentTitle,
   currentValueDisplay,
-  proposedValueLabel,
-  proposedValuePlaceholder,
 }: RequestAmendmentModalProps) {
-  const [proposedValue, setProposedValue] = useState('');
   const [reason, setReason] = useState('');
+  const [selectedRecordType, setSelectedRecordType] = useState<AmendmentRecordType>(recordType);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Subject Record Unified Fields
-  const [includeScore, setIncludeScore] = useState(true);
-  const [assessmentName, setAssessmentName] = useState(assessmentTitle ?? '');
-  const [proposedScore, setProposedScore] = useState('');
-  const [includeAttendance, setIncludeAttendance] = useState(false);
-  const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().slice(0, 10));
-  const [proposedAttendanceStatus, setProposedAttendanceStatus] = useState('present');
-
   const titleId = useId();
   const descId = useId();
-  const proposedValId = useId();
   const reasonId = useId();
 
   // Reset fields whenever dialog opens
   useEffect(() => {
     if (isOpen) {
-      setProposedValue('');
       setReason('');
+      setSelectedRecordType(recordType);
       setIsSubmitting(false);
       setErrorMessage(null);
-      setIncludeScore(true);
-      setAssessmentName(assessmentTitle ?? '');
-      setProposedScore('');
-      setIncludeAttendance(false);
-      setAttendanceDate(new Date().toISOString().slice(0, 10));
-      setProposedAttendanceStatus('present');
     }
-  }, [isOpen, assessmentTitle]);
+  }, [isOpen, recordType]);
 
   const trimmedReason = reason.trim();
-  const trimmedValue = proposedValue.trim();
   const isReasonValid = trimmedReason.length >= 10;
-  
-  const isSubjectRecord = recordType === 'subject_record';
-  const hasSubjectTarget = isSubjectRecord
-    ? (includeScore && proposedScore.trim().length > 0) || (includeAttendance && attendanceDate.trim().length > 0) || trimmedValue.length > 0
-    : trimmedValue.length > 0;
-  const canSubmit = !isSubmitting && hasSubjectTarget && isReasonValid;
-
-  const defaultProposedLabel =
-    recordType === 'attendance'
-      ? 'Proposed Attendance Status'
-      : recordType === 'gradebook_score'
-      ? 'Proposed Assessment Score'
-      : 'Proposed Grade';
-
-  const defaultProposedPlaceholder =
-    recordType === 'attendance'
-      ? 'e.g. Present, Absent, Excused'
-      : recordType === 'gradebook_score'
-      ? 'e.g. 95'
-      : 'e.g. 88';
+  const canSubmit = !isSubmitting && isReasonValid;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
-    if (!hasSubjectTarget) {
-      setErrorMessage(
-        isSubjectRecord
-          ? 'Please specify at least one proposed gradebook score or attendance modification.'
-          : 'Please enter the proposed value.'
-      );
-      return;
-    }
 
     if (!isReasonValid) {
       setErrorMessage('Justification reason must be at least 10 characters long.');
@@ -131,82 +81,35 @@ export function RequestAmendmentModal({
     setErrorMessage(null);
 
     try {
-      if (isSubjectRecord && classSubjectId) {
-        const changes: SubjectAmendmentChanges = {};
-        if (includeScore && (proposedScore.trim() || trimmedValue)) {
-          changes.gradebook = [
-            {
-              assessmentId: assessmentId || 0,
-              assessmentTitle: assessmentName.trim() || assessmentTitle || 'Assessment Score',
-              currentScore: typeof currentValueDisplay === 'number' ? currentValueDisplay : null,
-              proposedScore: Number(proposedScore.trim() || trimmedValue),
-            },
-          ];
-        }
-        if (includeAttendance && attendanceDate.trim()) {
-          changes.attendance = [
-            {
-              date: attendanceDate.trim(),
-              proposedStatus: proposedAttendanceStatus,
-            },
-          ];
-        }
-
-        const response = await submitSubjectRecordAmendment({
-          enrollmentId,
-          classSubjectId,
-          classId: classroomId,
-          quarter,
-          reason: trimmedReason,
-          changes,
-          details: {
-            studentId,
-            studentName,
-            studentLrn: String(studentLrn),
-            subjectName: subjectName ?? null,
-            currentValue: currentValueDisplay ?? null,
-            proposedValue: proposedScore || trimmedValue,
-          },
-        });
-
-        if (response?.data) {
-          toast.success('Subject amendment request submitted successfully');
-          onSuccess?.(response.data as any);
-        }
-        onClose();
-      } else {
-        const payload: SubmitAmendmentPayload = {
-          recordType,
+      const payload: SubmitAmendmentPayload = {
+        recordType: selectedRecordType,
+        studentId,
+        enrollmentId,
+        classSubjectId: classSubjectId ?? null,
+        classroomId,
+        quarter,
+        reason: trimmedReason,
+        details: {
           studentId,
-          enrollmentId,
-          classSubjectId: classSubjectId ?? null,
-          classroomId,
+          studentName,
+          studentLrn: String(studentLrn),
+          subjectName: subjectName ?? null,
+          classSection: classSection ?? null,
           quarter,
-          currentValues:
-            currentValueDisplay !== undefined && currentValueDisplay !== null
-              ? { value: currentValueDisplay }
-              : null,
-          proposedValues: { value: trimmedValue },
+          requestedScope: selectedRecordType,
+          currentQuarterGrade: currentValueDisplay ?? null,
           reason: trimmedReason,
-          details: {
-            studentId,
-            studentName,
-            studentLrn: String(studentLrn),
-            assessmentId: assessmentId ?? null,
-            assessmentTitle: assessmentTitle ?? null,
-            currentValue: currentValueDisplay ?? null,
-            proposedValue: trimmedValue,
-          },
-        };
+          requestedAt: new Date().toISOString(),
+        },
+      };
 
-        const response = await submitAmendmentRequest(payload);
+      const response = await submitAmendmentRequest(payload);
 
-        if (response?.data) {
-          toast.success('Amendment request submitted successfully');
-          onSuccess?.(response.data);
-        }
-        onClose();
+      if (response?.data) {
+        toast.success('Amendment request submitted successfully');
+        onSuccess?.(response.data);
       }
+      onClose();
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : 'Failed to submit amendment request';
@@ -228,7 +131,7 @@ export function RequestAmendmentModal({
       describedById={descId}
       className="w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900"
     >
-      {/* Header (stays visible; the form body below scrolls) */}
+      {/* Header */}
       <div className="flex shrink-0 items-start justify-between border-b border-slate-100 p-6 pb-4 dark:border-slate-800">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
@@ -239,7 +142,7 @@ export function RequestAmendmentModal({
               Request Record Amendment
             </h3>
             <p id={descId} className="text-xs text-slate-500 dark:text-slate-400">
-              Submit a formal request to unlock and amend this locked quarterly record.
+              Request temporary authorization to correct locked student records.
             </p>
           </div>
         </div>
@@ -269,9 +172,9 @@ export function RequestAmendmentModal({
 
             <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
               <div>
-                <span className="text-slate-400 dark:text-slate-500">Record Type:</span>{' '}
+                <span className="text-slate-400 dark:text-slate-500">Subject:</span>{' '}
                 <span className="font-medium text-slate-700 dark:text-slate-200">
-                  {getAmendmentRecordTypeLabel(recordType)}
+                  {subjectName ?? 'Subject Record'}
                 </span>
               </div>
               <div>
@@ -281,25 +184,9 @@ export function RequestAmendmentModal({
                   {classSection ? ` · ${classSection}` : ''}
                 </span>
               </div>
-              {subjectName && (
-                <div className="col-span-2">
-                  <span className="text-slate-400 dark:text-slate-500">Subject:</span>{' '}
-                  <span className="font-medium text-slate-700 dark:text-slate-200">
-                    {subjectName}
-                  </span>
-                </div>
-              )}
-              {assessmentTitle && (
-                <div className="col-span-2">
-                  <span className="text-slate-400 dark:text-slate-500">Assessment:</span>{' '}
-                  <span className="font-medium text-slate-700 dark:text-slate-200">
-                    {assessmentTitle}
-                  </span>
-                </div>
-              )}
               {currentValueDisplay !== undefined && currentValueDisplay !== null && (
                 <div className="col-span-2">
-                  <span className="text-slate-400 dark:text-slate-500">Current Recorded Value:</span>{' '}
+                  <span className="text-slate-400 dark:text-slate-500">Current Quarter Grade:</span>{' '}
                   <span className="font-semibold text-slate-800 dark:text-slate-200">
                     {String(currentValueDisplay)}
                   </span>
@@ -308,125 +195,70 @@ export function RequestAmendmentModal({
             </div>
           </div>
 
-          {/* Proposed Value Field or Unified Subject Record Controls */}
-          {isSubjectRecord ? (
-            <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 dark:border-slate-800 dark:bg-slate-800/30">
-              <span className="block text-xs font-semibold text-slate-800 dark:text-slate-200">
-                Modifications Included in this Request:
-              </span>
-
-              {/* Assessment Score Option */}
-              <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-800 dark:text-slate-200">
-                  <input
-                    type="checkbox"
-                    checked={includeScore}
-                    onChange={(e) => setIncludeScore(e.target.checked)}
-                    className="rounded text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span>Modify Gradebook Assessment Score</span>
-                </label>
-
-                {includeScore && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                    <div>
-                      <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400">
-                        Assessment / Component Title
-                      </label>
-                      <input
-                        type="text"
-                        value={assessmentName}
-                        onChange={(e) => setAssessmentName(e.target.value)}
-                        placeholder="e.g. Written Work #2, Quarterly Exam"
-                        disabled={isSubmitting}
-                        className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-emerald-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400">
-                        Proposed Score <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        value={proposedScore}
-                        onChange={(e) => setProposedScore(e.target.value)}
-                        placeholder="e.g. 95"
-                        disabled={isSubmitting}
-                        className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-emerald-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Subject Attendance Option */}
-              <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-800 dark:text-slate-200">
-                  <input
-                    type="checkbox"
-                    checked={includeAttendance}
-                    onChange={(e) => setIncludeAttendance(e.target.checked)}
-                    className="rounded text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span>Modify Subject Attendance Record</span>
-                </label>
-
-                {includeAttendance && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                    <div>
-                      <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400">
-                        Attendance Date <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="date"
-                        value={attendanceDate}
-                        onChange={(e) => setAttendanceDate(e.target.value)}
-                        disabled={isSubmitting}
-                        className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-emerald-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400">
-                        Proposed Status <span className="text-rose-500">*</span>
-                      </label>
-                      <select
-                        value={proposedAttendanceStatus}
-                        onChange={(e) => setProposedAttendanceStatus(e.target.value)}
-                        disabled={isSubmitting}
-                        className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-emerald-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                      >
-                        <option value="present">Present</option>
-                        <option value="absent">Absent</option>
-                        <option value="late">Late</option>
-                        <option value="excused">Excused</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div>
+          {/* Scope Authorization Information */}
+          <div className="rounded-xl border border-slate-200 bg-white p-3.5 text-xs space-y-2.5 dark:border-slate-800 dark:bg-slate-850">
+            <label className="block font-semibold text-slate-800 dark:text-slate-200">
+              Requested Authorization Scope
+            </label>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               <label
-                htmlFor={proposedValId}
-                className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
+                className={`flex cursor-pointer items-center justify-center rounded-lg border p-2.5 text-center text-xs font-semibold transition ${
+                  selectedRecordType === 'subject_record'
+                    ? 'border-emerald-500 bg-emerald-50 text-emerald-800 dark:border-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300'
+                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                }`}
               >
-                {proposedValueLabel ?? defaultProposedLabel}{' '}
-                <span className="text-rose-500">*</span>
+                <input
+                  type="radio"
+                  name="recordScope"
+                  value="subject_record"
+                  checked={selectedRecordType === 'subject_record'}
+                  onChange={() => setSelectedRecordType('subject_record')}
+                  className="sr-only"
+                />
+                Both (Grades & Attendance)
               </label>
-              <input
-                id={proposedValId}
-                type="text"
-                required
-                value={proposedValue}
-                onChange={(e) => setProposedValue(e.target.value)}
-                placeholder={proposedValuePlaceholder ?? defaultProposedPlaceholder}
-                disabled={isSubmitting}
-                className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 transition placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-emerald-400"
-              />
+
+              <label
+                className={`flex cursor-pointer items-center justify-center rounded-lg border p-2.5 text-center text-xs font-semibold transition ${
+                  selectedRecordType === 'gradebook_score'
+                    ? 'border-emerald-500 bg-emerald-50 text-emerald-800 dark:border-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300'
+                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="recordScope"
+                  value="gradebook_score"
+                  checked={selectedRecordType === 'gradebook_score'}
+                  onChange={() => setSelectedRecordType('gradebook_score')}
+                  className="sr-only"
+                />
+                Gradebook Only
+              </label>
+
+              <label
+                className={`flex cursor-pointer items-center justify-center rounded-lg border p-2.5 text-center text-xs font-semibold transition ${
+                  selectedRecordType === 'attendance'
+                    ? 'border-emerald-500 bg-emerald-50 text-emerald-800 dark:border-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300'
+                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="recordScope"
+                  value="attendance"
+                  checked={selectedRecordType === 'attendance'}
+                  onChange={() => setSelectedRecordType('attendance')}
+                  className="sr-only"
+                />
+                Attendance Only
+              </label>
             </div>
-          )}
+            <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+              Upon approval, you can freely edit the authorized records for this student and quarter. All modifications are automatically tracked with before-and-after audit entries.
+            </p>
+          </div>
 
           {/* Reason / Justification Field */}
           <div>
@@ -435,7 +267,7 @@ export function RequestAmendmentModal({
                 htmlFor={reasonId}
                 className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
               >
-                Justification & Detailed Reason <span className="text-rose-500">*</span>
+                Detailed Justification / Reason <span className="text-rose-500">*</span>
               </label>
               <span
                 className={`text-[11px] ${
@@ -453,7 +285,7 @@ export function RequestAmendmentModal({
               rows={3}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Explain specifically why this record needs correction (e.g., calculation discrepancy, excused absence medical certificate submission)..."
+              placeholder="Explain why this student's records require modification (e.g., encoded score clerical error, excused absence medical certificate submitted late)..."
               disabled={isSubmitting}
               className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 transition placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-emerald-400"
             />
@@ -471,16 +303,16 @@ export function RequestAmendmentModal({
             </div>
           )}
 
-          {/* Compliance Notice */}
+          {/* Automatic Audit Notice */}
           <div className="flex items-start gap-2 rounded-lg bg-emerald-50/60 p-2.5 text-[11px] leading-relaxed text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">
-            <FiInfo className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <FiShield className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
             <span>
-              Amendment requests require Registrar or Admin review. Once approved, a temporary editing window is issued and changes are permanently logged in the audit trail.
+              You do not need to declare individual score or attendance changes now. Once approved by the registrar, you can correct the records and GradeSync will automatically audit each change.
             </span>
           </div>
         </div>
 
-        {/* Dialog Actions (stays visible outside the scrolling body) */}
+        {/* Dialog Actions */}
         <div className="flex shrink-0 items-center justify-end gap-3 border-t border-slate-100 px-6 py-4 dark:border-slate-800">
           <button
             type="button"

@@ -20,11 +20,11 @@ import {
     submitSubjectRecords,
     submitSingleStudentSubjectRecord,
 } from "../../api/studentRecord";
-import { applyUnifiedSubjectAmendment } from "../../api/amendments";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ModalDialog } from "../../components/ModalDialog";
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import { RequestAmendmentModal } from "../../components/RequestAmendmentModal";
+import { AmendStudentRecordModal } from "../../components/AmendStudentRecordModal";
 import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useMyAmendments } from "../../hooks/useMyAmendments";
@@ -64,8 +64,8 @@ export default function FacultyStudentRecords() {
     const [submittingSubjectEnrollmentId, setSubmittingSubjectEnrollmentId] = useState<number | null>(null);
     const [confirmSubmitAllSubject, setConfirmSubmitAllSubject] = useState(false);
     const [submittingAllSubject, setSubmittingAllSubject] = useState(false);
-    const [applyingPermId, setApplyingPermId] = useState<number | null>(null);
     const [amendmentSubjectStudent, setAmendmentSubjectStudent] = useState<SubjectStudentRow | null>(null);
+    const [activeAmendStudent, setActiveAmendStudent] = useState<SubjectStudentRow | null>(null);
 
     // Class Adviser View State (for dual-role faculty)
     const [viewMode, setViewMode] = useState<"subjects" | "adviser">("subjects");
@@ -191,22 +191,6 @@ export default function FacultyStudentRecords() {
             refetchSubjects();
         } finally {
             setSubmittingAllSubject(false);
-        }
-    };
-
-    const handleApplyAmendment = async (student: SubjectStudentRow) => {
-        if (!student.activePermissionId || applyingPermId !== null) return;
-        setApplyingPermId(student.activePermissionId);
-        try {
-            await applyUnifiedSubjectAmendment(student.activePermissionId);
-            toast.success(`Amendment applied and Quarter ${quarter} grade recalculated for ${student.fullname}`);
-            if (selectedSubjectId) {
-                await fetchSubjectRecords(selectedSubjectId, quarter);
-            }
-            refreshAmendments();
-            refetchSubjects();
-        } finally {
-            setApplyingPermId(null);
         }
     };
 
@@ -502,7 +486,6 @@ export default function FacultyStudentRecords() {
                                         {subjectRecords.students.map((student) => {
                                             const isSubmitted = student.status === "submitted" || student.isFrozen;
                                             const isBusy = submittingSubjectEnrollmentId === student.enrollmentId;
-                                            const isApplying = applyingPermId === student.activePermissionId;
                                             const initials = student.fullname
                                                 .split(" ")
                                                 .filter(Boolean)
@@ -578,7 +561,17 @@ export default function FacultyStudentRecords() {
 
                                                     {/* Status */}
                                                     <td className="px-4 py-3.5 text-center">
-                                                        {isSubmitted ? (
+                                                        {student.hasActiveAmendment && student.activePermissionId ? (
+                                                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                                <FiUnlock className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                                                                {student.amendmentStatus === "in_progress" ? "In Progress" : "Authorized"}
+                                                            </span>
+                                                        ) : student.amendmentStatus === "pending" ? (
+                                                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                                                                <FiClock className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+                                                                Pending Review
+                                                            </span>
+                                                        ) : isSubmitted ? (
                                                             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
                                                                 <FiCheckCircle className="h-3 w-3" />
                                                                 Submitted
@@ -597,17 +590,18 @@ export default function FacultyStudentRecords() {
                                                             student.hasActiveAmendment && student.activePermissionId ? (
                                                                 <button
                                                                     type="button"
-                                                                    disabled={isApplying || submissionsLocked}
-                                                                    onClick={() => handleApplyAmendment(student)}
+                                                                    disabled={submissionsLocked}
+                                                                    onClick={() => setActiveAmendStudent(student)}
                                                                     className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 transition hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300"
                                                                 >
-                                                                    {isApplying ? (
-                                                                        <FiRefreshCw className="h-3.5 w-3.5 animate-spin" />
-                                                                    ) : (
-                                                                        <FiUnlock className="h-3.5 w-3.5 text-emerald-600" />
-                                                                    )}
-                                                                    Apply Amendment
+                                                                    <FiEdit3 className="h-3.5 w-3.5 text-emerald-600" />
+                                                                    Amend Record
                                                                 </button>
+                                                            ) : student.amendmentStatus === "pending" ? (
+                                                                <span className="inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50/60 px-2.5 py-1 text-[11px] font-semibold text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+                                                                    <FiClock className="h-3.5 w-3.5" />
+                                                                    Request Pending
+                                                                </span>
                                                             ) : (
                                                                 <button
                                                                     type="button"
@@ -848,7 +842,27 @@ export default function FacultyStudentRecords() {
                     classSection={selectedSubject.classSection}
                     quarter={quarter}
                     currentValueDisplay={amendmentSubjectStudent.quarterGrade}
-                    proposedValueLabel="Proposed Change Details"
+                />
+            )}
+
+            {/* ==================== Subject Record Amendment Editor Modal ==================== */}
+            {activeAmendStudent && selectedSubject && activeAmendStudent.activePermissionId && (
+                <AmendStudentRecordModal
+                    isOpen={Boolean(activeAmendStudent)}
+                    onClose={() => setActiveAmendStudent(null)}
+                    onSuccess={() => {
+                        if (selectedSubjectId) {
+                            fetchSubjectRecords(selectedSubjectId, quarter);
+                        }
+                        refreshAmendments();
+                        refetchSubjects();
+                    }}
+                    classSubjectId={selectedSubject.classSubjectId}
+                    enrollmentId={activeAmendStudent.enrollmentId}
+                    quarter={quarter}
+                    permissionId={activeAmendStudent.activePermissionId}
+                    studentName={activeAmendStudent.fullname}
+                    subjectName={selectedSubject.subjectName}
                 />
             )}
 
