@@ -39,5 +39,5 @@ export interface SchoolLogoPayload {
 }
 
 // Mirrors the server's upload cap (server/src/constant/schoolLogo.ts).
-export const MAX_LOGO_BYTES = 5 * 1024 * 1024;
+export const MAX_LOGO_BYTES = 1024 * 1024;
 export const ALLOWED_LOGO_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;
