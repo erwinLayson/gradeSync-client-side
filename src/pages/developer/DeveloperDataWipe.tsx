@@ -73,6 +73,7 @@ export default function DeveloperDataWipe() {
     const [receiptMeta, setReceiptMeta] = useState<{ label: string; durationMs: number; files?: number } | null>(null);
 
     const statusTriggerRefs = useRef(new Map<string, HTMLButtonElement>());
+    const activeTriggerRef = useRef<HTMLButtonElement | null>(null);
     const phraseInputRef = useRef<HTMLInputElement>(null);
 
     const fetchStatus = useCallback(async (silent: boolean) => {
@@ -97,6 +98,7 @@ export default function DeveloperDataWipe() {
     }, [fetchStatus]);
 
     function openWipeModal(domainMeta: WipeDomainMeta, domainKey: WipeDomain) {
+        activeTriggerRef.current = statusTriggerRefs.current.get(domainMeta.phrase) ?? null;
         setConfirmation("");
         setLastReceipt(null);
         setReceiptMeta(null);
@@ -286,12 +288,7 @@ export default function DeveloperDataWipe() {
                 labelledById="data-wipe-modal-title"
                 describedById="data-wipe-modal-desc"
                 initialFocusRef={phraseInputRef}
-                restoreFocusRef={{
-                    current:
-                        wipeModal !== null
-                            ? statusTriggerRefs.current.get(wipeModal.domain.phrase) ?? null
-                            : null,
-                }}
+                restoreFocusRef={activeTriggerRef}
                 className="confirm-dialog__panel data-wipe__modal"
             >
                 {wipeModal && (

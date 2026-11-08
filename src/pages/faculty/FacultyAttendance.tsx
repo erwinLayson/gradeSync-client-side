@@ -1489,118 +1489,122 @@ export default function FacultyAttendance() {
                         open={createOpen}
                         onClose={closeCreateDialog}
                         labelledById="faculty-attendance-create-title"
-                        className="faculty-attendance__modal-panel w-full max-w-[30rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+                        scrollable
+                        maxWidth="max-w-[30rem]"
+                        className="faculty-attendance__modal-panel w-full rounded-3xl bg-white shadow-xl"
                         restoreFocusRef={createTriggerRef}
                     >
-                        <header className="faculty-attendance__modal-header flex items-start justify-between gap-4 p-6 pb-5">
-                            <div className="min-w-0">
-                                <span className="faculty-attendance__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                                    New record
-                                </span>
-                                <h3 id="faculty-attendance-create-title" className="faculty-attendance__modal-title mt-0.5 text-xl font-bold">
-                                    Create Attendance
-                                </h3>
-                                <p className="faculty-attendance__modal-subtitle mt-1 text-[0.8125rem]">
-                                    Open a day for a subject, then mark each student present or absent.
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                className="faculty-attendance__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg"
-                                onClick={closeCreateDialog}
-                                aria-label="Close dialog"
-                            >
-                                <FiX aria-hidden="true" />
-                            </button>
-                        </header>
-
-                        <form className="faculty-attendance__form p-6" onSubmit={handleCreateAttendance} noValidate>
-                            <div className="flex flex-col gap-1.5">
-                                <label
-                                    htmlFor="attendance-create-subject"
-                                    className="faculty-attendance__form-label text-[0.8125rem] font-semibold"
-                                >
-                                    Subject
-                                </label>
-                                <select
-                                    id="attendance-create-subject"
-                                    className="faculty-attendance__form-input w-full cursor-pointer rounded-lg border px-3 py-2.5 text-sm"
-                                    autoFocus
-                                    value={createForm.classSubjectId ?? ""}
-                                    onChange={(event) =>
-                                        setCreateForm((prev) => ({
-                                            ...prev,
-                                            classSubjectId: event.target.value ? Number(event.target.value) : null,
-                                        }))
-                                    }
-                                >
-                                    {subjects.length === 0 && <option value="">No subjects assigned</option>}
-                                    {subjects.map((subject) => (
-                                        <option key={subject.classSubjectId} value={subject.classSubjectId}>
-                                            {subject.subjectName} · Grade {subject.classGradeLevel} {subject.classSection}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div className="flex flex-col gap-1.5">
-                                    <label
-                                        htmlFor="attendance-create-date"
-                                        className="faculty-attendance__form-label text-[0.8125rem] font-semibold"
-                                    >
-                                        Date
-                                    </label>
-                                    <input
-                                        id="attendance-create-date"
-                                        type="date"
-                                        className="faculty-attendance__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
-                                        value={createForm.date}
-                                        max={toDateInputValue(new Date())}
-                                        onChange={(event) =>
-                                            setCreateForm((prev) => ({ ...prev, date: event.target.value }))
-                                        }
-                                    />
+                        <form className="flex h-full max-h-[calc(90dvh-2.5rem)] flex-col" onSubmit={handleCreateAttendance} noValidate>
+                            <header className="faculty-attendance__modal-header shrink-0 flex items-start justify-between gap-4 p-6 pb-4 border-b border-[var(--neutral-border)]">
+                                <div className="min-w-0">
+                                    <span className="faculty-attendance__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
+                                        New record
+                                    </span>
+                                    <h3 id="faculty-attendance-create-title" className="faculty-attendance__modal-title mt-0.5 text-xl font-bold">
+                                        Create Attendance
+                                    </h3>
+                                    <p className="faculty-attendance__modal-subtitle mt-1 text-[0.8125rem]">
+                                        Open a day for a subject, then mark each student present or absent.
+                                    </p>
                                 </div>
+                                <button
+                                    type="button"
+                                    className="faculty-attendance__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg cursor-pointer text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                                    onClick={closeCreateDialog}
+                                    aria-label="Close dialog"
+                                >
+                                    <FiX aria-hidden="true" />
+                                </button>
+                            </header>
 
+                            <div className="min-h-0 flex-1 overflow-y-auto p-6">
                                 <div className="flex flex-col gap-1.5">
                                     <label
-                                        htmlFor="attendance-create-quarter"
+                                        htmlFor="attendance-create-subject"
                                         className="faculty-attendance__form-label text-[0.8125rem] font-semibold"
                                     >
-                                        Quarter
+                                        Subject
                                     </label>
                                     <select
-                                        id="attendance-create-quarter"
+                                        id="attendance-create-subject"
                                         className="faculty-attendance__form-input w-full cursor-pointer rounded-lg border px-3 py-2.5 text-sm"
-                                        value={createForm.quarter}
+                                        autoFocus
+                                        value={createForm.classSubjectId ?? ""}
                                         onChange={(event) =>
-                                            setCreateForm((prev) => ({ ...prev, quarter: Number(event.target.value) }))
+                                            setCreateForm((prev) => ({
+                                                ...prev,
+                                                classSubjectId: event.target.value ? Number(event.target.value) : null,
+                                            }))
                                         }
                                     >
-                                        {quarters
-                                            .filter((quarter) => quarter >= currentQuarter)
-                                            .map((quarter) => (
-                                                <option key={quarter} value={quarter}>
-                                                    Quarter {quarter}
-                                                </option>
-                                            ))}
+                                        {subjects.length === 0 && <option value="">No subjects assigned</option>}
+                                        {subjects.map((subject) => (
+                                            <option key={subject.classSubjectId} value={subject.classSubjectId}>
+                                                {subject.subjectName} · Grade {subject.classGradeLevel} {subject.classSection}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
+
+                                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div className="flex flex-col gap-1.5">
+                                        <label
+                                            htmlFor="attendance-create-date"
+                                            className="faculty-attendance__form-label text-[0.8125rem] font-semibold"
+                                        >
+                                            Date
+                                        </label>
+                                        <input
+                                            id="attendance-create-date"
+                                            type="date"
+                                            className="faculty-attendance__form-input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                            value={createForm.date}
+                                            max={toDateInputValue(new Date())}
+                                            onChange={(event) =>
+                                                setCreateForm((prev) => ({ ...prev, date: event.target.value }))
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5">
+                                        <label
+                                            htmlFor="attendance-create-quarter"
+                                            className="faculty-attendance__form-label text-[0.8125rem] font-semibold"
+                                        >
+                                            Quarter
+                                        </label>
+                                        <select
+                                            id="attendance-create-quarter"
+                                            className="faculty-attendance__form-input w-full cursor-pointer rounded-lg border px-3 py-2.5 text-sm"
+                                            value={createForm.quarter}
+                                            onChange={(event) =>
+                                                setCreateForm((prev) => ({ ...prev, quarter: Number(event.target.value) }))
+                                            }
+                                        >
+                                            {quarters
+                                                .filter((quarter) => quarter >= currentQuarter)
+                                                .map((quarter) => (
+                                                    <option key={quarter} value={quarter}>
+                                                        Quarter {quarter}
+                                                    </option>
+                                                ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {createError && (
+                                    <p className="faculty-attendance__form-error mt-3 text-[0.8125rem]" role="alert">
+                                        {createError}
+                                    </p>
+                                )}
+
+                                <p className="faculty-attendance__form-note mt-4 text-[0.8125rem]">
+                                    Nothing is saved yet: the day is added as a new column. Mark students there — or use
+                                    the ✓ in its header to mark the whole class present at once.
+                                </p>
                             </div>
 
-                            {createError && (
-                                <p className="faculty-attendance__form-error mt-3 text-[0.8125rem]" role="alert">
-                                    {createError}
-                                </p>
-                            )}
-
-                            <p className="faculty-attendance__form-note mt-4 text-[0.8125rem]">
-                                Nothing is saved yet: the day is added as a new column. Mark students there — or use
-                                the ✓ in its header to mark the whole class present at once.
-                            </p>
-
-                            <div className="faculty-attendance__form-footer mt-5 flex items-center justify-end gap-2 border-t pt-4">
+                            <div className="faculty-attendance__form-footer shrink-0 flex items-center justify-end gap-2 border-t border-[var(--neutral-border)] p-4 px-6 bg-neutral-50">
                                 <button
                                     type="button"
                                     className="faculty-attendance__form-cancel inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 py-2 text-[0.8125rem] font-bold"

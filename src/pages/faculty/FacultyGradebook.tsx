@@ -1329,11 +1329,13 @@ export default function FacultyGradebook() {
                 open={modal !== null}
                 onClose={closeModal}
                 labelledById="faculty-gradebook-modal-title"
-                className="faculty-gradebook__modal-panel w-full max-w-[30rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+                scrollable
+                maxWidth="max-w-[30rem]"
+                className="faculty-gradebook__modal-panel w-full rounded-3xl bg-white shadow-xl"
             >
                 {modal && (
-                    <>
-                        <header className="faculty-gradebook__modal-header flex items-start justify-between gap-4 p-6 pb-5">
+                    <form className="flex h-full max-h-[calc(90dvh-2.5rem)] flex-col" onSubmit={handleAssessmentSubmit} noValidate>
+                        <header className="faculty-gradebook__modal-header shrink-0 flex items-start justify-between gap-4 p-6 pb-4 border-b border-[var(--neutral-border)]">
                             <div className="faculty-gradebook__modal-heading">
                                 <span className="faculty-gradebook__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
                                     {modal.mode === "create" ? "New record" : "Edit record"}
@@ -1352,7 +1354,7 @@ export default function FacultyGradebook() {
                             </div>
                             <button
                                 type="button"
-                                className="faculty-gradebook__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg cursor-pointer"
+                                className="faculty-gradebook__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg cursor-pointer text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
                                 onClick={closeModal}
                                 aria-label="Close modal"
                             >
@@ -1360,7 +1362,7 @@ export default function FacultyGradebook() {
                             </button>
                         </header>
 
-                        <form className="faculty-gradebook__form p-6" onSubmit={handleAssessmentSubmit} noValidate>
+                        <div className="min-h-0 flex-1 overflow-y-auto p-6">
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div className="sm:col-span-2">
                                     <label
@@ -1438,29 +1440,29 @@ export default function FacultyGradebook() {
                                     />
                                 </div>
                             </div>
+                        </div>
 
-                            <footer className="faculty-gradebook__form-footer mt-6 flex justify-end gap-3 border-t pt-5">
-                                <button
-                                    type="button"
-                                    className="faculty-gradebook__form-cancel rounded-lg border px-4 py-2.5 text-sm font-semibold cursor-pointer"
-                                    onClick={closeModal}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="faculty-gradebook__form-submit inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold cursor-pointer"
-                                    disabled={savingAssessment}
-                                >
-                                    {savingAssessment
-                                        ? "Saving…"
-                                        : modal.mode === "create"
-                                          ? "Create Assessment"
-                                          : "Save Changes"}
-                                </button>
-                            </footer>
-                        </form>
-                    </>
+                        <footer className="faculty-gradebook__form-footer shrink-0 flex justify-end gap-3 border-t border-[var(--neutral-border)] p-4 px-6 bg-neutral-50">
+                            <button
+                                type="button"
+                                className="faculty-gradebook__form-cancel rounded-lg border px-4 py-2.5 text-sm font-semibold cursor-pointer"
+                                onClick={closeModal}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                className="faculty-gradebook__form-submit inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold cursor-pointer"
+                                disabled={savingAssessment}
+                            >
+                                {savingAssessment
+                                    ? "Saving…"
+                                    : modal.mode === "create"
+                                      ? "Create Assessment"
+                                      : "Save Changes"}
+                            </button>
+                        </footer>
+                    </form>
                 )}
             </ModalDialog>
 

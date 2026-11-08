@@ -1200,7 +1200,9 @@ return (
     open={isModalOpen}
     onClose={handleModalClose}
     labelledById="classrooms-modal-title"
-    className="classrooms-modal__panel flex w-full max-w-[36rem] flex-col overflow-hidden rounded-3xl bg-white shadow-xl"
+    scrollable
+    maxWidth="max-w-[36rem]"
+    className="classrooms-modal__panel flex w-full flex-col overflow-hidden rounded-3xl bg-white shadow-xl"
 >
             <header className="classrooms-modal__header flex shrink-0 items-start justify-between gap-4 p-6 pb-5">
                 <div className="classrooms-modal__heading">

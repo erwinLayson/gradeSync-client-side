@@ -906,11 +906,13 @@ export default function FacultyStudentRecords() {
             <ModalDialog
                 open={reviewingAdviserStudent !== null}
                 onClose={() => setReviewingAdviserStudent(null)}
-                className="w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900"
+                scrollable
+                maxWidth="max-w-xl"
+                className="w-full overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900"
             >
                 {reviewingAdviserStudent && adviserRecords && (
-                    <div className="p-6">
-                        <div className="flex items-center justify-between border-b pb-4 dark:border-slate-800">
+                    <div className="flex h-full max-h-[calc(90dvh-2.5rem)] flex-col p-6" role="document">
+                        <header className="shrink-0 flex items-center justify-between border-b pb-4 dark:border-slate-800">
                             <div>
                                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
                                     Review Student Record (Q{quarter})
@@ -926,51 +928,49 @@ export default function FacultyStudentRecords() {
                             >
                                 <FiX className="h-5 w-5" />
                             </button>
+                        </header>
+
+                        <div className="min-h-0 flex-1 overflow-y-auto py-4">
+                            <table className="w-full text-xs">
+                                <thead>
+                                    <tr className="border-b text-slate-500 dark:border-slate-800">
+                                        <th className="py-2 text-left">Subject</th>
+                                        <th className="py-2 text-right">Computed Q{quarter} Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y dark:divide-slate-800">
+                                    {adviserRecords.subjects.map((s) => {
+                                        const grade = reviewingAdviserStudent.subjects.find((sg) => sg.subjectId === s.subjectId);
+                                        return (
+                                            <tr key={s.subjectId}>
+                                                <td className="py-2">{s.subjectName}</td>
+                                                <td className="py-2 text-right font-mono font-bold">
+                                                    {grade?.grade !== null ? formatGrade(grade?.grade) : "Missing"}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
                         </div>
 
-                        <div className="mt-4 space-y-4">
-                            <div className="max-h-60 overflow-y-auto">
-                                <table className="w-full text-xs">
-                                    <thead>
-                                        <tr className="border-b text-slate-500 dark:border-slate-800">
-                                            <th className="py-2 text-left">Subject</th>
-                                            <th className="py-2 text-right">Computed Q{quarter} Grade</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y dark:divide-slate-800">
-                                        {adviserRecords.subjects.map((s) => {
-                                            const grade = reviewingAdviserStudent.subjects.find((sg) => sg.subjectId === s.subjectId);
-                                            return (
-                                                <tr key={s.subjectId}>
-                                                    <td className="py-2">{s.subjectName}</td>
-                                                    <td className="py-2 text-right font-mono font-bold">
-                                                        {grade?.grade !== null ? formatGrade(grade?.grade) : "Missing"}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div className="flex justify-end gap-2 pt-4 border-t dark:border-slate-800">
-                                <button
-                                    type="button"
-                                    onClick={() => setReviewingAdviserStudent(null)}
-                                    className="rounded-lg border px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    disabled={missingSubjectsFor(reviewingAdviserStudent).length > 0 || submittingAdviserEnrollmentId !== null}
-                                    onClick={() => handleSubmitOneAdviser(reviewingAdviserStudent)}
-                                    className="rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
-                                >
-                                    Submit Record
-                                </button>
-                            </div>
-                        </div>
+                        <footer className="shrink-0 flex justify-end gap-2 pt-4 border-t dark:border-slate-800">
+                            <button
+                                type="button"
+                                onClick={() => setReviewingAdviserStudent(null)}
+                                className="rounded-lg border px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={missingSubjectsFor(reviewingAdviserStudent).length > 0 || submittingAdviserEnrollmentId !== null}
+                                onClick={() => handleSubmitOneAdviser(reviewingAdviserStudent)}
+                                className="rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
+                            >
+                                Submit Record
+                            </button>
+                        </footer>
                     </div>
                 )}
             </ModalDialog>

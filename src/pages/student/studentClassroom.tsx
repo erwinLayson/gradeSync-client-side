@@ -768,28 +768,6 @@ export default function StudentClassroom() {
 
                 const sortedAttendanceDates = Array.from(attendanceDatesSet).sort((a, b) => a.localeCompare(b));
 
-                // Calculate totals across all displayed subjects
-                let overallPresentDays = 0;
-                let overallTotalDays = 0;
-
-                filteredAttendanceSubjects.forEach((sub) => {
-                    const qAtt = sub.attendance.find((a) => a.quarter === activeQuarter);
-                    if (isDateFiltered) {
-                        const applicableRecords = (qAtt?.records ?? []).filter((r) => {
-                            const ymd = normalizeToYMD(r.date);
-                            if (!ymd) return false;
-                            if (attendanceDateFrom && ymd < attendanceDateFrom) return false;
-                            if (attendanceDateTo && ymd > attendanceDateTo) return false;
-                            return true;
-                        });
-                        overallTotalDays += applicableRecords.length;
-                        overallPresentDays += applicableRecords.filter((r) => r.status === "present").length;
-                    } else {
-                        overallPresentDays += qAtt?.presentDays ?? 0;
-                        overallTotalDays += qAtt?.totalDays ?? 0;
-                    }
-                });
-
                 return (
                     <div className="flex flex-col gap-4" aria-label="Attendance matrix">
                         {/* Attendance Filter Bar */}

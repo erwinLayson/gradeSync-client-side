@@ -713,11 +713,13 @@ export default function RegisterStudentRecords() {
                 open={drilldown !== null}
                 onClose={() => setDrilldown(null)}
                 labelledById="tracker-modal-title"
-                className="tracker__modal-panel w-full max-w-[40rem] overflow-y-auto rounded-2xl border border-[var(--neutral-border)] bg-white"
+                scrollable
+                maxWidth="max-w-[40rem]"
+                className="tracker__modal-panel w-full rounded-2xl border border-[var(--neutral-border)] bg-white shadow-2xl"
             >
                 {drilldown && (
-                    <>
-                        <header className="tracker__modal-header flex items-start justify-between gap-4 p-6 pb-5">
+                    <div className="flex h-full max-h-[calc(90dvh-2.5rem)] flex-col" role="document">
+                        <header className="tracker__modal-header shrink-0 flex items-start justify-between gap-4 p-6 pb-4 border-b border-[var(--neutral-border)]">
                             <div className="tracker__modal-heading min-w-0">
                                 <span className="tracker__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
                                     {drilldown.row.section} &middot; Quarter {drilldown.quarter}
@@ -732,7 +734,7 @@ export default function RegisterStudentRecords() {
                             </div>
                             <button
                                 type="button"
-                                className="tracker__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg"
+                                className="tracker__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg cursor-pointer text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
                                 onClick={() => setDrilldown(null)}
                                 aria-label="Close modal"
                             >
@@ -740,7 +742,7 @@ export default function RegisterStudentRecords() {
                             </button>
                         </header>
 
-                        <div className="p-6 pt-0">
+                        <div className="min-h-0 flex-1 overflow-y-auto p-6">
                             {drilldownLoading ? (
                                 <div className="flex min-h-[12rem] items-center justify-center">
                                     <FiRefreshCw className="animate-spin text-2xl text-gray-400" aria-hidden="true" />
@@ -822,7 +824,17 @@ export default function RegisterStudentRecords() {
                                 </div>
                             )}
                         </div>
-                    </>
+
+                        <footer className="shrink-0 flex items-center justify-end gap-3 p-4 px-6 border-t border-[var(--neutral-border)] bg-neutral-50">
+                            <button
+                                type="button"
+                                onClick={() => setDrilldown(null)}
+                                className="rounded-lg border px-4 py-2 text-sm font-semibold hover:bg-neutral-100"
+                            >
+                                Close
+                            </button>
+                        </footer>
+                    </div>
                 )}
             </ModalDialog>
 

@@ -505,25 +505,28 @@ export default function AdminFaculties() {
                 open={Boolean(modalStatus)}
                 onClose={closeModal}
                 labelledById="faculties-modal-title"
-                className="faculties-modal__panel w-full max-w-[36rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+                scrollable
+                maxWidth="max-w-[36rem]"
+                className="faculties-modal__panel w-full rounded-3xl bg-white shadow-xl"
             >
-                        <header className="faculties-modal__header flex items-start justify-between gap-4 p-6 pb-5">
-                            <div className="faculties-modal__heading">
-                                <span className="faculties-modal__eyebrow">{modalStatus === "create" ? "New record" : "Update record"}</span>
-                                <h3 id="faculties-modal-title" className="faculties-modal__title mt-0.5 text-xl font-bold">
-                                    {modalStatus === "create" ? "Create Faculty" : "Edit Faculty"}
-                                </h3>
-                                <p className="faculties-modal__subtitle mt-1 text-[0.8125rem]">
-                                    {modalStatus === "create" ? "Add a new faculty to the teaching staff" : "Update this faculty's details"}
-                                </p>
-                            </div>
-                            <button type="button" className="faculties-modal__close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg" onClick={closeModal} aria-label="Close modal">
-                                <FiX aria-hidden="true" />
-                            </button>
-                        </header>
+                <form className="flex h-full max-h-[calc(90dvh-2.5rem)] flex-col" onSubmit={handleSubmit} noValidate>
+                    <header className="faculties-modal__header shrink-0 flex items-start justify-between gap-4 p-6 pb-4 border-b border-[var(--neutral-border)]">
+                        <div className="faculties-modal__heading">
+                            <span className="faculties-modal__eyebrow">{modalStatus === "create" ? "New record" : "Update record"}</span>
+                            <h3 id="faculties-modal-title" className="faculties-modal__title mt-0.5 text-xl font-bold">
+                                {modalStatus === "create" ? "Create Faculty" : "Edit Faculty"}
+                            </h3>
+                            <p className="faculties-modal__subtitle mt-1 text-[0.8125rem]">
+                                {modalStatus === "create" ? "Add a new faculty to the teaching staff" : "Update this faculty's details"}
+                            </p>
+                        </div>
+                        <button type="button" className="faculties-modal__close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg cursor-pointer text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900" onClick={closeModal} aria-label="Close modal">
+                            <FiX aria-hidden="true" />
+                        </button>
+                    </header>
 
-                        <form className="faculties-form p-6" onSubmit={handleSubmit} noValidate>
-                            <div className="faculties-form__grid grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="min-h-0 flex-1 overflow-y-auto p-6">
+                        <div className="faculties-form__grid grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div className="faculties-form__field flex flex-col gap-1.5 sm:col-span-2">
                                     <label htmlFor="faculty-email" className="faculties-form__label text-[0.8125rem] font-semibold">Email</label>
                                     <input
@@ -639,18 +642,19 @@ export default function AdminFaculties() {
                                     </p>
                                 </div>
                             </div>
+                        </div>
 
-                            <footer className="faculties-form__footer mt-6 flex justify-end gap-3 border-t pt-5">
-                                <button type="button" className="faculties-form__cancel rounded-lg border px-4 py-2.5 text-sm font-semibold" onClick={closeModal}>
-                                    Cancel
-                                </button>
-                                <button type="submit" disabled={submitting} className="faculties-form__submit inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold">
-                                    {submitting
-                                        ? (modalStatus === "edit" ? "Saving…" : "Creating…")
-                                        : (modalStatus === "edit" ? "Save Changes" : "Create Faculty")}
-                                </button>
-                            </footer>
-                        </form>
+                        <footer className="faculties-form__footer shrink-0 flex justify-end gap-3 border-t border-[var(--neutral-border)] p-4 px-6 bg-neutral-50">
+                            <button type="button" className="faculties-form__cancel rounded-lg border px-4 py-2.5 text-sm font-semibold" onClick={closeModal}>
+                                Cancel
+                            </button>
+                            <button type="submit" disabled={submitting} className="faculties-form__submit inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold">
+                                {submitting
+                                    ? (modalStatus === "edit" ? "Saving…" : "Creating…")
+                                    : (modalStatus === "edit" ? "Save Changes" : "Create Faculty")}
+                            </button>
+                        </footer>
+                    </form>
             </ModalDialog>
 
             {/* Delete faculty confirmation */}

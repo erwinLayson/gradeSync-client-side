@@ -157,8 +157,8 @@ export function RequestAmendmentModal({
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex min-h-0 flex-col">
-        <div className="flex-auto space-y-4 overflow-y-auto overscroll-contain p-6">
+      <form onSubmit={handleSubmit} className="flex h-full max-h-[calc(90dvh-2.5rem)] min-h-0 flex-col">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-6">
           {/* Record Context Card */}
           <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300 space-y-2">
             <div className="flex items-center justify-between">

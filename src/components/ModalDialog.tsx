@@ -30,6 +30,7 @@ interface ModalDialogProps {
   restoreFocusRef?: RefObject<HTMLElement | null>;
   /** While true, Escape and backdrop clicks do not close the dialog (in-flight work). */
   lockClose?: boolean;
+  maxWidth?: string;
   /**
    * Constrain the panel to the viewport and let it opt into an internal
    * scrolling body (header/footer stay visible). Use for tall form dialogs.
@@ -63,13 +64,14 @@ export function ModalDialog({
   const wasOpenRef = useRef(false);
 
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-
   const lockCloseRef = useRef(lockClose);
-  lockCloseRef.current = lockClose;
-
   const restoreFocusRefActual = useRef(restoreFocusRef);
-  restoreFocusRefActual.current = restoreFocusRef;
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+    lockCloseRef.current = lockClose;
+    restoreFocusRefActual.current = restoreFocusRef;
+  });
 
   const closeAndRestoreFocus = useCallback(() => {
     onCloseRef.current();

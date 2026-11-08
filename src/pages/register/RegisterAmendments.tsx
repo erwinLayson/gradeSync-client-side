@@ -57,6 +57,20 @@ function parseDetails(
   return details;
 }
 
+function parseJsonRecord(val: unknown): Record<string, unknown> | null {
+  if (!val) return null;
+  if (typeof val === "object") return val as Record<string, unknown>;
+  if (typeof val === "string") {
+    try {
+      const parsed: unknown = JSON.parse(val);
+      return typeof parsed === "object" && parsed !== null ? (parsed as Record<string, unknown>) : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 function formatDateTime(iso?: string | null): string {
   if (!iso) return "—";
   const date = new Date(iso);
@@ -904,13 +918,11 @@ export default function RegisterAmendments() {
               {activeRequest.recordType === "subject_record" ? (
                 (() => {
                   const modifiedLogs = auditLogs.filter((l) => l.action === "modified");
-                  let details: any = {};
-                  try {
-                    details = typeof activeRequest.details === "string" ? JSON.parse(activeRequest.details) : (activeRequest.details ?? {});
-                  } catch {
-                    details = {};
-                  }
-                  const requestedChanges = details.changes;
+                  const details = parseJsonRecord(activeRequest.details) ?? {};
+                  const requestedChanges = details.changes as {
+                    gradebook?: Array<{ assessmentTitle?: string; proposedScore?: unknown }>;
+                    attendance?: Array<{ date?: string; proposedStatus?: unknown }>;
+                  } | undefined;
 
                   return (
                     <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs dark:border-slate-800 dark:bg-slate-800/40">
@@ -926,16 +938,13 @@ export default function RegisterAmendments() {
                       {modifiedLogs.length > 0 ? (
                         <div className="space-y-1.5 pt-1">
                           {modifiedLogs.map((log, i) => {
-                            let diffObj: any = null;
-                            try {
-                              diffObj = typeof log.diff === "string" ? JSON.parse(log.diff) : log.diff;
-                            } catch {
-                              diffObj = null;
-                            }
-                            const record = diffObj?.record ?? (log.recordType === "attendance" ? "Attendance" : "Gradebook");
-                            const field = diffObj?.field ?? (log.beforeState as any)?.field ?? `Item #${log.id}`;
-                            const beforeVal = diffObj?.previousValue ?? (log.beforeState as any)?.score ?? (log.beforeState as any)?.status ?? "—";
-                            const afterVal = diffObj?.updatedValue ?? (log.afterState as any)?.score ?? (log.afterState as any)?.status ?? "—";
+                            const diffObj = parseJsonRecord(log.diff);
+                            const beforeState = parseJsonRecord(log.beforeState);
+                            const afterState = parseJsonRecord(log.afterState);
+                            const record = (diffObj?.record as string | undefined) ?? (log.recordType === "attendance" ? "Attendance" : "Gradebook");
+                            const field = (diffObj?.field as string | undefined) ?? (beforeState?.field as string | undefined) ?? `Item #${log.id}`;
+                            const beforeVal = (diffObj?.previousValue as string | number | undefined) ?? (beforeState?.score as string | number | undefined) ?? (beforeState?.status as string | undefined) ?? "—";
+                            const afterVal = (diffObj?.updatedValue as string | number | undefined) ?? (afterState?.score as string | number | undefined) ?? (afterState?.status as string | undefined) ?? "—";
 
                             return (
                               <div
@@ -988,8 +997,8 @@ export default function RegisterAmendments() {
                       {modifiedLogs.length === 0 && requestedChanges && (requestedChanges.gradebook?.length || requestedChanges.attendance?.length) && (
                         <div className="pt-2 border-t border-slate-200 dark:border-slate-700 text-[11px] text-slate-500">
                           <span className="font-semibold">Initially Proposed: </span>
-                          {requestedChanges.gradebook?.map((g: any) => `${g.assessmentTitle ?? 'Score'}: ${g.proposedScore}`).concat(
-                            requestedChanges.attendance?.map((a: any) => `${a.date}: ${a.proposedStatus}`) ?? []
+                          {(requestedChanges.gradebook?.map((g) => `${g.assessmentTitle ?? 'Score'}: ${String(g.proposedScore)}`) ?? []).concat(
+                            requestedChanges.attendance?.map((a) => `${a.date ?? 'Date'}: ${String(a.proposedStatus)}`) ?? []
                           ).join(", ")}
                         </div>
                       )}

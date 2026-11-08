@@ -118,13 +118,13 @@ describe("AdminActivityAudit Data Table Rendering & Layout", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         vi.mocked(activityAuditApi.fetchActivityAuditStats).mockResolvedValue({
-            status: 200,
+            success: true,
             data: mockStats,
             message: "Stats loaded",
-        } as any);
+        });
 
         vi.mocked(activityAuditApi.fetchActivityAuditLogs).mockResolvedValue({
-            status: 200,
+            success: true,
             data: {
                 logs: mockLogs,
                 total: 3,
@@ -133,13 +133,13 @@ describe("AdminActivityAudit Data Table Rendering & Layout", () => {
                 totalPages: 1,
             },
             message: "Logs loaded",
-        } as any);
+        });
 
         vi.mocked(activityAuditApi.fetchActivityAuditDetail).mockResolvedValue({
-            status: 200,
+            success: true,
             data: mockLogs[0],
             message: "Detail loaded",
-        } as any);
+        });
     });
 
     it("renders exactly the six required table column headers", async () => {

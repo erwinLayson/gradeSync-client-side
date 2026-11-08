@@ -31,10 +31,10 @@ export interface ActivityAuditLogRow {
     subjectName: string | null;
     quarter: number | null;
     status: "success" | "failed";
-    beforeState: any | null;
-    afterState: any | null;
-    diff: any | null;
-    metadata: any | null;
+    beforeState: Record<string, unknown> | null;
+    afterState: Record<string, unknown> | null;
+    diff: Record<string, unknown> | null;
+    metadata: Record<string, unknown> | null;
     ipAddress: string | null;
     userAgent: string | null;
     created_at: string;

@@ -644,43 +644,45 @@ return (
             open={isModalOpen}
             onClose={closeModal}
             labelledById="subjects-modal-title"
-            className="subjects-modal__panel w-full max-w-[36rem] overflow-y-auto rounded-3xl bg-white shadow-xl"
+            scrollable
+            maxWidth="max-w-[36rem]"
+            className="subjects-modal__panel w-full rounded-3xl bg-white shadow-xl"
         >
-                    <header className="subjects-modal__header flex items-start justify-between gap-4 p-6 pb-5">
-                        {/* Create Subject Heading */}
-                        {modalStatus === "create" && (
-                            <div className="subjects-modal__heading">
-                                <span className="subjects-modal__eyebrow uppercase tracking-[0.08em]">New record</span>
-                                <h3 id="subjects-modal-title" className="subjects-modal__title mt-0.5 text-xl font-bold">Create Subject</h3>
-                                <p className="subjects-modal__subtitle mt-1 text-[0.8125rem]">Add a new subject to the curriculum</p>
-                            </div>
-                        )}
+            <form className="flex h-full max-h-[calc(90dvh-2.5rem)] flex-col" onSubmit={modalStatus === "create" ? handleCreateModalForm : modalStatus === "edit" ? handleEditModalForm : modalStatus === "assign" ? handleAssignModalForm : undefined} noValidate>
+                <header className="subjects-modal__header shrink-0 flex items-start justify-between gap-4 p-6 pb-4 border-b border-[var(--neutral-border)]">
+                    {/* Create Subject Heading */}
+                    {modalStatus === "create" && (
+                        <div className="subjects-modal__heading">
+                            <span className="subjects-modal__eyebrow uppercase tracking-[0.08em]">New record</span>
+                            <h3 id="subjects-modal-title" className="subjects-modal__title mt-0.5 text-xl font-bold">Create Subject</h3>
+                            <p className="subjects-modal__subtitle mt-1 text-[0.8125rem]">Add a new subject to the curriculum</p>
+                        </div>
+                    )}
 
-                        {/* Edit Subject Heading */}
-                        {modalStatus === "edit" && (
-                            <div className="subjects-modal__heading">
-                                <span className="subjects-modal__eyebrow uppercase tracking-[0.08em]">Edit record</span>
-                                <h3 id="subjects-modal-title" className="subjects-modal__title mt-0.5 text-xl font-bold">Edit Subject</h3>
-                                <p className="subjects-modal__subtitle mt-1 text-[0.8125rem]">Update the subject details</p>
-                            </div>
-                        )}
+                    {/* Edit Subject Heading */}
+                    {modalStatus === "edit" && (
+                        <div className="subjects-modal__heading">
+                            <span className="subjects-modal__eyebrow uppercase tracking-[0.08em]">Edit record</span>
+                            <h3 id="subjects-modal-title" className="subjects-modal__title mt-0.5 text-xl font-bold">Edit Subject</h3>
+                            <p className="subjects-modal__subtitle mt-1 text-[0.8125rem]">Update the subject details</p>
+                        </div>
+                    )}
 
-                        {/* Assign Subject Heading */}
-                        {modalStatus === "assign" && (
-                            <div className="subjects-modal__heading">
-                                <span className="subjects-modal__eyebrow uppercase tracking-[0.08em]">Assign</span>
-                                <h3 id="subjects-modal-title" className="subjects-modal__title mt-0.5 text-xl font-bold">Assign Subject</h3>
-                                <p className="subjects-modal__subtitle mt-1 text-[0.8125rem]">Assign a subject to a faculty</p>
-                            </div>
-                        )}
-                        <button type="button" className="subjects-modal__close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg" onClick={closeModal} aria-label="Close modal">
-                            <FiX aria-hidden="true" />
-                        </button>
-                    </header>
+                    {/* Assign Subject Heading */}
+                    {modalStatus === "assign" && (
+                        <div className="subjects-modal__heading">
+                            <span className="subjects-modal__eyebrow uppercase tracking-[0.08em]">Assign</span>
+                            <h3 id="subjects-modal-title" className="subjects-modal__title mt-0.5 text-xl font-bold">Assign Subject</h3>
+                            <p className="subjects-modal__subtitle mt-1 text-[0.8125rem]">Assign a subject to a faculty</p>
+                        </div>
+                    )}
+                    <button type="button" className="subjects-modal__close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg cursor-pointer text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900" onClick={closeModal} aria-label="Close modal">
+                        <FiX aria-hidden="true" />
+                    </button>
+                </header>
 
-                    <form className="subjects-form p-6" onSubmit={modalStatus === "create" ? handleCreateModalForm : modalStatus === "edit" ? handleEditModalForm : modalStatus === "assign" ? handleAssignModalForm : undefined} noValidate>
-
-                        {/* Create / Edit Subject Form */}
+                <div className="min-h-0 flex-1 overflow-y-auto p-6">
+                    {/* Create / Edit Subject Form */}
                         {(modalStatus === "create" || modalStatus === "edit") && (
                             <div className="flex flex-col gap-4">
                                 <div className="subjects-form__grid grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -854,7 +856,9 @@ return (
                             </div>
                         )}
 
-                        <footer className="subjects-form__footer mt-6 flex justify-end gap-3 border-t pt-5">
+                        </div>
+
+                        <footer className="subjects-form__footer shrink-0 flex justify-end gap-3 border-t border-[var(--neutral-border)] p-4 px-6 bg-neutral-50">
                             <button type="button" className="subjects-form__cancel rounded-lg border px-4 py-2.5 text-sm font-semibold" onClick={closeModal}>
                                 Cancel
                             </button>

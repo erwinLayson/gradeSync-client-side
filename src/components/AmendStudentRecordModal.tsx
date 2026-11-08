@@ -109,10 +109,11 @@ export function AmendStudentRecordModal({
 
   const changedAttendance: Array<{ date: string; status: string }> = [];
   if (data?.attendance) {
-    for (const att of data.attendance) {
-      const currentVal = attendance[att.date];
-      if (currentVal && currentVal !== att.status) {
-        changedAttendance.push({ date: att.date, status: currentVal });
+    const existingDatesMap = new Map(data.attendance.map((a) => [a.date, a.status]));
+    for (const [date, status] of Object.entries(attendance)) {
+      const origStatus = existingDatesMap.get(date);
+      if (!origStatus || origStatus !== status) {
+        changedAttendance.push({ date, status });
       }
     }
   }
@@ -132,7 +133,6 @@ export function AmendStudentRecordModal({
       ...prev,
       [newAttendanceDate]: newAttendanceStatus,
     }));
-    changedAttendance.push({ date: newAttendanceDate, status: newAttendanceStatus });
     setNewAttendanceDate('');
   };
 
@@ -227,7 +227,7 @@ export function AmendStudentRecordModal({
           <p className="mt-3 text-xs font-semibold">Loading student record items…</p>
         </div>
       ) : (
-        <div className="flex min-h-0 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {/* Active Permission Banner */}
           <div className="flex items-center justify-between border-b border-emerald-100 bg-emerald-50/70 px-6 py-2.5 text-xs text-emerald-900 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300">
             <div className="flex items-center gap-2">
@@ -494,7 +494,7 @@ export function AmendStudentRecordModal({
                     </label>
                     <select
                       value={newAttendanceStatus}
-                      onChange={(e) => setNewAttendanceStatus(e.target.value as any)}
+                      onChange={(e) => setNewAttendanceStatus(e.target.value as 'present' | 'absent' | 'late' | 'excused')}
                       className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-900 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                     >
                       <option value="present">Present</option>
