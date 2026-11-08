@@ -312,7 +312,7 @@ export default function AdminFaculties() {
             <PageSection className="faculties__card" flush>
 
                 {/* ================= Faculties Table ================= */}
-                {!selectedFaculty && faculties &&  (
+                {!selectedFaculty && faculties && (
                     <div className="data-table__wrap">
                         <table className="data-table">
                             <thead>
@@ -382,7 +382,7 @@ export default function AdminFaculties() {
 
                 {/* ================ Empty State ================ */}
                 {/* If no faculties are found, display an empty state */}
-                {faculties && faculties.length  <= 0 && (
+                {faculties && faculties.length <= 0 && (
                     <EmptyState
                         className="faculties__empty"
                         icon={<FiUsers />}
@@ -506,7 +506,7 @@ export default function AdminFaculties() {
                 onClose={closeModal}
                 labelledById="faculties-modal-title"
                 scrollable
-                maxWidth="max-w-[36rem]"
+                maxWidth="max-w-[50rem]"
                 className="faculties-modal__panel w-full rounded-3xl bg-white shadow-xl"
             >
                 <form className="flex h-full max-h-[calc(90dvh-2.5rem)] flex-col" onSubmit={handleSubmit} noValidate>
@@ -527,134 +527,134 @@ export default function AdminFaculties() {
 
                     <div className="min-h-0 flex-1 overflow-y-auto p-6">
                         <div className="faculties-form__grid grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div className="faculties-form__field flex flex-col gap-1.5 sm:col-span-2">
-                                    <label htmlFor="faculty-email" className="faculties-form__label text-[0.8125rem] font-semibold">Email</label>
-                                    <input
-                                        id="faculty-email"
-                                        type="email"
-                                        className="faculties-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
-                                        placeholder="faculty@school.edu.ph"
-                                        autoFocus
-                                        onChange={handleCreateModalInputChange}
-                                        name="email"
-                                        value={form.email}
-                                    />
-                                </div>
-                                <div className="faculties-form__field flex flex-col gap-1.5">
-                                    <label htmlFor="faculty-firstname" className="faculties-form__label text-[0.8125rem] font-semibold">First Name</label>
-                                    <input
-                                        id="faculty-firstname"
-                                        type="text"
-                                        className="faculties-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
-                                        placeholder="Maria"
-                                        onChange={handleCreateModalInputChange}
-                                        name="firstname"
-                                        value={form.firstname}
-                                    />
-                                </div>
-                                <div className="faculties-form__field flex flex-col gap-1.5">
-                                    <label htmlFor="faculty-middlename" className="faculties-form__label text-[0.8125rem] font-semibold">Middle Name</label>
-                                    <input
-                                        id="faculty-middlename"
-                                        type="text"
-                                        className="faculties-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
-                                        placeholder="Santos"
-                                        onChange={handleCreateModalInputChange}
-                                        name="middlename"
-                                        value={form.middlename}
-                                    />
-                                </div>
-                                <div className="faculties-form__field flex flex-col gap-1.5">
-                                    <label htmlFor="faculty-lastname" className="faculties-form__label text-[0.8125rem] font-semibold">Last Name</label>
-                                    <input
-                                        id="faculty-lastname"
-                                        type="text"
-                                        className="faculties-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
-                                        placeholder="Dela Cruz"
-                                        onChange={handleCreateModalInputChange}
-                                        name="lastname"
-                                        value={form.lastname}
-                                    />
-                                </div>
-                                <div className="faculties-form__field flex flex-col gap-1.5">
-                                    <label htmlFor="faculty-suffix" className="faculties-form__label text-[0.8125rem] font-semibold">
-                                        Suffix <span className="faculties-form__optional">(optional)</span>
-                                    </label>
-                                    <select
-                                        id="faculty-suffix"
-                                        className="faculties-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
-                                        defaultValue=""
-                                        onChange={handleCreateModalInputChange}
-                                        name="suffix"
-                                        value={form.suffix ?? ""}
-                                    >
-                                        <option value="">None</option>
-                                        <option value="Jr.">Jr.</option>
-                                        <option value="Sr.">Sr.</option>
-                                        <option value="II">II</option>
-                                        <option value="III">III</option>
-                                        <option value="IV">IV</option>
-                                    </select>
-                                </div>
-                                <div className="faculties-form__field flex flex-col gap-1.5">
-                                    <label htmlFor="faculty-gender" className="faculties-form__label text-[0.8125rem] font-semibold">
-                                        Gender <span className="faculties-form__required">(required)</span>
-                                    </label>
-                                    <select
-                                        id="faculty-gender"
-                                        className="faculties-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
-                                        onChange={handleCreateModalInputChange}
-                                        name="gender"
-                                        value={form.gender ?? ""}
-                                        required
-                                    >
-                                        <option value="" disabled>Select gender</option>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                    </select>
-                                </div>
-                                <div className="faculties-form__field flex flex-col gap-1.5">
-                                    <label htmlFor="faculty-role" className="faculties-form__label text-[0.8125rem] font-semibold">
-                                        Role <span className="faculties-form__required">(required)</span>
-                                    </label>
-                                    <select
-                                        id="faculty-role"
-                                        className="faculties-form__input w-full rounded-lg border px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-                                        onChange={handleCreateModalInputChange}
-                                        name="role"
-                                        value={form.role}
-                                        disabled={roleLocked}
-                                        required
-                                        aria-describedby="faculty-role-help"
-                                    >
-                                        {FACULTY_ROLE_OPTIONS.map((option) => (
-                                            <option key={option.value} value={option.value}>
-                                                {option.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="sm:col-span-2 -mt-2">
-                                    <p id="faculty-role-help" className="faculties-form__hint text-[0.75rem] leading-relaxed">
-                                        {roleLocked
-                                            ? `Faculty roles can only be changed after the current school year has been officially completed${currentSchoolYearLabel ? ` (${currentSchoolYearLabel} is still ongoing)` : ""}.`
-                                            : FACULTY_ROLE_OPTIONS.find((option) => option.value === form.role)?.hint}
-                                    </p>
-                                </div>
+                            <div className="faculties-form__field flex flex-col gap-1.5 sm:col-span-2">
+                                <label htmlFor="faculty-email" className="faculties-form__label text-[0.8125rem] font-semibold">Email</label>
+                                <input
+                                    id="faculty-email"
+                                    type="email"
+                                    className="faculties-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                    placeholder="faculty@school.edu.ph"
+                                    autoFocus
+                                    onChange={handleCreateModalInputChange}
+                                    name="email"
+                                    value={form.email}
+                                />
+                            </div>
+                            <div className="faculties-form__field flex flex-col gap-1.5">
+                                <label htmlFor="faculty-firstname" className="faculties-form__label text-[0.8125rem] font-semibold">First Name</label>
+                                <input
+                                    id="faculty-firstname"
+                                    type="text"
+                                    className="faculties-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                    placeholder="Maria"
+                                    onChange={handleCreateModalInputChange}
+                                    name="firstname"
+                                    value={form.firstname}
+                                />
+                            </div>
+                            <div className="faculties-form__field flex flex-col gap-1.5">
+                                <label htmlFor="faculty-middlename" className="faculties-form__label text-[0.8125rem] font-semibold">Middle Name</label>
+                                <input
+                                    id="faculty-middlename"
+                                    type="text"
+                                    className="faculties-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                    placeholder="Santos"
+                                    onChange={handleCreateModalInputChange}
+                                    name="middlename"
+                                    value={form.middlename}
+                                />
+                            </div>
+                            <div className="faculties-form__field flex flex-col gap-1.5">
+                                <label htmlFor="faculty-lastname" className="faculties-form__label text-[0.8125rem] font-semibold">Last Name</label>
+                                <input
+                                    id="faculty-lastname"
+                                    type="text"
+                                    className="faculties-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                    placeholder="Dela Cruz"
+                                    onChange={handleCreateModalInputChange}
+                                    name="lastname"
+                                    value={form.lastname}
+                                />
+                            </div>
+                            <div className="faculties-form__field flex flex-col gap-1.5">
+                                <label htmlFor="faculty-suffix" className="faculties-form__label text-[0.8125rem] font-semibold">
+                                    Suffix <span className="faculties-form__optional">(optional)</span>
+                                </label>
+                                <select
+                                    id="faculty-suffix"
+                                    className="faculties-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                    defaultValue=""
+                                    onChange={handleCreateModalInputChange}
+                                    name="suffix"
+                                    value={form.suffix ?? ""}
+                                >
+                                    <option value="">None</option>
+                                    <option value="Jr.">Jr.</option>
+                                    <option value="Sr.">Sr.</option>
+                                    <option value="II">II</option>
+                                    <option value="III">III</option>
+                                    <option value="IV">IV</option>
+                                </select>
+                            </div>
+                            <div className="faculties-form__field flex flex-col gap-1.5">
+                                <label htmlFor="faculty-gender" className="faculties-form__label text-[0.8125rem] font-semibold">
+                                    Gender <span className="faculties-form__required">(required)</span>
+                                </label>
+                                <select
+                                    id="faculty-gender"
+                                    className="faculties-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                    onChange={handleCreateModalInputChange}
+                                    name="gender"
+                                    value={form.gender ?? ""}
+                                    required
+                                >
+                                    <option value="" disabled>Select gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                            <div className="faculties-form__field flex flex-col gap-1.5">
+                                <label htmlFor="faculty-role" className="faculties-form__label text-[0.8125rem] font-semibold">
+                                    Role <span className="faculties-form__required">(required)</span>
+                                </label>
+                                <select
+                                    id="faculty-role"
+                                    className="faculties-form__input w-full rounded-lg border px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                                    onChange={handleCreateModalInputChange}
+                                    name="role"
+                                    value={form.role}
+                                    disabled={roleLocked}
+                                    required
+                                    aria-describedby="faculty-role-help"
+                                >
+                                    {FACULTY_ROLE_OPTIONS.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="sm:col-span-2 -mt-2">
+                                <p id="faculty-role-help" className="faculties-form__hint text-[0.75rem] leading-relaxed">
+                                    {roleLocked
+                                        ? `Faculty roles can only be changed after the current school year has been officially completed${currentSchoolYearLabel ? ` (${currentSchoolYearLabel} is still ongoing)` : ""}.`
+                                        : FACULTY_ROLE_OPTIONS.find((option) => option.value === form.role)?.hint}
+                                </p>
                             </div>
                         </div>
+                    </div>
 
-                        <footer className="faculties-form__footer shrink-0 flex justify-end gap-3 border-t border-[var(--neutral-border)] p-4 px-6 bg-neutral-50">
-                            <button type="button" className="faculties-form__cancel rounded-lg border px-4 py-2.5 text-sm font-semibold" onClick={closeModal}>
-                                Cancel
-                            </button>
-                            <button type="submit" disabled={submitting} className="faculties-form__submit inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold">
-                                {submitting
-                                    ? (modalStatus === "edit" ? "Saving…" : "Creating…")
-                                    : (modalStatus === "edit" ? "Save Changes" : "Create Faculty")}
-                            </button>
-                        </footer>
-                    </form>
+                    <footer className="faculties-form__footer shrink-0 flex justify-end gap-3 border-t border-[var(--neutral-border)] p-4 px-6 bg-neutral-50">
+                        <button type="button" className="faculties-form__cancel rounded-lg border px-4 py-2.5 text-sm font-semibold" onClick={closeModal}>
+                            Cancel
+                        </button>
+                        <button type="submit" disabled={submitting} className="faculties-form__submit inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold">
+                            {submitting
+                                ? (modalStatus === "edit" ? "Saving…" : "Creating…")
+                                : (modalStatus === "edit" ? "Save Changes" : "Create Faculty")}
+                        </button>
+                    </footer>
+                </form>
             </ModalDialog>
 
             {/* Delete faculty confirmation */}

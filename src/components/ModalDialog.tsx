@@ -58,6 +58,7 @@ export function ModalDialog({
   initialFocusRef,
   restoreFocusRef,
   lockClose = false,
+  maxWidth,
   scrollable = false,
 }: ModalDialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -157,11 +158,14 @@ export function ModalDialog({
     >
       <div
         ref={panelRef}
-        className={
-          scrollable
-            ? `${className ?? ""} modal-dialog__panel--scrollable`.trim()
-            : className
-        }
+        className={[
+          maxWidth,
+          className,
+          scrollable ? "modal-dialog__panel--scrollable" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .trim()}
       >
         {children}
       </div>
