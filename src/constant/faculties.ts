@@ -31,6 +31,7 @@ export interface Faculty {
     id: number;
     fullname: string;
     email: string;
+    gender?: string | null;
     role: FacultyRole;
 }
 
@@ -40,6 +41,7 @@ export interface NewFacultyProps {
     middlename: string;
     lastname: string;
     suffix?: string | null;
+    gender?: string | null;
     // Required on create; on edit it is sent as-is so an unchanged role never
     // trips the school-year role-change gate.
     role: FacultyRole;

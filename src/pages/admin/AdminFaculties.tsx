@@ -24,6 +24,7 @@ const EMPTY_FACULTY: NewFacultyProps = {
     middlename: "",
     lastname: "",
     suffix: "",
+    gender: "",
     role: FACULTY_ROLES.TEACHER
 };
 
@@ -118,6 +119,7 @@ export default function AdminFaculties() {
                 middlename: details.middlename,
                 lastname: details.lastname,
                 suffix: details.suffix ?? "",
+                gender: details.gender ?? "",
                 role: details.role ?? FACULTY_ROLES.TEACHER
             });
             setModalStatus("edit");
@@ -174,6 +176,7 @@ export default function AdminFaculties() {
             firstname: form.firstname,
             middlename: form.middlename,
             lastname: form.lastname,
+            gender: form.gender,
             // Role is REQUIRED — create cannot save without a chosen role, and an
             // edit always sends the current one so an unchanged role is a no-op.
             role: form.role
@@ -186,6 +189,7 @@ export default function AdminFaculties() {
         const facultyData: NewFacultyProps = {
             ...required,
             suffix: form.suffix || (modalStatus === "edit" ? null : undefined),
+            gender: form.gender,
             role: form.role
         };
 
@@ -316,6 +320,7 @@ export default function AdminFaculties() {
                                     <th scope="col" className="data-table__th w-16">ID</th>
                                     <th scope="col" className="data-table__th w-56">Faculty</th>
                                     <th scope="col" className="data-table__th w-28">Role</th>
+                                    <th scope="col" className="data-table__th w-28">Gender</th>
                                     <th scope="col" className="data-table__th w-64">Email</th>
                                     <th scope="col" className="data-table__th data-table__th--actions w-20">Actions</th>
                                 </tr>
@@ -332,6 +337,9 @@ export default function AdminFaculties() {
                                             <span className={`faculties__role faculties__role--${faculty.role}`}>
                                                 {facultyRoleLabel(faculty.role)}
                                             </span>
+                                        </td>
+                                        <td className="data-table__td data-table__td--muted">
+                                            {faculty.gender || "—"}
                                         </td>
                                         <td className="data-table__td data-table__td--muted">
                                             <span className="data-table__truncate">{faculty.email}</span>
@@ -396,6 +404,11 @@ export default function AdminFaculties() {
                                         <span className={`faculties__role faculties__role--${selectedFaculty.role} mr-2`}>
                                             {facultyRoleLabel(selectedFaculty.role)}
                                         </span>
+                                        {selectedFaculty.gender && (
+                                            <span className="mr-2 font-medium text-neutral-500">
+                                                • {selectedFaculty.gender}
+                                            </span>
+                                        )}
                                         {selectedFaculty.email}
                                     </p>
                                 </div>
@@ -580,7 +593,24 @@ export default function AdminFaculties() {
                                         <option value="IV">IV</option>
                                     </select>
                                 </div>
-                                <div className="faculties-form__field flex flex-col gap-1.5 sm:col-span-2">
+                                <div className="faculties-form__field flex flex-col gap-1.5">
+                                    <label htmlFor="faculty-gender" className="faculties-form__label text-[0.8125rem] font-semibold">
+                                        Gender <span className="faculties-form__required">(required)</span>
+                                    </label>
+                                    <select
+                                        id="faculty-gender"
+                                        className="faculties-form__input w-full rounded-lg border px-3 py-2.5 text-sm"
+                                        onChange={handleCreateModalInputChange}
+                                        name="gender"
+                                        value={form.gender ?? ""}
+                                        required
+                                    >
+                                        <option value="" disabled>Select gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                </div>
+                                <div className="faculties-form__field flex flex-col gap-1.5">
                                     <label htmlFor="faculty-role" className="faculties-form__label text-[0.8125rem] font-semibold">
                                         Role <span className="faculties-form__required">(required)</span>
                                     </label>
@@ -600,6 +630,8 @@ export default function AdminFaculties() {
                                             </option>
                                         ))}
                                     </select>
+                                </div>
+                                <div className="sm:col-span-2 -mt-2">
                                     <p id="faculty-role-help" className="faculties-form__hint text-[0.75rem] leading-relaxed">
                                         {roleLocked
                                             ? `Faculty roles can only be changed after the current school year has been officially completed${currentSchoolYearLabel ? ` (${currentSchoolYearLabel} is still ongoing)` : ""}.`
