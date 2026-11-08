@@ -70,6 +70,64 @@ function getRoleBadgeClass(role: string): string {
     return "audit-role-badge--unknown";
 }
 
+function formatAuditTimestamp(dateStr: string): string {
+    if (!dateStr) return "—";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+    });
+}
+
+function renderAcademicContext(log: ActivityAuditLogRow) {
+    const sectionLabel = log.classroomName || (log.gradeLevel ? `Grade ${log.gradeLevel}` : null);
+    const hasPrimary = Boolean(sectionLabel || log.quarter);
+    const hasSecondary = Boolean(log.schoolYear || log.subjectName);
+
+    if (!hasPrimary && !hasSecondary) {
+        return <span className="audit-context-empty" title="No academic context recorded">—</span>;
+    }
+
+    return (
+        <div className="audit-context-stack">
+            {hasPrimary && (
+                <div className="audit-context-row">
+                    {sectionLabel && (
+                        <span className="audit-context-section" title={sectionLabel}>
+                            {sectionLabel}
+                        </span>
+                    )}
+                    {log.quarter && (
+                        <span className="audit-context-badge audit-context-badge--quarter" title={`Quarter ${log.quarter}`}>
+                            Q{log.quarter}
+                        </span>
+                    )}
+                </div>
+            )}
+
+            {hasSecondary && (
+                <div className="audit-context-row audit-context-row--sub">
+                    {log.schoolYear && (
+                        <span className="audit-context-badge audit-context-badge--sy" title={`School Year ${log.schoolYear}`}>
+                            SY {log.schoolYear}
+                        </span>
+                    )}
+                    {log.subjectName && (
+                        <span className="audit-context-subject" title={log.subjectName}>
+                            {log.subjectName}
+                        </span>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function AdminActivityAudit() {
     const [stats, setStats] = useState<ActivityAuditStats | null>(null);
     const [logs, setLogs] = useState<ActivityAuditLogRow[]>([]);
@@ -339,110 +397,140 @@ export default function AdminActivityAudit() {
                         description="No activities matched the chosen filters or search query."
                     />
                 ) : (
-                    <div className="audit-table-wrapper">
-                        <table className="audit-table">
-                            <thead>
-                                <tr>
-                                    <th>User</th>
-                                    <th>Role</th>
-                                    <th>Activity</th>
-                                    <th>Description</th>
-                                    <th>Academic Context</th>
-                                    <th>Timestamp</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {logs.map((log) => (
-                                    <tr key={log.id}>
-                                        <td>
-                                            <div className="font-semibold text-slate-900">{log.actorName}</div>
-                                            <div className="text-xs text-slate-500">ID #{log.actorUserId}</div>
-                                        </td>
-                                        <td>
-                                            <span className={`audit-role-badge ${getRoleBadgeClass(log.actorRole)}`}>
-                                                {log.actorRole}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span className={`audit-action-badge ${getActionBadgeClass(log.action)}`}>
-                                                {formatActionLabel(log.action)}
-                                            </span>
-                                        </td>
-                                        <td className="max-w-xs truncate" title={log.description}>
-                                            {log.description}
-                                        </td>
-                                        <td>
-                                            <div className="audit-context-tags">
-                                                {log.schoolYear && (
-                                                    <span className="audit-tag audit-tag--sy">SY {log.schoolYear}</span>
-                                                )}
-                                                {log.classroomName && (
-                                                    <span className="audit-tag">{log.classroomName}</span>
-                                                )}
-                                                {log.subjectName && (
-                                                    <span className="audit-tag">{log.subjectName}</span>
-                                                )}
-                                                {log.quarter && (
-                                                    <span className="audit-tag">Q{log.quarter}</span>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="whitespace-nowrap text-xs text-slate-600">
-                                            {new Date(log.created_at).toLocaleString()}
-                                        </td>
-                                        <td>
-                                            <span
-                                                className={`audit-status-pill ${
-                                                    log.status === "success"
-                                                        ? "audit-status-pill--success"
-                                                        : "audit-status-pill--failed"
-                                                }`}
-                                            >
-                                                {log.status === "success" ? <FiCheckCircle /> : <FiXCircle />}
-                                                {log.status}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <button
-                                                type="button"
-                                                className="audit-btn-inspect"
-                                                onClick={() => handleInspect(log.id)}
-                                            >
-                                                <FiEye /> Details
-                                            </button>
-                                        </td>
+                    <>
+                        <div className="audit-responsive-hint">
+                            Scroll horizontally to view all columns &rarr;
+                        </div>
+                        <div className="audit-table-wrapper" role="region" aria-label="Activity Audit Logs Table" tabIndex={0}>
+                            <table className="audit-table">
+                                <colgroup>
+                                    <col className="audit-col--user" style={{ width: "13%" }} />
+                                    <col className="audit-col--role" style={{ width: "9%" }} />
+                                    <col className="audit-col--activity" style={{ width: "16%" }} />
+                                    <col className="audit-col--description" style={{ width: "24%" }} />
+                                    <col className="audit-col--context" style={{ width: "20%" }} />
+                                    <col className="audit-col--timestamp" style={{ width: "18%" }} />
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th scope="col" className="audit-th--user">User</th>
+                                        <th scope="col" className="audit-th--role">Role</th>
+                                        <th scope="col" className="audit-th--activity">Activity</th>
+                                        <th scope="col" className="audit-th--description">Description</th>
+                                        <th scope="col" className="audit-th--context">Academic Context</th>
+                                        <th scope="col" className="audit-th--timestamp">Timestamp</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {logs.map((log) => (
+                                        <tr
+                                            key={log.id}
+                                            className="audit-table-row"
+                                            onClick={() => handleInspect(log.id)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter" || e.key === " ") {
+                                                    e.preventDefault();
+                                                    handleInspect(log.id);
+                                                }
+                                            }}
+                                            tabIndex={0}
+                                            role="row"
+                                            aria-label={`Audit log #${log.id}: ${log.actorName}, ${formatActionLabel(log.action)}`}
+                                        >
+                                            <td className="audit-td--user">
+                                                <div className="audit-user-cell">
+                                                    <span className="audit-user-name" title={log.actorName || "Unknown User"}>
+                                                        {log.actorName || "Unknown User"}
+                                                    </span>
+                                                    <span className="audit-user-id">
+                                                        {log.actorUserId ? `ID #${log.actorUserId}` : "—"}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="audit-td--role">
+                                                <span className={`audit-role-badge ${getRoleBadgeClass(log.actorRole)}`}>
+                                                    {log.actorRole}
+                                                </span>
+                                            </td>
+                                            <td className="audit-td--activity">
+                                                <div className="audit-activity-cell">
+                                                    <span className={`audit-action-badge ${getActionBadgeClass(log.action)}`}>
+                                                        {formatActionLabel(log.action)}
+                                                    </span>
+                                                    <span
+                                                        className={`audit-status-badge ${
+                                                            log.status === "success"
+                                                                ? "audit-status-badge--success"
+                                                                : "audit-status-badge--failed"
+                                                        }`}
+                                                        title={`Status: ${log.status}`}
+                                                    >
+                                                        {log.status === "success" ? <FiCheckCircle /> : <FiXCircle />}
+                                                        {log.status}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="audit-td--description">
+                                                <div className="audit-description-cell">
+                                                    <span className="audit-description-text" title={log.description}>
+                                                        {log.description || "—"}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        className="audit-btn-inspect-inline"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleInspect(log.id);
+                                                        }}
+                                                        title="View details"
+                                                        aria-label={`View details for audit record ${log.id}`}
+                                                    >
+                                                        <FiEye />
+                                                        <span>Details</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td className="audit-td--context">
+                                                {renderAcademicContext(log)}
+                                            </td>
+                                            <td className="audit-td--timestamp">
+                                                <div className="audit-timestamp-cell" title={new Date(log.created_at).toLocaleString()}>
+                                                    <span className="audit-timestamp-value">
+                                                        {formatAuditTimestamp(log.created_at)}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
 
-                        {/* Pagination Bar */}
-                        <div className="audit-pagination">
-                            <div>
-                                Showing {logs.length} of {total} activities (Page {page} of {totalPages})
-                            </div>
-                            <div className="audit-pagination__controls">
-                                <button
-                                    type="button"
-                                    className="audit-pagination__btn"
-                                    disabled={page <= 1}
-                                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                >
-                                    Previous
-                                </button>
-                                <button
-                                    type="button"
-                                    className="audit-pagination__btn"
-                                    disabled={page >= totalPages}
-                                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                                >
-                                    Next
-                                </button>
+                            {/* Pagination Bar */}
+                            <div className="audit-pagination">
+                                <div>
+                                    Showing {logs.length} of {total} activities (Page {page} of {totalPages})
+                                </div>
+                                <div className="audit-pagination__controls">
+                                    <button
+                                        type="button"
+                                        className="audit-pagination__btn"
+                                        disabled={page <= 1}
+                                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                    >
+                                        Previous
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="audit-pagination__btn"
+                                        disabled={page >= totalPages}
+                                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </>
                 )}
             </PageSection>
 
@@ -453,149 +541,180 @@ export default function AdminActivityAudit() {
                     setModalOpen(false);
                     setSelectedLog(null);
                 }}
-                className="max-w-2xl w-full p-6 bg-white rounded-xl shadow-xl"
+                scrollable
+                className="audit-modal-panel flex flex-col w-full max-w-3xl max-h-[90vh] max-h-[90dvh] overflow-hidden rounded-xl bg-white shadow-2xl border border-slate-200"
                 ariaLabel="Activity Audit Details"
             >
-                <div className="flex items-center justify-between pb-4 border-b border-slate-200 mb-4">
-                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                        <FiActivity className="text-blue-600" /> Activity Audit Record Details
-                    </h3>
+                {/* Fixed Header */}
+                <div className="audit-modal-header shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
+                    <div>
+                        <h3 className="audit-modal-title text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <FiActivity className="text-blue-600" /> Activity Audit Record Details
+                        </h3>
+                        <p className="audit-modal-subtitle text-xs text-slate-500 mt-0.5">
+                            {selectedLog
+                                ? `Audit record #${selectedLog.id} • ${formatActionLabel(selectedLog.action)}`
+                                : "Viewing complete audit log details"}
+                        </p>
+                    </div>
                     <button
                         type="button"
                         onClick={() => {
                             setModalOpen(false);
                             setSelectedLog(null);
                         }}
-                        className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                        className="audit-modal-close text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-lg transition"
+                        aria-label="Close dialog"
+                        title="Close dialog"
                     >
                         <FiX size={20} />
                     </button>
                 </div>
 
-                {detailLoading || !selectedLog ? (
-                    <div className="p-4">
-                        <Skeleton count={4} lines={1} height="2rem" radius="0.5rem" />
-                    </div>
-                ) : (
-                    <div>
-                        <div className="audit-modal-grid">
-                            <div className="audit-modal-item">
-                                <span className="audit-modal-item__label">Actor</span>
-                                <span className="audit-modal-item__value">
-                                    {selectedLog.actorName} (User #{selectedLog.actorUserId})
-                                </span>
-                            </div>
-
-                            <div className="audit-modal-item">
-                                <span className="audit-modal-item__label">Role</span>
-                                <span className="audit-modal-item__value">
-                                    <span className={`audit-role-badge ${getRoleBadgeClass(selectedLog.actorRole)}`}>
-                                        {selectedLog.actorRole}
-                                    </span>
-                                </span>
-                            </div>
-
-                            <div className="audit-modal-item">
-                                <span className="audit-modal-item__label">Action</span>
-                                <span className="audit-modal-item__value">
-                                    <span className={`audit-action-badge ${getActionBadgeClass(selectedLog.action)}`}>
-                                        {formatActionLabel(selectedLog.action)}
-                                    </span>
-                                </span>
-                            </div>
-
-                            <div className="audit-modal-item">
-                                <span className="audit-modal-item__label">Timestamp</span>
-                                <span className="audit-modal-item__value">
-                                    {new Date(selectedLog.created_at).toLocaleString()}
-                                </span>
-                            </div>
-
-                            <div className="audit-modal-item">
-                                <span className="audit-modal-item__label">IP Address</span>
-                                <span className="audit-modal-item__value">{selectedLog.ipAddress || "—"}</span>
-                            </div>
-
-                            <div className="audit-modal-item">
-                                <span className="audit-modal-item__label">Outcome</span>
-                                <span className="audit-modal-item__value">
-                                    <span
-                                        className={`audit-status-pill ${
-                                            selectedLog.status === "success"
-                                                ? "audit-status-pill--success"
-                                                : "audit-status-pill--failed"
-                                        }`}
-                                    >
-                                        {selectedLog.status}
-                                    </span>
-                                </span>
-                            </div>
+                {/* Scrollable Content Body */}
+                <div className="audit-modal-body min-h-0 flex-1 overflow-y-auto p-6">
+                    {detailLoading || !selectedLog ? (
+                        <div className="p-4">
+                            <Skeleton count={4} lines={1} height="2rem" radius="0.5rem" />
                         </div>
+                    ) : (
+                        <div>
+                            <div className="audit-modal-grid">
+                                <div className="audit-modal-item">
+                                    <span className="audit-modal-item__label">Actor</span>
+                                    <span className="audit-modal-item__value">
+                                        {selectedLog.actorName} (User #{selectedLog.actorUserId})
+                                    </span>
+                                </div>
 
-                        <div className="mb-4">
-                            <span className="audit-modal-item__label">Description</span>
-                            <p className="mt-1 text-sm text-slate-800 bg-slate-50 p-3 rounded-lg border border-slate-200">
-                                {selectedLog.description}
-                            </p>
+                                <div className="audit-modal-item">
+                                    <span className="audit-modal-item__label">Role</span>
+                                    <span className="audit-modal-item__value">
+                                        <span className={`audit-role-badge ${getRoleBadgeClass(selectedLog.actorRole)}`}>
+                                            {selectedLog.actorRole}
+                                        </span>
+                                    </span>
+                                </div>
+
+                                <div className="audit-modal-item">
+                                    <span className="audit-modal-item__label">Action</span>
+                                    <span className="audit-modal-item__value">
+                                        <span className={`audit-action-badge ${getActionBadgeClass(selectedLog.action)}`}>
+                                            {formatActionLabel(selectedLog.action)}
+                                        </span>
+                                    </span>
+                                </div>
+
+                                <div className="audit-modal-item">
+                                    <span className="audit-modal-item__label">Timestamp</span>
+                                    <span className="audit-modal-item__value">
+                                        {new Date(selectedLog.created_at).toLocaleString()}
+                                    </span>
+                                </div>
+
+                                <div className="audit-modal-item">
+                                    <span className="audit-modal-item__label">IP Address</span>
+                                    <span className="audit-modal-item__value">{selectedLog.ipAddress || "—"}</span>
+                                </div>
+
+                                <div className="audit-modal-item">
+                                    <span className="audit-modal-item__label">Outcome</span>
+                                    <span className="audit-modal-item__value">
+                                        <span
+                                            className={`audit-status-pill ${
+                                                selectedLog.status === "success"
+                                                    ? "audit-status-pill--success"
+                                                    : "audit-status-pill--failed"
+                                            }`}
+                                        >
+                                            {selectedLog.status}
+                                        </span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="mb-4">
+                                <span className="audit-modal-item__label">Description</span>
+                                <p className="mt-1 text-sm text-slate-800 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                    {selectedLog.description}
+                                </p>
+                            </div>
+
+                            {(selectedLog.classroomName || selectedLog.subjectName || selectedLog.schoolYear) && (
+                                <div className="mb-4">
+                                    <span className="audit-modal-item__label">Academic Scope</span>
+                                    <div className="mt-1 flex flex-wrap gap-2">
+                                        {selectedLog.schoolYear && (
+                                            <span className="audit-tag audit-tag--sy">SY {selectedLog.schoolYear}</span>
+                                        )}
+                                        {selectedLog.classroomName && (
+                                            <span className="audit-tag">{selectedLog.classroomName}</span>
+                                        )}
+                                        {selectedLog.subjectName && (
+                                            <span className="audit-tag">{selectedLog.subjectName}</span>
+                                        )}
+                                        {selectedLog.quarter && (
+                                            <span className="audit-tag">Quarter {selectedLog.quarter}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {selectedLog.diff && (
+                                <div className="mb-4">
+                                    <span className="audit-modal-item__label">Attribute Diffs</span>
+                                    <div className="mt-1 audit-diff-viewer">
+                                        {JSON.stringify(selectedLog.diff, null, 2)}
+                                    </div>
+                                </div>
+                            )}
+
+                            {selectedLog.metadata && (
+                                <div className="mb-4">
+                                    <span className="audit-modal-item__label">Operation Metadata</span>
+                                    <div className="mt-1 audit-diff-viewer">
+                                        {JSON.stringify(selectedLog.metadata, null, 2)}
+                                    </div>
+                                </div>
+                            )}
+
+                            {selectedLog.beforeState && (
+                                <div className="mb-4">
+                                    <span className="audit-modal-item__label">Before State Snapshot</span>
+                                    <div className="mt-1 audit-diff-viewer">
+                                        {JSON.stringify(selectedLog.beforeState, null, 2)}
+                                    </div>
+                                </div>
+                            )}
+
+                            {selectedLog.afterState && (
+                                <div className="mb-4">
+                                    <span className="audit-modal-item__label">After State Snapshot</span>
+                                    <div className="mt-1 audit-diff-viewer">
+                                        {JSON.stringify(selectedLog.afterState, null, 2)}
+                                    </div>
+                                </div>
+                            )}
                         </div>
+                    )}
+                </div>
 
-                        {(selectedLog.classroomName || selectedLog.subjectName || selectedLog.schoolYear) && (
-                            <div className="mb-4">
-                                <span className="audit-modal-item__label">Academic Scope</span>
-                                <div className="mt-1 flex flex-wrap gap-2">
-                                    {selectedLog.schoolYear && (
-                                        <span className="audit-tag audit-tag--sy">SY {selectedLog.schoolYear}</span>
-                                    )}
-                                    {selectedLog.classroomName && (
-                                        <span className="audit-tag">{selectedLog.classroomName}</span>
-                                    )}
-                                    {selectedLog.subjectName && (
-                                        <span className="audit-tag">{selectedLog.subjectName}</span>
-                                    )}
-                                    {selectedLog.quarter && (
-                                        <span className="audit-tag">Quarter {selectedLog.quarter}</span>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {selectedLog.diff && (
-                            <div className="mb-4">
-                                <span className="audit-modal-item__label">Attribute Diffs</span>
-                                <div className="mt-1 audit-diff-viewer">
-                                    {JSON.stringify(selectedLog.diff, null, 2)}
-                                </div>
-                            </div>
-                        )}
-
-                        {selectedLog.metadata && (
-                            <div className="mb-4">
-                                <span className="audit-modal-item__label">Operation Metadata</span>
-                                <div className="mt-1 audit-diff-viewer">
-                                    {JSON.stringify(selectedLog.metadata, null, 2)}
-                                </div>
-                            </div>
-                        )}
-
-                        {selectedLog.beforeState && (
-                            <div className="mb-4">
-                                <span className="audit-modal-item__label">Before State Snapshot</span>
-                                <div className="mt-1 audit-diff-viewer">
-                                    {JSON.stringify(selectedLog.beforeState, null, 2)}
-                                </div>
-                            </div>
-                        )}
-
-                        {selectedLog.afterState && (
-                            <div className="mb-4">
-                                <span className="audit-modal-item__label">After State Snapshot</span>
-                                <div className="mt-1 audit-diff-viewer">
-                                    {JSON.stringify(selectedLog.afterState, null, 2)}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
+                {/* Fixed Footer */}
+                <div className="audit-modal-footer shrink-0 flex items-center justify-between px-6 py-3.5 bg-slate-50 border-t border-slate-200">
+                    <span className="audit-modal-footer-meta text-xs text-slate-500 font-mono">
+                        {selectedLog ? `Entry #${selectedLog.id} • ${selectedLog.status.toUpperCase()}` : ""}
+                    </span>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setModalOpen(false);
+                            setSelectedLog(null);
+                        }}
+                        className="audit-modal-btn-close px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 transition shadow-sm"
+                    >
+                        Close
+                    </button>
+                </div>
             </ModalDialog>
         </PageShell>
     );
