@@ -1,19 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
     FiAlertTriangle,
     FiBookOpen,
-    FiCalendar,
     FiCheckCircle,
     FiClock,
-    FiLayers,
     FiRefreshCw,
+    FiRotateCcw,
     FiSkipForward,
     FiUsers,
     FiX,
 } from "react-icons/fi";
 
 import { getAPICall, patchAPICall } from "../../api/api";
-import { getSubjectSubmissionSummary } from "../../api/studentRecord";
+import { getSubjectClassRecords, getSubjectSubmissionSummary } from "../../api/studentRecord";
 import { notifyAcademicSettingsUpdated, useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ModalDialog } from "../../components/ModalDialog";
@@ -22,13 +21,14 @@ import Skeleton from "../../components/Skeleton";
 import { toast } from "../../helper/toast";
 
 import type {
-    ClassRecordsResponse,
     SubmissionSummaryRow,
-    SubjectSubmissionSummaryRow
+    SubjectSubmissionSummaryRow,
+    SubjectClassRecordResponse,
 } from "../../constant/studentRecord";
 import type { SchoolYear } from "../../constant/schoolYear.js";
 
 import "../../style/adminStudentRecords.css";
+import "../../style/submissionTrackerMatrix.css";
 
 // ================= Types =================
 
@@ -40,10 +40,19 @@ interface AcademicSettingsData {
     submissionsLocked: boolean | number;
 }
 
-interface DrilldownState {
-    row: SubmissionSummaryRow;
+interface SubjectDrilldownState {
+    row: SubjectSubmissionSummaryRow;
     quarter: number;
-    data: ClassRecordsResponse | null;
+    data: SubjectClassRecordResponse | null;
+}
+
+interface ClassroomMatrixGroup {
+    classId: number;
+    section: string;
+    gradeLevel: number;
+    adviserFullname: string | null;
+    totalEnrolled: number;
+    subjects: SubjectSubmissionSummaryRow[];
 }
 
 // ================= Helpers =================
@@ -53,12 +62,6 @@ function formatSubmittedAt(iso: string | null): string | null {
     const date = new Date(iso);
     if (Number.isNaN(date.getTime())) return null;
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
-function missingGradeCount(data: ClassRecordsResponse, enrollmentId: number): number {
-    const student = data.students.find((s) => s.enrollmentId === enrollmentId);
-    if (!student) return 0;
-    return student.subjects.filter((sg) => sg.enrolled && sg.grade === null).length;
 }
 
 // ================= Component =================
@@ -71,18 +74,21 @@ export default function RegisterStudentRecords() {
     const [years, setYears] = useState<SchoolYear[]>([]);
     const [selectedYearId, setSelectedYearId] = useState("");
     const [currentQuarter, setCurrentQuarter] = useState<number | null>(null);
+
+    // Class sections summary & subjects summary
     const [summary, setSummary] = useState<SubmissionSummaryRow[]>([]);
-
-    // View mode: Class Sections Rollup vs Subject Teachers Tracker
-    const [viewMode, setViewMode] = useState<"classes" | "subjects">("classes");
     const [subjectSummary, setSubjectSummary] = useState<SubjectSubmissionSummaryRow[]>([]);
-    const [loadingSubjectSummary, setLoadingSubjectSummary] = useState(false);
 
-    // Drill-down modal: class + quarter -> roster with submission statuses.
-    const [drilldown, setDrilldown] = useState<DrilldownState | null>(null);
-    const [drilldownLoading, setDrilldownLoading] = useState(false);
+    // ================= Filters State =================
+    const [selectedGradeLevel, setSelectedGradeLevel] = useState<number | "all">("all");
+    const [selectedClassId, setSelectedClassId] = useState<number | "all">("all");
+    const [selectedQuarter, setSelectedQuarter] = useState<number | "all">("all");
 
-    // Advance quarter state.
+    // Subject drill-down modal: subject + quarter -> roster with individual student submission statuses.
+    const [subjectDrilldown, setSubjectDrilldown] = useState<SubjectDrilldownState | null>(null);
+    const [subjectDrilldownLoading, setSubjectDrilldownLoading] = useState(false);
+
+    // Advance quarter state
     const [confirmAdvance, setConfirmAdvance] = useState(false);
     const [advancing, setAdvancing] = useState(false);
 
@@ -101,13 +107,8 @@ export default function RegisterStudentRecords() {
                 const initialId = active ? String(active.id) : yearsData[0] ? String(yearsData[0].id) : "";
                 setSelectedYearId(initialId);
 
-                // No school year means no summary request will run, so clear the
-                // page-level loading state here instead of leaving the skeleton
-                // up forever.
                 if (!initialId) setLoading(false);
             } catch {
-                // Error toast is handled by the API interceptor. The tracker must
-                // still leave its loading state so the empty/error UI is reachable.
                 if (!cancelled) setLoading(false);
             }
 
@@ -120,7 +121,7 @@ export default function RegisterStudentRecords() {
                     setCurrentQuarter(Number(settings.currentQuarter));
                 }
             } catch {
-                // Error toast is handled by the API interceptor
+                // Error toast handled by API interceptor
             }
         }
 
@@ -130,63 +131,53 @@ export default function RegisterStudentRecords() {
         };
     }, []);
 
-    // ================= Load summary for the selected year =================
-    useEffect(() => {
-        if (!selectedYearId) return;
-        let cancelled = false;
+    // ================= Load data for the selected year =================
+    const loadData = useCallback(async () => {
+        if (!selectedYearId) {
+            setSummary([]);
+            setSubjectSummary([]);
+            return;
+        }
 
-        async function loadSummary() {
-            try {
-                const response = await getAPICall<SubmissionSummaryRow[]>(
+        setLoading(true);
+        try {
+            const [sumRes, subjRes] = await Promise.all([
+                getAPICall<SubmissionSummaryRow[]>(
                     `/student-records/summary?schoolYearId=${selectedYearId}`,
                     { toast: false },
-                );
-                if (cancelled) return;
-                setSummary(response.data ?? []);
-            } catch {
-                if (!cancelled) setSummary([]);
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        }
-
-        loadSummary();
-        return () => {
-            cancelled = true;
-        };
-    }, [selectedYearId]);
-
-    const refetchSummary = useCallback(async () => {
-        if (!selectedYearId) return;
-        try {
-            const response = await getAPICall<SubmissionSummaryRow[]>(
-                `/student-records/summary?schoolYearId=${selectedYearId}`,
-                { toast: false },
-            );
-            setSummary(response.data ?? []);
+                ),
+                getSubjectSubmissionSummary(Number(selectedYearId)).catch(() => ({ data: [] })),
+            ]);
+            setSummary(sumRes.data ?? []);
+            setSubjectSummary(subjRes?.data ?? []);
         } catch {
-            // Error toast is handled by the API interceptor
-        }
-    }, [selectedYearId]);
-
-    const loadSubjectSummary = useCallback(async () => {
-        if (!selectedYearId) return;
-        setLoadingSubjectSummary(true);
-        try {
-            const res = await getSubjectSubmissionSummary(Number(selectedYearId));
-            setSubjectSummary(res.data ?? []);
-        } catch {
+            setSummary([]);
             setSubjectSummary([]);
         } finally {
-            setLoadingSubjectSummary(false);
+            setLoading(false);
         }
     }, [selectedYearId]);
 
     useEffect(() => {
-        if (viewMode === "subjects") {
-            loadSubjectSummary();
+        loadData();
+    }, [loadData]);
+
+    const refetchData = useCallback(async () => {
+        if (!selectedYearId) return;
+        try {
+            const [sumRes, subjRes] = await Promise.all([
+                getAPICall<SubmissionSummaryRow[]>(
+                    `/student-records/summary?schoolYearId=${selectedYearId}`,
+                    { toast: false },
+                ),
+                getSubjectSubmissionSummary(Number(selectedYearId)).catch(() => ({ data: [] })),
+            ]);
+            setSummary(sumRes.data ?? []);
+            setSubjectSummary(subjRes?.data ?? []);
+        } catch {
+            // Error toast handled by API interceptor
         }
-    }, [viewMode, loadSubjectSummary]);
+    }, [selectedYearId]);
 
     useEffect(() => {
         async function refreshYears() {
@@ -194,7 +185,7 @@ export default function RegisterStudentRecords() {
                 const response = await getAPICall<SchoolYear[]>("/schoolYear", { toast: false });
                 if (response.data) setYears(response.data);
             } catch {
-                // Error toast is handled by the API interceptor
+                // Error toast handled by API interceptor
             }
         }
 
@@ -214,11 +205,112 @@ export default function RegisterStudentRecords() {
     const selectedYear = years.find((sy) => String(sy.id) === selectedYearId) ?? null;
     const activeYear = years.find((sy) => Boolean(sy.isActive)) ?? null;
 
+    // ================= Classroom Grouping (Classroom -> Subjects) =================
+    const classroomGroups = useMemo<ClassroomMatrixGroup[]>(() => {
+        const groupsMap = new Map<number, ClassroomMatrixGroup>();
+
+        for (const c of summary) {
+            groupsMap.set(c.classId, {
+                classId: c.classId,
+                section: c.section,
+                gradeLevel: c.gradeLevel,
+                adviserFullname: c.adviserFullname,
+                totalEnrolled: c.totalStudents,
+                subjects: [],
+            });
+        }
+
+        for (const s of subjectSummary) {
+            let group = groupsMap.get(s.classId);
+            if (!group) {
+                group = {
+                    classId: s.classId,
+                    section: s.classSection,
+                    gradeLevel: s.classGradeLevel,
+                    adviserFullname: null,
+                    totalEnrolled: s.totalStudents,
+                    subjects: [],
+                };
+                groupsMap.set(s.classId, group);
+            }
+            group.subjects.push(s);
+        }
+
+        const sortedGroups = Array.from(groupsMap.values()).sort((a, b) => {
+            if (a.gradeLevel !== b.gradeLevel) return a.gradeLevel - b.gradeLevel;
+            return a.section.localeCompare(b.section);
+        });
+
+        for (const g of sortedGroups) {
+            g.subjects.sort((a, b) => a.subjectName.localeCompare(b.subjectName));
+        }
+
+        return sortedGroups;
+    }, [summary, subjectSummary]);
+
+    // ================= Dynamic Filter Options & Filtering =================
+    const gradeLevels = useMemo(() => {
+        const set = new Set<number>();
+        summary.forEach((c) => {
+            if (c.gradeLevel) set.add(c.gradeLevel);
+        });
+        return Array.from(set).sort((a, b) => a - b);
+    }, [summary]);
+
+    const availableClasses = useMemo(() => {
+        return summary
+            .filter((c) => selectedGradeLevel === "all" || c.gradeLevel === Number(selectedGradeLevel))
+            .sort((a, b) => {
+                if (a.gradeLevel !== b.gradeLevel) return a.gradeLevel - b.gradeLevel;
+                return a.section.localeCompare(b.section);
+            });
+    }, [summary, selectedGradeLevel]);
+
+    const visibleQuarters = useMemo(() => {
+        if (selectedQuarter === "all") return quarters;
+        return [Number(selectedQuarter)];
+    }, [selectedQuarter, quarters]);
+
+    const filteredGroups = useMemo(() => {
+        return classroomGroups.filter((group) => {
+            if (selectedGradeLevel !== "all" && group.gradeLevel !== Number(selectedGradeLevel)) {
+                return false;
+            }
+            if (selectedClassId !== "all" && group.classId !== Number(selectedClassId)) {
+                return false;
+            }
+            return true;
+        });
+    }, [classroomGroups, selectedGradeLevel, selectedClassId]);
+
+    const isFiltered =
+        selectedGradeLevel !== "all" ||
+        selectedClassId !== "all" ||
+        selectedQuarter !== "all" ||
+        (activeYear !== null && selectedYearId !== String(activeYear.id));
+
+    const handleResetFilters = () => {
+        if (activeYear) {
+            setSelectedYearId(String(activeYear.id));
+        }
+        setSelectedGradeLevel("all");
+        setSelectedClassId("all");
+        setSelectedQuarter("all");
+    };
+
+    // ================= Advance Quarter Validation =================
     const activeYearSummary =
         activeYear && String(activeYear.id) === selectedYearId
             ? summary
             : years.find((sy) => String(sy.id) === selectedYearId && Boolean(sy.isActive))
               ? summary
+              : [];
+
+    const activeYearSubjectSummary =
+        activeYear && String(activeYear.id) === selectedYearId
+            ? subjectSummary
+            : years.find((sy) => String(sy.id) === selectedYearId && Boolean(sy.isActive))
+              ? subjectSummary
               : [];
 
     const classesWithoutAdviser = activeYearSummary.filter((row) => !row.adviserId);
@@ -232,9 +324,15 @@ export default function RegisterStudentRecords() {
                       (row.submitted[currentQuarter] ?? 0) < row.totalStudents,
               );
 
-    const quarterComplete =
-        activeYearSummary.length === 0 ||
-        (classesWithoutAdviser.length === 0 && incompleteClasses.length === 0);
+    const incompleteSubjects =
+        currentQuarter === null
+            ? []
+            : activeYearSubjectSummary.filter(
+                  (row) =>
+                      row.totalStudents > 0 &&
+                      (row.statusByQuarter[currentQuarter] !== "submitted" ||
+                          (row.submitted[currentQuarter] ?? 0) < row.totalStudents),
+              );
 
     const advanceBlockedReason =
         !activeYear
@@ -245,9 +343,13 @@ export default function RegisterStudentRecords() {
                     ? "Loading the current quarter…"
                     : currentQuarter >= numQuarters
                         ? `Quarter ${numQuarters} is the final quarter`
-                        : !quarterComplete
-                            ? "Not all classes have completed submission for the current quarter"
-                            : null;
+                        : classesWithoutAdviser.length > 0
+                            ? `${classesWithoutAdviser.length} class section(s) have no assigned adviser`
+                            : incompleteSubjects.length > 0
+                                ? `${incompleteSubjects.length} subject(s) have not submitted records for the current quarter`
+                                : incompleteClasses.length > 0
+                                    ? `${incompleteClasses.length} class section(s) have not completed adviser finalization for the current quarter`
+                                    : null;
 
     const canAdvance = advanceBlockedReason === null;
 
@@ -271,7 +373,7 @@ export default function RegisterStudentRecords() {
             setCurrentQuarter(nextQuarter);
             notifyAcademicSettingsUpdated();
 
-            refetchSummary();
+            refetchData();
 
             toast.success(`Quarter advanced to Q${nextQuarter}`);
             setConfirmAdvance(false);
@@ -282,40 +384,22 @@ export default function RegisterStudentRecords() {
         }
     }
 
-    // ================= Drill-down =================
-    async function openDrilldown(row: SubmissionSummaryRow, quarter: number) {
-        setDrilldown({ row, quarter, data: null });
-        setDrilldownLoading(true);
+    // ================= Subject Drill-down modal =================
+    async function openSubjectDrilldown(row: SubjectSubmissionSummaryRow, quarter: number) {
+        setSubjectDrilldown({ row, quarter, data: null });
+        setSubjectDrilldownLoading(true);
         try {
-            const response = await getAPICall<ClassRecordsResponse>(
-                `/student-records/class/${row.classId}?quarter=${quarter}`,
-                { toast: false },
-            );
-            setDrilldown((prev) =>
-                prev && prev.row.classId === row.classId && prev.quarter === quarter
+            const response = await getSubjectClassRecords(row.classSubjectId, quarter);
+            setSubjectDrilldown((prev) =>
+                prev && prev.row.classSubjectId === row.classSubjectId && prev.quarter === quarter
                     ? { ...prev, data: response.data ?? null }
                     : prev,
             );
         } catch {
-            // Error toast is handled by the API interceptor
+            // Error toast handled by API interceptor
         } finally {
-            setDrilldownLoading(false);
+            setSubjectDrilldownLoading(false);
         }
-    }
-
-    // ================= Row status =================
-    function rowStatus(row: SubmissionSummaryRow): { label: string; tone: "ok" | "blocked" | "warn" | "muted" } {
-        if (!row.adviserId) {
-            return { label: "No adviser — blocks advance", tone: "blocked" };
-        }
-        if (currentQuarter !== null && row.totalStudents > 0) {
-            const submitted = row.submitted[currentQuarter] ?? 0;
-            if (submitted < row.totalStudents) {
-                return { label: "Incomplete — blocks advance", tone: "blocked" };
-            }
-            return { label: "Complete", tone: "ok" };
-        }
-        return { label: "No students", tone: "muted" };
     }
 
     // ================= Loading =================
@@ -336,7 +420,7 @@ export default function RegisterStudentRecords() {
             {/* ==================== Header ==================== */}
             <PageHeader
                 title="Submission Tracker"
-                description="Which classes have submitted their student records for each quarter."
+                description="Unified quarter submission matrix by classroom section and assigned subject teacher."
                 meta={
                     <>
                         Quarter {currentQuarter ?? "—"}
@@ -376,366 +460,392 @@ export default function RegisterStudentRecords() {
                 </div>
             )}
 
-            {/* ==================== View Switcher Tabs ==================== */}
-            <div className="mb-4 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-100/80 p-1.5 dark:border-slate-800 dark:bg-slate-900/60">
-                <button
-                    type="button"
-                    onClick={() => setViewMode("classes")}
-                    className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
-                        viewMode === "classes"
-                            ? "bg-white text-emerald-700 shadow-sm dark:bg-slate-800 dark:text-emerald-400"
-                            : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-                    }`}
-                >
-                    <FiLayers className="h-4 w-4" />
-                    Class Sections Rollup ({summary.length})
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setViewMode("subjects")}
-                    className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
-                        viewMode === "subjects"
-                            ? "bg-white text-emerald-700 shadow-sm dark:bg-slate-800 dark:text-emerald-400"
-                            : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-                    }`}
-                >
-                    <FiBookOpen className="h-4 w-4" />
-                    Subject Teachers Tracker ({subjectSummary.length > 0 ? subjectSummary.length : "..."})
-                </button>
-            </div>
-
-            {/* ==================== Toolbar ==================== */}
-            <PageSection
-                className="tracker__toolbar"
-                title={viewMode === "classes" ? "Class submission matrix" : "Subject teacher submission matrix"}
-                description={viewMode === "classes" ? "Click any quarter cell to see which students still need to be submitted." : "Monitor submission status and student coverage for every subject and assigned faculty."}
-            >
-                <div className="flex flex-wrap items-center gap-2">
-                    <label className="tracker__year flex items-center gap-2 rounded-lg border px-3 py-2 text-[0.8125rem] font-semibold">
-                        <FiCalendar className="tracker__year-icon" aria-hidden="true" />
-                        <span className="tracker__year-label">School Year</span>
+            {/* ==================== Filters Bar ==================== */}
+            <div className="sub-filter-bar">
+                <div className="sub-filter-row">
+                    {/* 1. School Year */}
+                    <div className="sub-filter-group">
+                        <label htmlFor="sub-filter-sy">School Year</label>
                         <select
-                            className="tracker__year-select cursor-pointer bg-transparent font-semibold outline-none"
+                            id="sub-filter-sy"
+                            className="sub-filter-select"
                             value={selectedYearId}
-                            onChange={(event) => handleYearChange(event.target.value)}
-                            aria-label="Select school year"
+                            onChange={(e) => handleYearChange(e.target.value)}
+                            aria-label="Filter by School Year"
                         >
                             {years.map((sy) => (
                                 <option key={sy.id} value={sy.id}>
-                                    SY {sy.startYear}–{sy.endYear}
+                                    SY {sy.startYear}–{sy.endYear}{sy.isActive ? " (Active)" : ""}
                                 </option>
                             ))}
                         </select>
-                    </label>
-                    <button
-                        type="button"
-                        className="settings__btn inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold disabled:cursor-not-allowed disabled:opacity-50"
-                        disabled={!canAdvance || advancing}
-                        onClick={() => setConfirmAdvance(true)}
-                        title={advanceBlockedReason ?? "Advance to the next quarter"}
-                    >
-                        {advancing ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiSkipForward aria-hidden="true" />}
-                        {advancing ? "Advancing…" : `Advance to Q${(currentQuarter ?? 0) + 1}`}
-                    </button>
-                </div>
-            </PageSection>
+                    </div>
 
-            {/* ==================== Matrix ==================== */}
+                    {/* 2. Grade Level */}
+                    <div className="sub-filter-group">
+                        <label htmlFor="sub-filter-grade">Grade Level</label>
+                        <select
+                            id="sub-filter-grade"
+                            className="sub-filter-select"
+                            value={selectedGradeLevel}
+                            onChange={(e) => {
+                                const val = e.target.value === "all" ? "all" : Number(e.target.value);
+                                setSelectedGradeLevel(val);
+                                if (val !== "all" && selectedClassId !== "all") {
+                                    const cls = summary.find((c) => c.classId === selectedClassId);
+                                    if (cls && cls.gradeLevel !== val) {
+                                        setSelectedClassId("all");
+                                    }
+                                }
+                            }}
+                            aria-label="Filter by Grade Level"
+                        >
+                            <option value="all">All Grade Levels</option>
+                            {gradeLevels.map((gl) => (
+                                <option key={gl} value={gl}>
+                                    Grade {gl}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* 3. Class / Section */}
+                    <div className="sub-filter-group">
+                        <label htmlFor="sub-filter-class">Class / Section</label>
+                        <select
+                            id="sub-filter-class"
+                            className="sub-filter-select"
+                            value={selectedClassId}
+                            onChange={(e) => setSelectedClassId(e.target.value === "all" ? "all" : Number(e.target.value))}
+                            aria-label="Filter by Class or Section"
+                        >
+                            <option value="all">All Classes</option>
+                            {availableClasses.map((c) => (
+                                <option key={c.classId} value={c.classId}>
+                                    {c.section} (Grade {c.gradeLevel})
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* 4. Quarter */}
+                    <div className="sub-filter-group">
+                        <label htmlFor="sub-filter-quarter">Quarter</label>
+                        <select
+                            id="sub-filter-quarter"
+                            className="sub-filter-select"
+                            value={selectedQuarter}
+                            onChange={(e) => setSelectedQuarter(e.target.value === "all" ? "all" : Number(e.target.value))}
+                            aria-label="Filter by Quarter"
+                        >
+                            <option value="all">All Quarters</option>
+                            {quarters.map((q) => (
+                                <option key={q} value={q}>
+                                    Quarter {q}{q === currentQuarter ? " (Current)" : ""}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Actions: Reset button and Advance button */}
+                    <div className="sub-filter-actions">
+                        {isFiltered && (
+                            <button
+                                type="button"
+                                className="sub-btn-reset"
+                                onClick={handleResetFilters}
+                                title="Reset all filters to defaults"
+                            >
+                                <FiRotateCcw className="h-3.5 w-3.5" />
+                                Reset Filters
+                            </button>
+                        )}
+                        <button
+                            type="button"
+                            className="settings__btn inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-[0.8125rem] font-bold disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={!canAdvance || advancing}
+                            onClick={() => setConfirmAdvance(true)}
+                            title={advanceBlockedReason ?? "Advance to the next quarter"}
+                        >
+                            {advancing ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiSkipForward aria-hidden="true" />}
+                            {advancing ? "Advancing…" : `Advance to Q${(currentQuarter ?? 0) + 1}`}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* ==================== Legend Bar ==================== */}
+            <div className="sub-legend-bar">
+                <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    Submission Legend:
+                </span>
+                <div className="sub-legend-items">
+                    <div className="sub-legend-item">
+                        <span className="sub-legend-chip sub-legend-chip--green" />
+                        <span>Complete (100%)</span>
+                    </div>
+                    <div className="sub-legend-item">
+                        <span className="sub-legend-chip sub-legend-chip--neutral" />
+                        <span>Partial Submission</span>
+                    </div>
+                    <div className="sub-legend-item">
+                        <span className="sub-legend-chip sub-legend-chip--empty" />
+                        <span>No Submissions (0)</span>
+                    </div>
+                </div>
+                <span className="sub-legend-note">
+                    * Click on any quarter cell to inspect student records and submission status.
+                </span>
+            </div>
+
+            {/* ==================== Unified Spreadsheet-Style Matrix ==================== */}
             <PageSection className="tracker__card" flush>
-                {viewMode === "subjects" ? (
-                    loadingSubjectSummary ? (
-                        <div className="p-8">
-                            <Skeleton lines={6} gap="1rem" />
-                        </div>
-                    ) : subjectSummary.length === 0 ? (
-                        <div className="tracker__empty flex flex-col items-center justify-center px-6 py-20 text-center">
-                            <span className="tracker__empty-icon inline-flex h-14 w-14 items-center justify-center rounded-2xl text-2xl" aria-hidden="true">
-                                <FiBookOpen />
-                            </span>
-                            <h3 className="tracker__empty-title mt-4 text-base font-bold">No assigned subjects</h3>
-                            <p className="tracker__empty-text mt-1 max-w-md text-[0.8125rem] leading-relaxed">
-                                No subject assignments exist for this school year. Subject records will appear once faculties are assigned to subjects.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="tracker__table-wrap overflow-x-auto">
-                            <table className="tracker__table w-full min-w-[64rem] border-collapse text-sm">
+                {classroomGroups.length === 0 ? (
+                    <div className="tracker__empty flex flex-col items-center justify-center px-6 py-20 text-center">
+                        <span className="tracker__empty-icon inline-flex h-14 w-14 items-center justify-center rounded-2xl text-2xl" aria-hidden="true">
+                            <FiBookOpen />
+                        </span>
+                        <h3 className="tracker__empty-title mt-4 text-base font-bold">No classes yet</h3>
+                        <p className="tracker__empty-text mt-1 max-w-md text-[0.8125rem] leading-relaxed">
+                            No classrooms or student records exist for this school year. Classes and subjects will appear here once configured.
+                        </p>
+                    </div>
+                ) : filteredGroups.length === 0 ? (
+                    <div className="tracker__empty flex flex-col items-center justify-center px-6 py-16 text-center">
+                        <span className="tracker__empty-icon inline-flex h-12 w-12 items-center justify-center rounded-2xl text-xl bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400" aria-hidden="true">
+                            <FiBookOpen />
+                        </span>
+                        <h3 className="tracker__empty-title mt-3 text-base font-bold text-slate-800 dark:text-slate-200">
+                            No matching classes or subjects
+                        </h3>
+                        <p className="tracker__empty-text mt-1 max-w-sm text-xs text-slate-500 leading-relaxed">
+                            No classrooms or assigned subjects match your selected filters.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={handleResetFilters}
+                            className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#176B3A] px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#0D4F2B] transition"
+                        >
+                            <FiRotateCcw className="h-3.5 w-3.5" />
+                            Reset Filters
+                        </button>
+                    </div>
+                ) : (
+                    <div className="sub-matrix-card">
+                        <div className="sub-matrix-viewport">
+                            <table className="sub-matrix-table" aria-label="Spreadsheet Submission Matrix">
                                 <thead>
                                     <tr>
-                                        <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                        <th className="sub-col-matrix-class" scope="col">
+                                            Classroom / Section
+                                        </th>
+                                        <th className="sub-col-matrix-grade" scope="col">
+                                            Grade Level
+                                        </th>
+                                        <th className="sub-col-matrix-subject" scope="col">
                                             Subject
                                         </th>
-                                        <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
-                                            Class Section
-                                        </th>
-                                        <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
-                                            Subject Teacher
-                                        </th>
-                                        <th className="px-3 py-3 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                        <th className="sub-col-matrix-students sub-col-divider" scope="col">
                                             Students
                                         </th>
-                                        {quarters.map((q) => (
-                                            <th key={q} className="px-3 py-3 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
-                                                <span className="inline-flex items-center gap-1.5">
-                                                    Q{q}
-                                                    {currentQuarter === q && (
-                                                        <span className="tracker__current-chip inline-flex items-center rounded-full px-1.5 py-0.5 text-[0.5625rem] font-bold uppercase tracking-[0.06em]">
-                                                            Current
+                                        {visibleQuarters.map((q) => {
+                                            const isCurrent = currentQuarter === q;
+                                            return (
+                                                <th
+                                                    key={q}
+                                                    className={`sub-col-quarter ${isCurrent ? "sub-quarter-header--current" : ""}`}
+                                                    scope="col"
+                                                    title={`Quarter ${q}${isCurrent ? " (Current Quarter)" : ""}`}
+                                                >
+                                                    <div className="sub-quarter-header">
+                                                        <span className="sub-quarter-header__abbr">
+                                                            {isCurrent ? "Current" : "Quarter"}
                                                         </span>
-                                                    )}
-                                                </span>
-                                            </th>
-                                        ))}
-                                        <th className="px-3 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
-                                            Status
-                                        </th>
+                                                        <span className="sub-quarter-header__num">Q{q}</span>
+                                                        {isCurrent && (
+                                                            <span className="sub-quarter-current-badge">Active</span>
+                                                        )}
+                                                    </div>
+                                                </th>
+                                            );
+                                        })}
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {subjectSummary.map((row) => {
-                                        const isCurrentSubmitted = currentQuarter ? row.statusByQuarter[currentQuarter] === "submitted" : false;
-                                        return (
-                                            <tr key={row.classSubjectId}>
-                                                <td className="px-4 py-3.5">
-                                                    <div>
-                                                        <p className="font-bold text-slate-900 dark:text-white">{row.subjectName}</p>
-                                                        <p className="font-mono text-[11px] text-slate-500 dark:text-slate-400">{row.subjectCode}</p>
-                                                    </div>
-                                                </td>
-                                                <td className="px-4 py-3.5">
-                                                    <span className="font-semibold text-slate-800 dark:text-slate-200">
-                                                        {row.classSection}
-                                                    </span>
-                                                    <span className="ml-1.5 text-xs text-slate-500">Grade {row.classGradeLevel}</span>
-                                                </td>
-                                                <td className="px-4 py-3.5">
-                                                    {row.teacherName ? (
-                                                        <span className="font-medium text-slate-900 dark:text-white">{row.teacherName}</span>
-                                                    ) : (
-                                                        <span className="italic text-rose-500 text-xs font-semibold">Unassigned</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-3 py-3.5 text-center font-mono font-bold text-slate-800 dark:text-slate-200">
-                                                    {row.totalStudents}
-                                                </td>
-                                                {quarters.map((q) => {
-                                                    const count = row.submitted[q] ?? 0;
-                                                    const isSub = row.statusByQuarter[q] === "submitted";
-                                                    return (
-                                                        <td key={q} className="px-3 py-3.5 text-center">
-                                                            <span
-                                                                className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 font-mono text-[11px] font-bold ${
-                                                                    isSub
-                                                                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
-                                                                        : count > 0
-                                                                        ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
-                                                                        : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-                                                                }`}
-                                                            >
-                                                                {isSub && <FiCheckCircle className="h-3 w-3" />}
-                                                                {count}/{row.totalStudents}
+                                    {filteredGroups.map((group) => {
+                                        if (group.subjects.length === 0) {
+                                            return (
+                                                <tr
+                                                    key={`class-${group.classId}`}
+                                                    className="sub-matrix-row border-b-2 border-slate-200 dark:border-slate-800"
+                                                >
+                                                    <td className="sub-col-matrix-class px-4 py-3 font-bold text-slate-900 dark:text-slate-100">
+                                                        <div className="flex flex-col">
+                                                            <span className="font-bold text-slate-900 dark:text-white">
+                                                                {group.section}
+                                                            </span>
+                                                            {group.adviserFullname && (
+                                                                <span className="text-[0.6875rem] text-slate-500 font-normal">
+                                                                    Adviser: {group.adviserFullname}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="sub-col-matrix-grade px-3 py-3 text-center text-slate-700 dark:text-slate-300 font-medium">
+                                                        Grade {group.gradeLevel}
+                                                    </td>
+                                                    <td className="sub-col-matrix-subject px-4 py-3 italic text-slate-400 text-xs">
+                                                        No subjects assigned
+                                                    </td>
+                                                    <td className="sub-col-matrix-students sub-col-divider px-3 py-3 text-center font-mono font-bold text-slate-800 dark:text-slate-200">
+                                                        {group.totalEnrolled}
+                                                    </td>
+                                                    {visibleQuarters.map((q) => (
+                                                        <td key={q} className="sub-col-quarter px-2 py-3 text-center">
+                                                            <span className="sub-cell-badge sub-cell-badge--empty">
+                                                                <span className="sub-cell-badge__ratio">—</span>
                                                             </span>
                                                         </td>
-                                                    );
-                                                })}
-                                                <td className="px-3 py-3.5">
-                                                    {isCurrentSubmitted ? (
-                                                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-                                                            <FiCheckCircle className="h-3 w-3" />
-                                                            Submitted
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-                                                            <FiClock className="h-3 w-3" />
-                                                            Pending
-                                                        </span>
+                                                    ))}
+                                                </tr>
+                                            );
+                                        }
+
+                                        return group.subjects.map((subj, idx) => {
+                                            const isLastSubject = idx === group.subjects.length - 1;
+                                            return (
+                                                <tr
+                                                    key={`subj-${subj.classSubjectId}`}
+                                                    className={`sub-matrix-row ${
+                                                        isLastSubject
+                                                            ? "border-b-2 border-slate-300 dark:border-slate-700"
+                                                            : "border-b border-slate-100 dark:border-slate-800/60"
+                                                    }`}
+                                                >
+                                                    {idx === 0 && (
+                                                        <td
+                                                            rowSpan={group.subjects.length}
+                                                            className="sub-col-matrix-class px-4 py-3 align-top font-bold text-slate-900 dark:text-slate-100 border-r border-slate-200 dark:border-slate-800"
+                                                        >
+                                                            <div className="flex flex-col sticky top-12">
+                                                                <span className="text-sm font-bold text-slate-900 dark:text-white">
+                                                                    {group.section}
+                                                                </span>
+                                                                {group.adviserFullname && (
+                                                                    <span className="text-[0.6875rem] text-slate-500 font-normal mt-0.5">
+                                                                        Adviser: {group.adviserFullname}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </td>
                                                     )}
-                                                </td>
-                                            </tr>
-                                        );
+                                                    {idx === 0 && (
+                                                        <td
+                                                            rowSpan={group.subjects.length}
+                                                            className="sub-col-matrix-grade px-3 py-3 align-top text-center text-slate-700 dark:text-slate-300 font-medium border-r border-slate-200 dark:border-slate-800"
+                                                        >
+                                                            <div className="sticky top-12">
+                                                                <span className="inline-block px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-xs font-semibold">
+                                                                    Grade {group.gradeLevel}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                    )}
+                                                    <td className="sub-col-matrix-subject px-4 py-2.5">
+                                                        <div className="flex flex-col">
+                                                            <span className="font-semibold text-slate-900 dark:text-slate-100 leading-snug">
+                                                                {subj.subjectName}
+                                                            </span>
+                                                            <span className="text-[0.75rem] text-slate-500 dark:text-slate-400">
+                                                                {subj.teacherName || "Unassigned"}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="sub-col-matrix-students sub-col-divider px-3 py-2.5 text-center font-mono font-bold text-slate-800 dark:text-slate-200">
+                                                        {subj.totalStudents}
+                                                    </td>
+                                                    {visibleQuarters.map((q) => {
+                                                        const submittedCount = subj.submitted[q] ?? 0;
+                                                        const total = subj.totalStudents;
+                                                        const isCurrent = q === currentQuarter;
+                                                        const isSubmitted =
+                                                            subj.statusByQuarter[q] === "submitted" ||
+                                                            (total > 0 && submittedCount === total);
+                                                        const isPartial = !isSubmitted && submittedCount > 0 && submittedCount < total;
+
+                                                        let badgeClass = "sub-cell-badge--empty";
+                                                        if (total > 0) {
+                                                            if (isSubmitted) badgeClass = "sub-cell-badge--green";
+                                                            else if (isPartial) badgeClass = "sub-cell-badge--neutral";
+                                                        }
+
+                                                        return (
+                                                            <td
+                                                                key={q}
+                                                                className={`sub-col-quarter px-2 py-2.5 text-center ${
+                                                                    isCurrent ? "sub-col-quarter--current" : ""
+                                                                }`}
+                                                            >
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => openSubjectDrilldown(subj, q)}
+                                                                    className={`sub-cell-badge ${badgeClass} cursor-pointer transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#176b3a]`}
+                                                                    aria-label={`Quarter ${q} for ${subj.subjectName} in ${group.section}: ${submittedCount} of ${total} submitted`}
+                                                                    title={`Click to inspect Quarter ${q} student submissions for ${subj.subjectName}`}
+                                                                >
+                                                                    <span className="sub-cell-badge__ratio">
+                                                                        {total > 0 ? `${submittedCount}/${total}` : "—"}
+                                                                    </span>
+                                                                </button>
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            );
+                                        });
                                     })}
                                 </tbody>
                             </table>
                         </div>
-                    )
-                ) : summary.length === 0 ? (
-                    <div className="tracker__empty flex flex-col items-center justify-center px-6 py-20 text-center">
-                        <span
-                            className="tracker__empty-icon inline-flex h-14 w-14 items-center justify-center rounded-2xl text-2xl"
-                            aria-hidden="true"
-                        >
-                            <FiUsers />
-                        </span>
-                        <h3 className="tracker__empty-title mt-4 text-base font-bold">No classes yet</h3>
-                        <p className="tracker__empty-text mt-1 max-w-md text-[0.8125rem] leading-relaxed">
-                            No classes have students enrolled for this school year. The tracker will fill in as
-                            enrollments and adviser assignments are made.
-                        </p>
-                    </div>
-                ) : (
-                    <div className="tracker__table-wrap overflow-x-auto">
-                        <table className="tracker__table w-full min-w-[64rem] border-collapse text-sm">
-                            <thead>
-                                <tr>
-                                    <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
-                                        Class
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
-                                        Adviser
-                                    </th>
-                                    <th className="px-3 py-3 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
-                                        Students
-                                    </th>
-                                    {quarters.map((q) => (
-                                        <th
-                                            key={q}
-                                            className="px-3 py-3 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em]"
-                                        >
-                                            <span className="inline-flex items-center gap-1.5">
-                                                Q{q}
-                                                {currentQuarter === q && (
-                                                    <span className="tracker__current-chip inline-flex items-center rounded-full px-1.5 py-0.5 text-[0.5625rem] font-bold uppercase tracking-[0.06em]">
-                                                        Current
-                                                    </span>
-                                                )}
-                                            </span>
-                                        </th>
-                                    ))}
-                                    <th className="px-3 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
-                                        Status
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {summary.map((row) => {
-                                    const status = rowStatus(row);
-                                    return (
-                                        <tr key={row.classId}>
-                                            <td className="tracker__cell--class px-4 py-3.5">
-                                                <div className="tracker__class-cell flex items-center gap-3">
-                                                    <span
-                                                        className="tracker__class-avatar inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[0.6875rem] font-bold"
-                                                        aria-hidden="true"
-                                                    >
-                                                        G{row.gradeLevel}
-                                                    </span>
-                                                    <div className="min-w-0">
-                                                        <p className="tracker__class-name truncate text-[0.8125rem] font-bold">
-                                                            {row.section}
-                                                        </p>
-                                                        <p className="tracker__class-meta mt-0.5 text-[0.6875rem]">
-                                                            Grade {row.gradeLevel}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3.5">
-                                                {row.adviserFullname ? (
-                                                    <div className="flex min-w-0 items-center gap-2.5">
-                                                        <span className="tracker__adviser-name truncate text-[0.8125rem] font-semibold">
-                                                            {row.adviserFullname}
-                                                        </span>
-                                                    </div>
-                                                ) : (
-                                                    <span className="tracker__no-adviser inline-flex items-center gap-1 text-[0.6875rem] font-bold">
-                                                        <FiAlertTriangle aria-hidden="true" />
-                                                        No adviser
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-3 py-3.5 text-center font-mono text-[0.8125rem] font-bold">
-                                                {row.totalStudents}
-                                            </td>
-
-                                            {quarters.map((q) => {
-                                                const count = row.submitted[q] ?? 0;
-                                                const complete = row.totalStudents > 0 && count >= row.totalStudents;
-                                                const hasAny = count > 0;
-                                                return (
-                                                    <td key={q} className="px-3 py-3.5 text-center">
-                                                        <button
-                                                            type="button"
-                                                            className={`tracker__quarter inline-flex cursor-pointer items-center justify-center gap-1 rounded-lg px-2.5 py-1.5 font-mono text-[0.75rem] font-bold${complete
-                                                                ? " tracker__quarter--complete"
-                                                                : hasAny
-                                                                  ? " tracker__quarter--partial"
-                                                                  : " tracker__quarter--none"
-                                                            }`}
-                                                            title={
-                                                                complete
-                                                                    ? `All ${row.totalStudents} students submitted for Q${q}`
-                                                                    : hasAny
-                                                                        ? `${count} of ${row.totalStudents} submitted for Q${q} — click to view`
-                                                                        : `No submissions for Q${q} — click to view`
-                                                            }
-                                                            onClick={() => openDrilldown(row, q)}
-                                                        >
-                                                            {complete && <FiCheckCircle aria-hidden="true" />}
-                                                            {count}/{row.totalStudents}
-                                                        </button>
-                                                    </td>
-                                                );
-                                            })}
-
-                                            <td className="px-3 py-3.5">
-                                                <span
-                                                    className={`tracker__status tracker__status--${status.tone} inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.6875rem] font-bold`}
-                                                >
-                                                    {status.tone === "ok" ? (
-                                                        <FiCheckCircle aria-hidden="true" />
-                                                    ) : status.tone === "blocked" ? (
-                                                        <FiAlertTriangle aria-hidden="true" />
-                                                    ) : (
-                                                        <FiClock aria-hidden="true" />
-                                                    )}
-                                                    {status.label}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
                     </div>
                 )}
-
-                <div className="tracker__card-foot flex flex-wrap items-center justify-between gap-3 p-5">
-                    <p className="tracker__foot-note flex items-center gap-2 text-[0.8125rem]">
-                        <FiAlertTriangle className="tracker__foot-warn" aria-hidden="true" />
-                        The administrator can lock grade submissions from the Settings page to prevent faculties from
-                        submitting student records.
-                    </p>
-                </div>
             </PageSection>
 
-            {/* ==================== Drill-down modal ==================== */}
+            {/* ==================== Admin Locking Notice ==================== */}
+            <div className="tracker__notice mt-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50/60 p-3 text-xs text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300">
+                <FiAlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                <span>
+                    The administrator can lock grade submissions from the Settings page to prevent faculties from submitting student records.
+                </span>
+            </div>
+
+            {/* ==================== Detailed Student Submission Modal ==================== */}
             <ModalDialog
-                open={drilldown !== null}
-                onClose={() => setDrilldown(null)}
-                labelledById="tracker-modal-title"
+                open={subjectDrilldown !== null}
+                onClose={() => setSubjectDrilldown(null)}
+                labelledById="subject-tracker-modal-title"
                 scrollable
-                maxWidth="max-w-[40rem]"
-                className="tracker__modal-panel w-full rounded-2xl border border-[var(--neutral-border)] bg-white shadow-2xl"
+                maxWidth="max-w-[48rem]"
+                className="tracker__modal-panel w-full rounded-2xl border border-[var(--neutral-border)] bg-white shadow-2xl dark:bg-slate-900 dark:border-slate-800"
             >
-                {drilldown && (
+                {subjectDrilldown && (
                     <div className="flex h-full max-h-[calc(90dvh-2.5rem)] flex-col" role="document">
-                        <header className="tracker__modal-header shrink-0 flex items-start justify-between gap-4 p-6 pb-4 border-b border-[var(--neutral-border)]">
+                        <header className="tracker__modal-header shrink-0 flex items-start justify-between gap-4 p-6 pb-4 border-b border-[var(--neutral-border)] dark:border-slate-800">
                             <div className="tracker__modal-heading min-w-0">
-                                <span className="tracker__modal-eyebrow text-[0.625rem] font-bold uppercase tracking-[0.08em]">
-                                    {drilldown.row.section} &middot; Quarter {drilldown.quarter}
+                                <span className="tracker__modal-eyebrow text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-400">
+                                    {subjectDrilldown.row.classSection} &middot; Grade {subjectDrilldown.row.classGradeLevel} &middot; Quarter {subjectDrilldown.quarter}
                                 </span>
-                                <h3 id="tracker-modal-title" className="tracker__modal-title mt-0.5 truncate text-xl font-bold">
-                                    Submission status
+                                <h3 id="subject-tracker-modal-title" className="tracker__modal-title mt-0.5 truncate text-xl font-bold text-slate-900 dark:text-white">
+                                    {subjectDrilldown.row.subjectName} {subjectDrilldown.row.subjectCode ? `(${subjectDrilldown.row.subjectCode})` : ""}
                                 </h3>
-                                <p className="tracker__modal-subtitle mt-1 truncate text-[0.8125rem]">
-                                    Grade {drilldown.row.gradeLevel} &middot; adviser:{" "}
-                                    {drilldown.row.adviserFullname ?? "none assigned"}
+                                <p className="tracker__modal-subtitle mt-1 truncate text-[0.8125rem] text-slate-600 dark:text-slate-400">
+                                    Subject Teacher: <strong className="font-semibold text-slate-800 dark:text-slate-200">{subjectDrilldown.row.teacherName || "Unassigned"}</strong> &middot; Classroom: <strong className="font-semibold text-slate-800 dark:text-slate-200">{subjectDrilldown.row.classSection}</strong>
                                 </p>
                             </div>
                             <button
                                 type="button"
-                                className="tracker__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg cursor-pointer text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
-                                onClick={() => setDrilldown(null)}
+                                className="tracker__modal-close grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg cursor-pointer text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                                onClick={() => setSubjectDrilldown(null)}
                                 aria-label="Close modal"
                             >
                                 <FiX aria-hidden="true" />
@@ -743,73 +853,85 @@ export default function RegisterStudentRecords() {
                         </header>
 
                         <div className="min-h-0 flex-1 overflow-y-auto p-6">
-                            {drilldownLoading ? (
+                            {/* Summary Metrics Chips */}
+                            {subjectDrilldown.data && (
+                                <div className="mb-4 flex flex-wrap items-center gap-3">
+                                    <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                        <FiUsers className="text-slate-500" />
+                                        <span>Total Enrolled: {subjectDrilldown.data.progress.total}</span>
+                                    </div>
+                                    <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                        <FiCheckCircle className="text-emerald-600" />
+                                        <span>Submitted: {subjectDrilldown.data.progress.submitted}</span>
+                                    </div>
+                                    <div className="inline-flex items-center gap-1.5 rounded-lg bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                                        <FiClock className="text-amber-600" />
+                                        <span>Pending: {subjectDrilldown.data.progress.pending}</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {subjectDrilldownLoading ? (
                                 <div className="flex min-h-[12rem] items-center justify-center">
                                     <FiRefreshCw className="animate-spin text-2xl text-gray-400" aria-hidden="true" />
                                 </div>
-                            ) : drilldown.data ? (
-                                drilldown.data.students.length === 0 ? (
-                                    <div className="tracker__modal-empty py-10 text-center text-[0.8125rem]">
-                                        No students enrolled in this class for this quarter.
+                            ) : subjectDrilldown.data ? (
+                                subjectDrilldown.data.students.length === 0 ? (
+                                    <div className="tracker__modal-empty py-10 text-center text-[0.8125rem] text-slate-500">
+                                        No students enrolled in this subject for this quarter.
                                     </div>
                                 ) : (
-                                    <div className="tracker__modal-table-wrap overflow-x-auto rounded-xl border">
+                                    <div className="tracker__modal-table-wrap overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
                                         <table className="tracker__modal-table w-full border-collapse text-sm">
                                             <thead>
-                                                <tr>
+                                                <tr className="bg-slate-50 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
                                                     <th className="px-4 py-2.5 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
                                                         Student
+                                                    </th>
+                                                    <th className="px-3 py-2.5 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
+                                                        Q{subjectDrilldown.quarter} Grade
                                                     </th>
                                                     <th className="px-4 py-2.5 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
                                                         Status
                                                     </th>
                                                     <th className="px-4 py-2.5 text-left text-[0.6875rem] font-semibold uppercase tracking-[0.06em]">
-                                                        Submitted
+                                                        Submitted At
                                                     </th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
-                                                {drilldown.data.students.map((student) => {
-                                                    const isSubmitted = student.status === "submitted";
-                                                    const missing = missingGradeCount(drilldown.data!, student.enrollmentId);
+                                            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                                                {subjectDrilldown.data.students.map((student) => {
+                                                    const isSubmitted = student.status === "submitted" || Boolean(student.isFrozen);
                                                     return (
-                                                        <tr key={student.enrollmentId}>
-                                                            <td className="tracker__cell--student px-4 py-2.5">
-                                                                <div className="flex min-w-0 items-center gap-2.5">
-                                                                    <div className="min-w-0">
-                                                                        <p className="truncate text-[0.8125rem] font-bold">
-                                                                            {student.fullname}
-                                                                        </p>
-                                                                        <p className="font-mono text-[0.6875rem] text-gray-500">
-                                                                            LRN {student.studentLrn}
-                                                                        </p>
-                                                                    </div>
+                                                        <tr key={student.enrollmentId} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                                                            <td className="px-4 py-2.5">
+                                                                <div className="min-w-0">
+                                                                    <p className="truncate text-[0.8125rem] font-bold text-slate-900 dark:text-white">
+                                                                        {student.fullname}
+                                                                    </p>
+                                                                    <p className="font-mono text-[0.6875rem] text-slate-500">
+                                                                        LRN {student.studentLrn} · {student.studentSex}
+                                                                    </p>
                                                                 </div>
+                                                            </td>
+                                                            <td className="px-3 py-2.5 text-center font-mono font-bold text-slate-800 dark:text-slate-200">
+                                                                {student.quarterGrade !== null ? student.quarterGrade.toFixed(2) : "—"}
                                                             </td>
                                                             <td className="px-4 py-2.5">
                                                                 {isSubmitted ? (
-                                                                    <span
-                                                                        className="tracker__modal-status tracker__modal-status--submitted inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-bold"
-                                                                    >
-                                                                        <FiCheckCircle aria-hidden="true" />
+                                                                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[0.6875rem] font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                                        <FiCheckCircle className="h-3 w-3" aria-hidden="true" />
                                                                         Submitted
                                                                     </span>
                                                                 ) : (
-                                                                    <span
-                                                                        className="tracker__modal-status tracker__modal-status--pending inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-bold"
-                                                                        title={missing > 0 ? `${missing} subject(s) still ungraded` : undefined}
-                                                                    >
-                                                                        <FiClock aria-hidden="true" />
+                                                                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[0.6875rem] font-bold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                                                                        <FiClock className="h-3 w-3" aria-hidden="true" />
                                                                         Pending
                                                                     </span>
                                                                 )}
                                                             </td>
-                                                            <td className="px-4 py-2.5 text-[0.75rem]">
-                                                                {isSubmitted
-                                                                    ? formatSubmittedAt(student.submittedAt) ?? "—"
-                                                                    : missing > 0
-                                                                        ? `${missing} subject(s) ungraded`
-                                                                        : "—"}
+                                                            <td className="px-4 py-2.5 text-[0.75rem] text-slate-500 dark:text-slate-400">
+                                                                {formatSubmittedAt(student.submittedAt) ?? "—"}
                                                             </td>
                                                         </tr>
                                                     );
@@ -819,17 +941,17 @@ export default function RegisterStudentRecords() {
                                     </div>
                                 )
                             ) : (
-                                <div className="tracker__modal-empty py-10 text-center text-[0.8125rem]">
-                                    Could not load this class&apos;s records.
+                                <div className="tracker__modal-empty py-10 text-center text-[0.8125rem] text-slate-500">
+                                    Could not load this subject&apos;s records.
                                 </div>
                             )}
                         </div>
 
-                        <footer className="shrink-0 flex items-center justify-end gap-3 p-4 px-6 border-t border-[var(--neutral-border)] bg-neutral-50">
+                        <footer className="shrink-0 flex items-center justify-end gap-3 p-4 px-6 border-t border-[var(--neutral-border)] bg-neutral-50 dark:border-slate-800 dark:bg-slate-900">
                             <button
                                 type="button"
-                                onClick={() => setDrilldown(null)}
-                                className="rounded-lg border px-4 py-2 text-sm font-semibold hover:bg-neutral-100"
+                                onClick={() => setSubjectDrilldown(null)}
+                                className="rounded-lg border px-4 py-2 text-sm font-semibold hover:bg-neutral-100 dark:border-slate-700 dark:hover:bg-slate-800"
                             >
                                 Close
                             </button>
@@ -838,7 +960,7 @@ export default function RegisterStudentRecords() {
                 )}
             </ModalDialog>
 
-            {/* ==================== Advance quarter confirm ==================== */}
+            {/* ==================== Advance Quarter Confirm Dialog ==================== */}
             <ConfirmDialog
                 open={confirmAdvance}
                 title={`Advance to Quarter ${(currentQuarter ?? 0) + 1}?`}
