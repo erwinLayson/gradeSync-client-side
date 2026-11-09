@@ -45,10 +45,11 @@
   --border-on-dark: rgba(255, 255, 255, 0.12);
 
   /* ===== Sizing ===== */
-  --sm: 1rem;
+  --xs: 0.7rem;
+  --sm: 0.8rem;
   --md: 3rem;
   --lg: 5rem;
-  --sidebar-width: 16rem;
+  --sidebar-width: 14rem;
   --sidebar-width-collapsed: 5rem;
 
   /* ===== Radius ===== */

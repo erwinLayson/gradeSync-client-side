@@ -108,7 +108,7 @@
 
 .sidebar__brand-name {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--sm);
   font-weight: 700;
   color: var(--text-on-dark);
   white-space: nowrap;
@@ -232,7 +232,7 @@
   gap: 0.75rem;
   padding: 0.625rem 0.75rem;
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.775rem;
   font-weight: 500;
   color: var(--text-on-dark-soft);
   text-decoration: none;
@@ -428,10 +428,12 @@
 }
 
 @keyframes sidebar-pulse {
+
   0%,
   100% {
     opacity: 0.4;
   }
+
   50% {
     opacity: 0.9;
   }
@@ -565,12 +567,14 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .sidebar,
   .sidebar--mobile-open {
     transition-duration: 0s;

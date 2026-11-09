@@ -166,7 +166,7 @@ describe("Register Submission Tracker — Unified Spreadsheet Matrix", () => {
 
         // Verify Classroom / Section and Grade Level
         expect(screen.getByText("Rizal")).toBeInTheDocument();
-        expect(screen.getByText("Grade 7")).toBeInTheDocument();
+        expect(screen.getByRole("cell", { name: /Grade 7/i })).toBeInTheDocument();
 
         // Verify Subject column shows Subject Name with Teacher Name underneath
         expect(screen.getByText("Mathematics")).toBeInTheDocument();
