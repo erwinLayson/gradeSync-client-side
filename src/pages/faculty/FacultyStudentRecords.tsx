@@ -89,7 +89,6 @@ export default function FacultyStudentRecords() {
 
     // Adviser review modal & submit states
     const [reviewingAdviserStudent, setReviewingAdviserStudent] = useState<StudentClassRecordRow | null>(null);
-    const reviewTriggerRef = useRef<HTMLButtonElement>(null);
     const [submittingAdviserEnrollmentId, setSubmittingAdviserEnrollmentId] = useState<number | null>(null);
     const [amendmentAdviserStudent, setAmendmentAdviserStudent] = useState<StudentClassRecordRow | null>(null);
     const { refresh: refreshAmendments } = useMyAmendments();
@@ -352,8 +351,8 @@ export default function FacultyStudentRecords() {
                                         type="button"
                                         onClick={() => setSelectedSubjectId(s.classSubjectId)}
                                         className={`flex min-w-[200px] flex-col items-start rounded-xl border p-3 text-left transition-all ${isSelected
-                                                ? "border-emerald-500 bg-emerald-50/70 shadow-sm dark:border-emerald-600 dark:bg-emerald-950/40"
-                                                : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-850"
+                                            ? "border-emerald-500 bg-emerald-50/70 shadow-sm dark:border-emerald-600 dark:bg-emerald-950/40"
+                                            : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-850"
                                             }`}
                                     >
                                         <div className="flex w-full items-center justify-between gap-2">
@@ -362,8 +361,8 @@ export default function FacultyStudentRecords() {
                                             </span>
                                             <span
                                                 className={`inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${isSubSubmitted
-                                                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300"
-                                                        : "bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300"
+                                                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300"
+                                                    : "bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300"
                                                     }`}
                                             >
                                                 Q{quarter}: {isSubSubmitted ? "Submitted" : "Pending"}
@@ -561,10 +560,10 @@ export default function FacultyStudentRecords() {
                                                     <td className="px-4 py-3.5 text-center">
                                                         <span
                                                             className={`inline-flex items-center gap-1 rounded-md px-2 py-1 font-mono text-xs font-bold ${isSubmitted
-                                                                    ? "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
-                                                                    : student.quarterGrade !== null
-                                                                        ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
-                                                                        : "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"
+                                                                ? "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
+                                                                : student.quarterGrade !== null
+                                                                    ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                                                    : "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"
                                                                 }`}
                                                         >
                                                             {isSubmitted && <FiLock className="h-3 w-3 text-slate-400" aria-hidden="true" />}
@@ -708,9 +707,6 @@ export default function FacultyStudentRecords() {
                                         <th scope="col" className="faculty-records__th-group faculty-records__th-status">
                                             Status
                                         </th>
-                                        <th scope="col" className="faculty-records__th-group faculty-records__th-action">
-                                            Action
-                                        </th>
                                     </tr>
                                     <tr>
                                         {adviserRecords.subjects.map((subject) => (
@@ -725,7 +721,6 @@ export default function FacultyStudentRecords() {
                                 <tbody>
                                     {adviserRecords.students.map((student) => {
                                         const isSubmitted = student.status === "submitted";
-                                        const isBusy = submittingAdviserEnrollmentId === student.enrollmentId;
                                         const initials = student.fullname
                                             .split(" ")
                                             .filter(Boolean)
@@ -782,31 +777,6 @@ export default function FacultyStudentRecords() {
                                                             <FiClock aria-hidden="true" />
                                                             Pending
                                                         </span>
-                                                    )}
-                                                </td>
-
-                                                <td className="faculty-records__grade-cell faculty-records__cell-action faculty-records__desktop-cell">
-                                                    {isSubmitted ? (
-                                                        <button
-                                                            type="button"
-                                                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[0.6875rem] font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                                                            disabled={submissionsLocked}
-                                                            onClick={() => setAmendmentAdviserStudent(student)}
-                                                        >
-                                                            <FiEdit3 aria-hidden="true" />
-                                                            Request Amendment
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            type="button"
-                                                            ref={reviewingAdviserStudent?.enrollmentId === student.enrollmentId ? reviewTriggerRef : undefined}
-                                                            className="faculty-records__review inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-[0.6875rem] font-bold"
-                                                            disabled={isBusy || submissionsLocked}
-                                                            onClick={() => setReviewingAdviserStudent(student)}
-                                                        >
-                                                            {isBusy ? <FiRefreshCw className="animate-spin" aria-hidden="true" /> : <FiSend aria-hidden="true" />}
-                                                            {isBusy ? "Submitting…" : "Review & Submit"}
-                                                        </button>
                                                     )}
                                                 </td>
                                             </tr>

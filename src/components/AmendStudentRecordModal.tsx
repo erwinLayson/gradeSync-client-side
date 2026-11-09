@@ -245,7 +245,7 @@ export function AmendStudentRecordModal({
 
           {/* Navigation Tabs */}
           <div className="border-b border-slate-100 bg-slate-50/80 px-6 py-2.5 dark:border-slate-800 dark:bg-slate-850">
-            <TabNav<'grades' | 'attendance'>
+              <TabNav<'grades' | 'attendance'>
               size="sm"
               tabs={[
                 {
@@ -290,11 +290,10 @@ export function AmendStudentRecordModal({
                         return (
                           <div
                             key={a.id}
-                            className={`flex items-center justify-between gap-3 rounded-xl border p-3 transition ${
-                              isChanged
+                            className={`flex items-center justify-between gap-3 rounded-xl border p-3 transition ${isChanged
                                 ? 'border-emerald-500 bg-emerald-50/40 dark:border-emerald-600 dark:bg-emerald-950/20'
                                 : 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-850'
-                            }`}
+                              }`}
                           >
                             <div className="min-w-0">
                               <span className="font-semibold text-slate-900 dark:text-white">
@@ -351,11 +350,10 @@ export function AmendStudentRecordModal({
                         return (
                           <div
                             key={a.id}
-                            className={`flex items-center justify-between gap-3 rounded-xl border p-3 transition ${
-                              isChanged
+                            className={`flex items-center justify-between gap-3 rounded-xl border p-3 transition ${isChanged
                                 ? 'border-emerald-500 bg-emerald-50/40 dark:border-emerald-600 dark:bg-emerald-950/20'
                                 : 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-850'
-                            }`}
+                              }`}
                           >
                             <div className="min-w-0">
                               <span className="font-semibold text-slate-900 dark:text-white">
@@ -412,11 +410,10 @@ export function AmendStudentRecordModal({
                         return (
                           <div
                             key={a.id}
-                            className={`flex items-center justify-between gap-3 rounded-xl border p-3 transition ${
-                              isChanged
+                            className={`flex items-center justify-between gap-3 rounded-xl border p-3 transition ${isChanged
                                 ? 'border-emerald-500 bg-emerald-50/40 dark:border-emerald-600 dark:bg-emerald-950/20'
                                 : 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-850'
-                            }`}
+                              }`}
                           >
                             <div className="min-w-0">
                               <span className="font-semibold text-slate-900 dark:text-white">
@@ -552,11 +549,10 @@ export function AmendStudentRecordModal({
                                         [d]: e.target.value,
                                       }))
                                     }
-                                    className={`rounded-lg border px-2.5 py-1 text-xs font-semibold capitalize focus:outline-none ${
-                                      isChanged
+                                    className={`rounded-lg border px-2.5 py-1 text-xs font-semibold capitalize focus:outline-none ${isChanged
                                         ? 'border-emerald-500 bg-white text-emerald-800 dark:border-emerald-600 dark:bg-slate-800 dark:text-emerald-300'
                                         : 'border-slate-300 bg-white text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
-                                    }`}
+                                      }`}
                                   >
                                     <option value="present">Present</option>
                                     <option value="absent">Absent</option>
@@ -582,11 +578,10 @@ export function AmendStudentRecordModal({
                 Pending Modifications:
               </span>
               <span
-                className={`rounded-full px-2 py-0.5 font-bold ${
-                  totalModificationsCount > 0
+                className={`rounded-full px-2 py-0.5 font-bold ${totalModificationsCount > 0
                     ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300'
                     : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
-                }`}
+                  }`}
               >
                 {totalModificationsCount} field(s)
               </span>

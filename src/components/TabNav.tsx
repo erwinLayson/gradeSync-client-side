@@ -13,8 +13,8 @@ export interface TabItem<T extends string = string> {
   label: ReactNode;
   /** Optional icon displayed before the label (React element or Lucide/Feather icon component). */
   icon?:
-    | ReactNode
-    | ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
+  | ReactNode
+  | ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
   /** Optional badge count number or short string. */
   count?: number | string;
   /** Optional custom badge node (overrides count pill). */
@@ -61,11 +61,10 @@ function renderTabIcon(
     }>;
     return (
       <IconComponent
-        className={`h-4 w-4 shrink-0 transition-colors ${
-          isActive
+        className={`h-4 w-4 shrink-0 transition-colors ${isActive
             ? "text-emerald-700 dark:text-emerald-400"
             : "text-slate-500 group-hover:text-slate-800 dark:text-slate-400 dark:group-hover:text-slate-200"
-        }`}
+          }`}
         aria-hidden="true"
       />
     );
@@ -81,16 +80,16 @@ function renderTabIcon(
  * design system (primary emerald accents, raised white active pill, subtle neutral container).
  * Fully keyboard-accessible per WAI-ARIA tab pattern (Left/Right arrows, Home, End).
  */
-export function TabNav<T extends string>({
-  tabs,
-  activeTab,
-  onChange,
-  ariaLabel = "Navigation Tabs",
-  className = "",
-  size = "md",
-  fullWidth = false,
-  tabClassName = "",
-}: TabNavProps<T>) {
+  export function TabNav<T extends string> ({
+    tabs,
+    activeTab,
+    onChange,
+    ariaLabel = "Navigation Tabs",
+    className = "",
+    size = "md",
+    fullWidth = false,
+    tabClassName = "",
+  }: TabNavProps<T>) {
   const tablistRef = useRef<HTMLDivElement>(null);
 
   // WAI-ARIA roving tabindex keyboard navigation
@@ -148,9 +147,8 @@ export function TabNav<T extends string>({
       ref={tablistRef}
       role="tablist"
       aria-label={ariaLabel}
-      className={`${
-        fullWidth ? "flex w-full" : "inline-flex"
-      } items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100/80 p-1.5 shadow-2xs dark:border-slate-800 dark:bg-slate-900/60 ${className}`}
+      className={`${fullWidth ? "flex w-full" : "inline-flex"
+        } items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100/80 p-1.5 shadow-2xs dark:border-slate-800 dark:bg-slate-900/60 ${className}`}
     >
       {tabs.map((tab, idx) => {
         const isActive = activeTab === tab.id;
@@ -171,13 +169,11 @@ export function TabNav<T extends string>({
               if (!tab.disabled) onChange(tab.id);
             }}
             onKeyDown={(e) => handleKeyDown(e, idx)}
-            className={`group inline-flex items-center gap-2 rounded-lg font-bold transition-all duration-150 ease-in-out select-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed ${
-              fullWidth ? "flex-1 justify-center" : ""
-            } ${sizeClasses} ${
-              isActive
+            className={`group inline-flex items-center gap-2 rounded-lg font-bold transition-all duration-150 ease-in-out select-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed ${fullWidth ? "flex-1 justify-center" : ""
+              } ${sizeClasses} ${isActive
                 ? "border border-slate-200/80 bg-white text-emerald-800 shadow-xs dark:border-slate-700 dark:bg-slate-800 dark:text-emerald-400"
                 : "border border-transparent text-slate-600 hover:bg-white/60 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/40 dark:hover:text-white"
-            } ${tabClassName}`}
+              } ${tabClassName}`}
           >
             {iconNode}
             <span className="truncate">{tab.label}</span>
@@ -187,11 +183,10 @@ export function TabNav<T extends string>({
               tab.badge
             ) : tab.count !== undefined && tab.count !== null ? (
               <span
-                className={`ml-0.5 inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold tabular-nums transition-colors ${
-                  isActive
+                className={`ml-0.5 inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-bold tabular-nums transition-colors ${isActive
                     ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300"
                     : "bg-slate-200/70 text-slate-600 group-hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400"
-                }`}
+                  }`}
               >
                 {tab.count}
               </span>

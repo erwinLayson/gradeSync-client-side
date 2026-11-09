@@ -310,7 +310,7 @@ export default function StudentClassroom() {
 
             {/* ==================== Tabs + quarter selector ==================== */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                <TabNav<DetailTab>
+                <TabNav
                     tabs={[
                         {
                             id: "activities",
