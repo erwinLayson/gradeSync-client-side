@@ -143,3 +143,4 @@ describe("TabNav Component (Single Source of Truth for Tab Links)", () => {
     expect(handleChange).toHaveBeenCalledWith("adviser");
   });
 });
+
