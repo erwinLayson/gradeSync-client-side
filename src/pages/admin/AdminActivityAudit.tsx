@@ -128,7 +128,11 @@ function renderAcademicContext(log: ActivityAuditLogRow) {
     );
 }
 
-export default function AdminActivityAudit() {
+export interface AdminActivityAuditProps {
+    embedded?: boolean;
+}
+
+export default function AdminActivityAudit({ embedded = false }: AdminActivityAuditProps = {}) {
     const [stats, setStats] = useState<ActivityAuditStats | null>(null);
     const [logs, setLogs] = useState<ActivityAuditLogRow[]>([]);
     const [total, setTotal] = useState(0);
@@ -228,12 +232,14 @@ export default function AdminActivityAudit() {
         }
     };
 
-    return (
-        <PageShell className="audit-page">
-            <PageHeader
-                title="Activity Audit & Monitoring"
-                description="Comprehensive historical audit trail of teacher and register operations across the academic system."
-            />
+    const content = (
+        <>
+            {!embedded && (
+                <PageHeader
+                    title="Activity Audit & Monitoring"
+                    description="Comprehensive historical audit trail of teacher and register operations across the academic system."
+                />
+            )}
 
             {/* KPI Summary Cards */}
             <div className="audit-kpis">
@@ -716,6 +722,16 @@ export default function AdminActivityAudit() {
                     </button>
                 </div>
             </ModalDialog>
+        </>
+    );
+
+    if (embedded) {
+        return <div className="audit-page">{content}</div>;
+    }
+
+    return (
+        <PageShell className="audit-page">
+            {content}
         </PageShell>
     );
 }

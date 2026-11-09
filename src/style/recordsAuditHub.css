@@ -1,0 +1,110 @@
+/* ============================================================
+   Records & Audit Hub — Combined Console Stylesheet
+   Combines Record Amendments and Activity Logs into a unified
+   tabbed hub for Administrators and Register staff.
+   ============================================================ */
+
+.records-audit-hub {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ---------- Tab Bar Container ---------- */
+.records-audit-tabs-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-bottom: 0.25rem;
+}
+
+.records-audit-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem;
+  background: var(--surface-white, #ffffff);
+  border: 1px solid var(--neutral-border, #e2e8f0);
+  border-radius: var(--radius-lg, 0.75rem);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.records-audit-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.125rem;
+  border-radius: var(--radius-md, 0.5rem);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b; /* slate-500 */
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+  line-height: 1.25;
+  user-select: none;
+}
+
+.records-audit-tab:hover {
+  color: #1e293b; /* slate-800 */
+  background: #f8fafc; /* slate-50 */
+}
+
+.records-audit-tab:focus-visible {
+  outline: 2px solid #176B3A;
+  outline-offset: 1px;
+}
+
+.records-audit-tab--active {
+  color: #176B3A; /* Brand primary */
+  background: #EAF5EE; /* Brand light primary */
+  border-color: rgba(23, 107, 58, 0.2);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(23, 107, 58, 0.06);
+}
+
+.records-audit-tab--active:hover {
+  color: #0D4F2B;
+  background: #DCEDE1;
+}
+
+.records-audit-tab__icon {
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+/* ---------- Tab Panel ---------- */
+.records-audit-tabpanel {
+  min-width: 0;
+  width: 100%;
+}
+
+.records-audit-tabpanel .amendments-page,
+.records-audit-tabpanel .audit-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ---------- Dark Mode ---------- */
+.dark .records-audit-tabs {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.dark .records-audit-tab {
+  color: #94a3b8;
+}
+
+.dark .records-audit-tab:hover {
+  color: #f1f5f9;
+  background: #334155;
+}
+
+.dark .records-audit-tab--active {
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+}

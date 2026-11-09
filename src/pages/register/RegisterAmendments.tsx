@@ -228,7 +228,11 @@ function extractDiffDisplay(
 
 // ================= Component =================
 
-export default function RegisterAmendments() {
+export interface RegisterAmendmentsProps {
+  embedded?: boolean;
+}
+
+export default function RegisterAmendments({ embedded = false }: RegisterAmendmentsProps = {}) {
   const { user, loading: userLoading } = useUser();
 
   const isFacultyWorkspace = typeof window !== "undefined" && window.location.pathname.startsWith("/faculty");
@@ -457,30 +461,32 @@ export default function RegisterAmendments() {
     });
   }, [requests, statusFilter, quarterFilter, recordTypeFilter, searchQuery]);
 
-  return (
-    <PageShell className="amendments-page">
-      <PageHeader
-        title={isFacultyWorkspace || (isTeacher && !canReview) ? "My Amendments" : "Record Amendments"}
-        description={
-          isFacultyWorkspace || (isTeacher && !canReview)
-            ? "Track the status of your submitted grade and attendance amendment requests."
-            : "Review, approve, or reject formal faculty requests to modify locked quarterly records."
-        }
-        actions={
-          <button
-            type="button"
-            onClick={() => fetchRequests(false)}
-            disabled={isRefreshing || loading}
-            className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-          >
-            <FiRefreshCw
-              className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
-              aria-hidden="true"
-            />
-            <span>Refresh</span>
-          </button>
-        }
-      />
+  const content = (
+    <>
+      {!embedded && (
+        <PageHeader
+          title={isFacultyWorkspace || (isTeacher && !canReview) ? "My Amendments" : "Record Amendments"}
+          description={
+            isFacultyWorkspace || (isTeacher && !canReview)
+              ? "Track the status of your submitted grade and attendance amendment requests."
+              : "Review, approve, or reject formal faculty requests to modify locked quarterly records."
+          }
+          actions={
+            <button
+              type="button"
+              onClick={() => fetchRequests(false)}
+              disabled={isRefreshing || loading}
+              className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            >
+              <FiRefreshCw
+                className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+                aria-hidden="true"
+              />
+              <span>Refresh</span>
+            </button>
+          }
+        />
+      )}
 
       {/* KPI Metric Cards */}
       <div className="amendments-kpis">
@@ -533,6 +539,22 @@ export default function RegisterAmendments() {
             <span>Amendment Requests</span>
             <span className="amendments-count">{filteredRequests.length}</span>
           </div>
+        }
+        actions={
+          embedded ? (
+            <button
+              type="button"
+              onClick={() => fetchRequests(false)}
+              disabled={isRefreshing || loading}
+              className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            >
+              <FiRefreshCw
+                className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+                aria-hidden="true"
+              />
+              <span>Refresh</span>
+            </button>
+          ) : undefined
         }
       >
         {/* Filters and Search Bar */}
@@ -1380,6 +1402,16 @@ export default function RegisterAmendments() {
           </div>
         </ModalDialog>
       )}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="amendments-page">{content}</div>;
+  }
+
+  return (
+    <PageShell className="amendments-page">
+      {content}
     </PageShell>
   );
 }

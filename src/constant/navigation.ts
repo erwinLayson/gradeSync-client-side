@@ -88,8 +88,7 @@ export const DASHBOARD_LINKS = {
       title: "Records",
       sections: [
         { label: "Reports", path: "/admin/reports", icon: FaChartLine },
-        { label: "Amendments", path: "/admin/amendments", icon: FaClipboardCheck },
-        { label: "Activity Audit", path: "/admin/activity-audit", icon: FaClipboardList },
+        { label: "Amendments & Audit", path: "/admin/amendments", icon: FaClipboardCheck },
       ]
     },
     {

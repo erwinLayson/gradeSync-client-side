@@ -16,8 +16,8 @@ import AdminSubjects from './pages/admin/AdminSubjects'
 import AdminFaculties from './pages/admin/AdminFaculties'
 import AdminReports from './pages/admin/Admin-Reports'
 import AdminSettings from './pages/admin/AdminSettings'
-import AdminActivityAudit from './pages/admin/AdminActivityAudit'
 import AdminTeacherAttendance from './pages/admin/AdminTeacherAttendance'
+import AdminRecordsAuditHub from './pages/admin/AdminRecordsAuditHub'
 // Faculty Pages
 import FacultyDashboard from './pages/faculty/FacultyDashboard'
 import FacultyAttendance from './pages/faculty/FacultyAttendance'
@@ -89,8 +89,8 @@ function App() {
               <Route path="/admin/reports" element={<AdminReports />} />
               <Route path="/admin/teacher-attendance" element={<AdminTeacherAttendance />} />
               <Route path="/admin/attendance-monitoring" element={<AdminTeacherAttendance />} />
-              <Route path="/admin/amendments" element={<RegisterAmendments />} />
-              <Route path="/admin/activity-audit" element={<AdminActivityAudit />} />
+              <Route path="/admin/amendments" element={<AdminRecordsAuditHub />} />
+              <Route path="/admin/activity-audit" element={<AdminRecordsAuditHub defaultTab="activity-audit" />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
             </Route>
 
@@ -148,7 +148,7 @@ function App() {
               <Route path="/register/students/:studentId" element={<RegisterStudents />} />
               <Route path="/register/enrollments" element={<RegisterEnrollments />} />
               <Route path="/register/student-records" element={<RegisterStudentRecords />} />
-              <Route path="/register/amendments" element={<RegisterAmendments />} />
+              <Route path="/register/amendments" element={<AdminRecordsAuditHub />} />
               <Route path="/register/settings" element={<RegisterSettings />} />
             </Route>
 
