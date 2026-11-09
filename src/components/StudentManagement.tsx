@@ -30,6 +30,7 @@ import type {
     SortDirection,
 } from "../constant/students.js";
 import type { StudentClassesData } from "../constant/studentClasses.js";
+import type { SchoolYear } from "../constant/schoolYear.js";
 import "../style/adminStudent.css";
 
 // Components
@@ -128,6 +129,31 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
     const [collapsedYears, setCollapsedYears] = useState<Set<number>>(new Set());
 
     /* =================== List query (URL is the source of truth) =================== */
+    /* =================== School Year filter state =================== */
+    const [schoolYears, setSchoolYears] = useState<SchoolYear[]>([]);
+    const [schoolYearsLoading, setSchoolYearsLoading] = useState(true);
+
+    const schoolYearParam = searchParams.get("schoolYearId") ?? "";
+    const schoolYearId = schoolYearParam && Number(schoolYearParam) > 0 ? Number(schoolYearParam) : undefined;
+
+    useEffect(() => {
+        let cancelled = false;
+        getAPICall<SchoolYear[]>("/schoolYear", { toast: false })
+            .then((res) => {
+                if (cancelled) return;
+                setSchoolYears(res.data ?? []);
+            })
+            .catch(() => {
+                if (!cancelled) setSchoolYears([]);
+            })
+            .finally(() => {
+                if (!cancelled) setSchoolYearsLoading(false);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
     const search = searchParams.get("search") ?? "";
     const statusParam = searchParams.get("status");
     const status: StudentStatusFilter =
@@ -188,6 +214,7 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
                 const params = new URLSearchParams();
                 if (search) params.set("search", search);
                 params.set("status", status);
+                if (schoolYearId) params.set("schoolYearId", String(schoolYearId));
                 params.set("page", String(page));
                 params.set("pageSize", String(pageSize));
                 params.set("sort", sort);
@@ -228,7 +255,7 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
         return () => {
             cancelled = true;
         };
-    }, [studentIdParam, search, status, page, pageSize, sort, dir, refreshKey, setSearchParams]);
+    }, [studentIdParam, search, status, schoolYearId, page, pageSize, sort, dir, refreshKey, setSearchParams]);
 
     /* =================== Fetch the selected student + history =================== */
     useEffect(() => {
@@ -673,7 +700,7 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
     const firstRow = total === 0 ? 0 : (page - 1) * pageSize + 1;
     const lastRow = Math.min(page * pageSize, total);
-    const hasActiveFilter = Boolean(search) || status !== "active";
+    const hasActiveFilter = Boolean(search) || status !== "active" || Boolean(schoolYearParam);
 
     /* =================== Details screen =================== */
     if (studentIdParam) {
@@ -993,6 +1020,24 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
 
                     <div className="students__filters flex flex-wrap items-center gap-2">
                         <label className="students__filter">
+                            <span className="students__filter-label">School Year</span>
+                            <select
+                                className="students__filter-select"
+                                value={schoolYearParam}
+                                onChange={(event) => updateParams({ schoolYearId: event.target.value || undefined })}
+                                aria-label="Filter by school year"
+                                disabled={schoolYearsLoading && schoolYears.length === 0}
+                            >
+                                <option value="">All School Years</option>
+                                {schoolYears.map((sy) => (
+                                    <option key={sy.id} value={String(sy.id)}>
+                                        {sy.startYear} - {sy.endYear}{sy.isActive ? " (Current)" : ""}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+
+                        <label className="students__filter">
                             <span className="students__filter-label">Status</span>
                             <select
                                 className="students__filter-select"
@@ -1007,6 +1052,21 @@ export default function StudentManagement({ basePath }: StudentManagementProps) 
                                 <option value="all">All</option>
                             </select>
                         </label>
+
+                        {hasActiveFilter && (
+                            <button
+                                type="button"
+                                className="students__clear-filters ml-1 inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+                                onClick={() => {
+                                    setSearchDraft("");
+                                    setSearchParams({});
+                                }}
+                                aria-label="Clear active filters"
+                            >
+                                <FiX className="h-3.5 w-3.5" aria-hidden="true" />
+                                Reset filters
+                            </button>
+                        )}
                     </div>
                 </div>
 

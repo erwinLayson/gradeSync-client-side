@@ -347,9 +347,8 @@ export default function RegisterAmendments() {
       // Refresh both list and the opened modal details
       await fetchRequests(false);
       await handleOpenReview(activeRequest);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to approve amendment request";
-      toast.error(msg);
+    } catch {
+      // Error toast is handled by the axios interceptor in api.ts
     } finally {
       setIsSubmittingApprove(false);
     }
@@ -378,9 +377,8 @@ export default function RegisterAmendments() {
       // Refresh list and modal
       await fetchRequests(false);
       await handleOpenReview(activeRequest);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to reject amendment request";
-      toast.error(msg);
+    } catch {
+      // Error toast is handled by the axios interceptor in api.ts
     } finally {
       setIsSubmittingReject(false);
     }
@@ -403,9 +401,8 @@ export default function RegisterAmendments() {
       // Refresh list and modal
       await fetchRequests(false);
       await handleOpenReview(activeRequest);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to revoke amendment permission";
-      toast.error(msg);
+    } catch {
+      // Error toast is handled by the axios interceptor in api.ts
     } finally {
       setIsSubmittingRevoke(false);
     }

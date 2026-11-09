@@ -172,8 +172,8 @@ export function AmendStudentRecordModal({
           }
         }
       }
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to apply amendment modifications');
+    } catch {
+      // Error toast is handled by the axios interceptor in api.ts
     } finally {
       setIsSaving(false);
       setIsCompleting(false);

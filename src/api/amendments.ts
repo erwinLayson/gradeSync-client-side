@@ -1,4 +1,4 @@
-import { getAPICall, postAPICall, patchAPICall } from './api';
+import { getAPICall, postAPICall, patchAPICall, type RequestOptions } from './api';
 import type {
   AmendmentAuditLog,
   AmendmentPermission,
@@ -20,8 +20,13 @@ function buildQueryString(params?: Record<string, unknown>): string {
 
 /**
  * Submit a new amendment request (teacher / class adviser)
+ * Default options: { toast: false } to prevent duplicate toasts since
+ * RequestAmendmentModal explicitly presents its own success toast.
  */
-export const submitAmendmentRequest = async (data: SubmitAmendmentPayload) => {
+export const submitAmendmentRequest = async (
+  data: SubmitAmendmentPayload,
+  options?: RequestOptions,
+) => {
   const payload = {
     ...data,
     classId: data.classroomId,
@@ -31,7 +36,10 @@ export const submitAmendmentRequest = async (data: SubmitAmendmentPayload) => {
       proposedValues: data.proposedValues ?? null,
     },
   };
-  return postAPICall<typeof payload, AmendmentRequest>('/amendments', payload);
+  return postAPICall<typeof payload, AmendmentRequest>('/amendments', payload, {
+    toast: false,
+    ...options,
+  });
 };
 
 /**
@@ -70,23 +78,33 @@ export const getAmendmentRequestById = async (id: number) => {
 
 /**
  * Approve an amendment request and unlock a temporary edit window (Registrar / Admin)
+ * Default options: { toast: false } to prevent duplicate toasts since
+ * RegisterAmendments explicitly presents its own success toast.
  */
 export const approveAmendmentRequest = async (
   id: number,
   data?: { durationHours?: number; reviewNotes?: string },
+  options?: RequestOptions,
 ) => {
   return postAPICall<typeof data, { permission: AmendmentPermission; request: AmendmentRequest }>(
     `/amendments/requests/${id}/approve`,
     data ?? {},
+    {
+      toast: false,
+      ...options,
+    },
   );
 };
 
 /**
  * Reject an amendment request with justification (Registrar / Admin)
+ * Default options: { toast: false } to prevent duplicate toasts since
+ * RegisterAmendments explicitly presents its own success toast.
  */
 export const rejectAmendmentRequest = async (
   id: number,
   data: { rejectionReason: string },
+  options?: RequestOptions,
 ) => {
   const payload = {
     reason: data.rejectionReason,
@@ -95,19 +113,30 @@ export const rejectAmendmentRequest = async (
   return postAPICall<typeof payload, AmendmentRequest>(
     `/amendments/requests/${id}/reject`,
     payload,
+    {
+      toast: false,
+      ...options,
+    },
   );
 };
 
 /**
  * Revoke an active amendment permission before expiration (Registrar / Admin)
+ * Default options: { toast: false } to prevent duplicate toasts since
+ * RegisterAmendments explicitly presents its own success toast.
  */
 export const revokeAmendmentPermission = async (
   id: number,
   data?: { reason?: string },
+  options?: RequestOptions,
 ) => {
   return postAPICall<typeof data, { revoked: boolean }>(
     `/amendments/requests/${id}/revoke`,
     data ?? {},
+    {
+      toast: false,
+      ...options,
+    },
   );
 };
 
@@ -128,49 +157,75 @@ export const getAmendmentAuditLogs = async (params?: {
 
 /**
  * Patch a single student's assessment score under an approved amendment permission
+ * Default options: { toast: false } to prevent duplicate toasts since
+ * FacultyGradebook explicitly presents its own success toast.
  */
 export const patchSingleStudentScore = async (
   assessmentId: number,
   enrollmentId: number,
   data: { score: number; reason?: string },
+  options?: RequestOptions,
 ) => {
   return patchAPICall<typeof data, { assessmentId: number; enrollmentId: number; score: number }>(
     `/assessments/${assessmentId}/scores/${enrollmentId}`,
     data,
+    {
+      toast: false,
+      ...options,
+    },
   );
 };
 
 /**
  * Patch a single student's daily attendance under an approved amendment permission
+ * Default options: { toast: false } to prevent duplicate toasts since
+ * FacultyAttendance explicitly presents its own success toast.
  */
 export const patchSingleStudentAttendance = async (
   classSubjectId: number,
   enrollmentId: number,
   data: { date: string; status: string; quarter: number; reason?: string },
+  options?: RequestOptions,
 ) => {
   return patchAPICall<typeof data, { classSubjectId: number; enrollmentId: number; status: string }>(
     `/attendance/class-subjects/${classSubjectId}/students/${enrollmentId}`,
     data,
+    {
+      toast: false,
+      ...options,
+    },
   );
 };
 
 /**
  * Submit a unified subject amendment request (covering gradebook and/or attendance)
  */
-export const submitSubjectRecordAmendment = async (data: {
-  enrollmentId: number;
-  classSubjectId: number;
-  quarter: number;
-  reason: string;
-  changes: import('../constant/amendment').SubjectAmendmentChanges;
-  classId?: number;
-  details?: Record<string, unknown>;
-}) => {
-  return postAPICall<typeof data, { id: number; requestNumber: string }>('/amendments/subject-record', data);
+export const submitSubjectRecordAmendment = async (
+  data: {
+    enrollmentId: number;
+    classSubjectId: number;
+    quarter: number;
+    reason: string;
+    changes: import('../constant/amendment').SubjectAmendmentChanges;
+    classId?: number;
+    details?: Record<string, unknown>;
+  },
+  options?: RequestOptions,
+) => {
+  return postAPICall<typeof data, { id: number; requestNumber: string }>(
+    '/amendments/subject-record',
+    data,
+    {
+      toast: false,
+      ...options,
+    },
+  );
 };
 
 /**
  * Apply approved unified subject amendment and recalculate quarter grade
+ * Default options: { toast: false } to prevent duplicate toasts since
+ * AmendStudentRecordModal explicitly presents its own success toast.
  */
 export const applyUnifiedSubjectAmendment = async (
   permissionId: number,
@@ -180,10 +235,15 @@ export const applyUnifiedSubjectAmendment = async (
       attendance?: Array<{ date: string; status?: string; proposedStatus?: string }>;
     };
     markAsCompleted?: boolean;
-  }
+  },
+  options?: RequestOptions,
 ) => {
   return postAPICall<typeof data, { success: boolean; modifiedCount: number; newQuarterGrade: number | null; status: string }>(
     `/amendments/${permissionId}/apply`,
-    data ?? {}
+    data ?? {},
+    {
+      toast: false,
+      ...options,
+    },
   );
 };
