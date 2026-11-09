@@ -17,6 +17,7 @@ import AdminFaculties from './pages/admin/AdminFaculties'
 import AdminReports from './pages/admin/Admin-Reports'
 import AdminSettings from './pages/admin/AdminSettings'
 import AdminActivityAudit from './pages/admin/AdminActivityAudit'
+import AdminTeacherAttendance from './pages/admin/AdminTeacherAttendance'
 // Faculty Pages
 import FacultyDashboard from './pages/faculty/FacultyDashboard'
 import FacultyAttendance from './pages/faculty/FacultyAttendance'
@@ -86,6 +87,8 @@ function App() {
               <Route path="/admin/faculties" element={<AdminFaculties />} />
               <Route path="/admin/analytics-reports" element={<AnalyticsReports />} />
               <Route path="/admin/reports" element={<AdminReports />} />
+              <Route path="/admin/teacher-attendance" element={<AdminTeacherAttendance />} />
+              <Route path="/admin/attendance-monitoring" element={<AdminTeacherAttendance />} />
               <Route path="/admin/amendments" element={<RegisterAmendments />} />
               <Route path="/admin/activity-audit" element={<AdminActivityAudit />} />
               <Route path="/admin/settings" element={<AdminSettings />} />

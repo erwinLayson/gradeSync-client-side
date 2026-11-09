@@ -81,6 +81,7 @@ export const DASHBOARD_LINKS = {
       title: "Faculty",
       sections: [
         { label: "Faculty", path: "/admin/faculties", icon: FaChalkboardTeacher },
+        { label: "Attendance Monitoring", path: "/admin/teacher-attendance", icon: FaClipboardCheck },
       ]
     },
     {

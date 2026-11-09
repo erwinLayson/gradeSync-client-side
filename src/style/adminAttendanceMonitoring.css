@@ -1,0 +1,864 @@
+/* ============================================================
+   Teacher Attendance Monitoring — Admin Spreadsheet Stylesheet
+   Color Palette Aligned with System Theme (Forest Green & Gold)
+   --primary: #176B3A; --primary-dark: #0D4F2B; --primary-light: #EAF5EE;
+   --accent: #D4A72C; --surface-bg: #F7FAF8;
+   ============================================================ */
+
+.att-monitoring-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  animation: att-fade-in 200ms ease-out forwards;
+}
+
+@keyframes att-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ==================== Summary Cards ==================== */
+.att-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.att-summary-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 150ms ease;
+}
+
+.att-summary-card:hover {
+  border-color: #176b3a;
+  box-shadow: 0 4px 10px -2px rgba(23, 107, 58, 0.1);
+}
+
+.att-summary-card__icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* System Brand Colors for KPI Icons */
+.att-summary-card__icon--classrooms {
+  background: #eaf5ee;
+  color: #176b3a;
+}
+
+.att-summary-card__icon--subjects {
+  background: #fdf8ec;
+  color: #b48318;
+}
+
+.att-summary-card__icon--present {
+  background: #eaf5ee;
+  color: #176b3a;
+}
+
+.att-summary-card__icon--absent {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.att-summary-card__icon--rate {
+  background: #eaf5ee;
+  color: #0d4f2b;
+}
+
+.att-summary-card__label {
+  font-size: 0.8125rem;
+  color: #64748b;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.att-summary-card__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+.att-summary-card__sub {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.25rem;
+}
+
+/* ==================== Filters Toolbar ==================== */
+.att-filter-bar {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.att-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.875rem;
+  align-items: flex-end;
+}
+
+.att-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 140px;
+  flex: 1 1 140px;
+}
+
+.att-filter-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.att-filter-select,
+.att-filter-input {
+  height: 2.375rem;
+  padding: 0 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  background-color: #f7faf8;
+  color: #1f2937;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 150ms ease;
+  outline: none;
+}
+
+.att-filter-select:hover,
+.att-filter-input:hover {
+  border-color: #176b3a;
+  background-color: #ffffff;
+}
+
+.att-filter-select:focus,
+.att-filter-input:focus {
+  border-color: #176b3a;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(23, 107, 58, 0.15);
+}
+
+.att-month-navigator {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.att-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.375rem;
+  height: 2.375rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  background: #f7faf8;
+  color: #374151;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.att-nav-btn:hover {
+  background: #eaf5ee;
+  color: #176b3a;
+  border-color: #176b3a;
+}
+
+.att-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.att-btn-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 2.375rem;
+  padding: 0 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms ease;
+  white-space: nowrap;
+}
+
+.att-btn-reset:hover {
+  background: #eaf5ee;
+  color: #176b3a;
+  border-color: #176b3a;
+}
+
+/* ==================== Legend Bar ==================== */
+.att-legend-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  background: #f7faf8;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.att-legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.att-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.att-legend-chip {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.25rem;
+  border: 1px solid transparent;
+}
+
+.att-legend-chip--green {
+  background: #def7ec;
+  border-color: #bcf0da;
+}
+
+.att-legend-chip--neutral {
+  background: #fef3c7;
+  border-color: #fde68a;
+}
+
+.att-legend-chip--red {
+  background: #fde8e8;
+  border-color: #f8b4b4;
+}
+
+.att-legend-chip--weekend {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.att-legend-chip--empty {
+  background: #ffffff;
+  border-color: #e5e7eb;
+}
+
+/* ==================== Spreadsheet Table Container ==================== */
+.att-matrix-card {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.att-matrix-viewport {
+  overflow: auto;
+  max-height: calc(100vh - 290px);
+  min-height: 440px;
+  position: relative;
+  background: #ffffff;
+}
+
+/* Table */
+.att-matrix-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-size: 0.8125rem;
+  font-family: inherit;
+}
+
+/* Column Dimensions & Sticky Coordinates */
+/* Col 1: Classroom / Section (160px wide, left: 0) */
+.att-col-classroom {
+  position: sticky;
+  left: 0;
+  width: 160px;
+  min-width: 160px;
+  max-width: 160px;
+}
+
+/* Col 2: Grade (75px wide, left: 160px) */
+.att-col-grade {
+  position: sticky;
+  left: 160px;
+  width: 75px;
+  min-width: 75px;
+  max-width: 75px;
+}
+
+/* Col 3: Subject (180px wide, left: 235px) */
+.att-col-subject {
+  position: sticky;
+  left: 235px;
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
+}
+
+/* Dynamic Date Columns */
+.att-col-date {
+  width: 54px;
+  min-width: 54px;
+  max-width: 58px;
+  text-align: center;
+}
+
+/* ==================== Table Headers (Aligned to Brand Palette) ==================== */
+.att-matrix-table thead tr {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.att-matrix-table thead th {
+  background: #eaf5ee; /* Soft brand green header background */
+  color: #0d4f2b; /* Deep brand green */
+  font-weight: 700;
+  padding: 0.5rem 0.375rem;
+  border-bottom: 2px solid #c4e3d1;
+  border-right: 1px solid #d1eae0;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Top-left pinned headers */
+.att-matrix-table thead th.att-col-classroom {
+  z-index: 30;
+  background: #eaf5ee;
+  border-right: 1px solid #d1eae0;
+}
+
+.att-matrix-table thead th.att-col-grade {
+  z-index: 30;
+  background: #eaf5ee;
+  border-right: 1px solid #d1eae0;
+}
+
+.att-matrix-table thead th.att-col-subject {
+  z-index: 30;
+  background: #eaf5ee;
+  border-right: 2px solid #176b3a; /* Prominent boundary before date columns */
+}
+
+/* Date Header Content */
+.att-date-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.att-date-header__abbr {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #176b3a; /* Primary green */
+}
+
+.att-date-header__num {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.att-date-header--weekend {
+  background: #f3f4f6 !important;
+  color: #6b7280 !important;
+}
+
+.att-date-header--weekend .att-date-header__abbr {
+  color: #6b7280;
+}
+
+.att-date-header--weekend .att-date-header__num {
+  color: #6b7280;
+}
+
+/* ==================== Classroom Grouping Rows (Brand Deep Green) ==================== */
+.att-row-grouping {
+  background: #176b3a; /* Primary Brand Green */
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.att-row-grouping td {
+  padding: 0.5rem 0.75rem;
+  border-top: 2px solid #0d4f2b;
+  border-bottom: 1px solid #0d4f2b;
+  background: #176b3a;
+  color: #ffffff;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.att-row-grouping td.att-col-classroom {
+  z-index: 10;
+  background: #176b3a;
+  color: #ffffff;
+  border-right: 1px solid #1a7e43;
+}
+
+.att-row-grouping td.att-col-grade {
+  z-index: 10;
+  background: #176b3a;
+  color: #ffffff;
+  border-right: 1px solid #1a7e43;
+  text-align: center;
+}
+
+.att-row-grouping td.att-col-subject {
+  z-index: 10;
+  background: #176b3a;
+  color: #eaf5ee;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-right: 2px solid #0d4f2b;
+}
+
+.att-row-grouping td.att-col-date {
+  background: #176b3a;
+  border-right: 1px solid #1a7e43;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.att-row-grouping td.att-col-date--weekend {
+  background: #0d4f2b;
+}
+
+/* ==================== Subject Rows ==================== */
+.att-row-subject {
+  background: #ffffff; /* White subject rows */
+  transition: background-color 100ms ease;
+}
+
+.att-row-subject:hover {
+  background: #f7faf8; /* Soft brand surface tint */
+}
+
+.att-row-subject td {
+  padding: 0.375rem 0.25rem;
+  border-bottom: 1px solid #e5e7eb;
+  border-right: 1px solid #e5e7eb;
+  font-size: 0.8125rem;
+  vertical-align: middle;
+}
+
+/* Sticky columns for subject rows */
+.att-row-subject td.att-col-classroom {
+  z-index: 10;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  color: transparent; /* visually grouped, not repeated */
+}
+
+.att-row-subject:hover td.att-col-classroom {
+  background: #f7faf8;
+}
+
+.att-row-subject td.att-col-grade {
+  z-index: 10;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  color: transparent; /* visually grouped, not repeated */
+}
+
+.att-row-subject:hover td.att-col-grade {
+  background: #f7faf8;
+}
+
+.att-row-subject td.att-col-subject {
+  z-index: 10;
+  background: #ffffff;
+  border-right: 2px solid #cbd5e1;
+  padding: 0.375rem 0.625rem;
+}
+
+.att-row-subject:hover td.att-col-subject {
+  background: #f7faf8;
+}
+
+.att-subject-cell-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  overflow: hidden;
+}
+
+.att-subject-name {
+  font-weight: 600;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.att-subject-teacher {
+  font-size: 0.6875rem;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==================== Attendance Data Cells ==================== */
+.att-matrix-cell {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.125rem;
+}
+
+.att-cell-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 1.875rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  transition: all 150ms ease;
+  user-select: none;
+}
+
+/* Submitted Cell: Green (>= 95%) */
+.att-cell-badge--green {
+  background: #def7ec;
+  color: #03543f;
+  border: 1px solid #bcf0da;
+}
+
+/* Submitted Cell: Red (< 75%) */
+.att-cell-badge--red {
+  background: #fde8e8;
+  color: #9b1c1c;
+  border: 1px solid #f8b4b4;
+}
+
+/* Submitted Cell: Neutral (75% - 94%) */
+.att-cell-badge--neutral {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+/* Clickable submitted badge hover */
+.att-cell-badge--interactive {
+  cursor: pointer;
+}
+
+.att-cell-badge--interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+  filter: brightness(0.97);
+}
+
+.att-cell-badge--interactive:focus-visible {
+  outline: 2px solid #176b3a;
+  outline-offset: 1px;
+}
+
+/* Weekend Cell */
+.att-cell--weekend {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+/* Empty Cell (No session) */
+.att-cell--empty {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+/* ==================== Session Detail Modal (Refined) ==================== */
+.att-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.att-modal-section-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #176b3a; /* Primary Green */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.625rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.att-modal-section-title::before {
+  content: "";
+  display: inline-block;
+  width: 0.25rem;
+  height: 0.875rem;
+  background: #176b3a;
+  border-radius: 9999px;
+}
+
+/* Section 1: Info Grid */
+.att-modal-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  background: #f7faf8;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.125rem 1.25rem;
+}
+
+.att-modal-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.att-modal-info-label {
+  font-size: 0.6875rem;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.att-modal-info-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Section 2: Summary Chips */
+.att-modal-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.att-modal-stat-card {
+  padding: 0.875rem 0.75rem;
+  border-radius: 0.625rem;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.att-modal-stat-card__num {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+.att-modal-stat-card__label {
+  font-size: 0.6875rem;
+  color: #6b7280;
+  font-weight: 600;
+  margin-top: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.att-modal-stat-card--present {
+  background: #def7ec;
+  border-color: #bcf0da;
+}
+.att-modal-stat-card--present .att-modal-stat-card__num {
+  color: #03543f;
+}
+.att-modal-stat-card--present .att-modal-stat-card__label {
+  color: #046c4e;
+}
+
+.att-modal-stat-card--absent {
+  background: #fde8e8;
+  border-color: #f8b4b4;
+}
+.att-modal-stat-card--absent .att-modal-stat-card__num {
+  color: #9b1c1c;
+}
+.att-modal-stat-card--absent .att-modal-stat-card__label {
+  color: #c81e1e;
+}
+
+.att-modal-stat-card--late {
+  background: #fef3c7;
+  border-color: #fde68a;
+}
+.att-modal-stat-card--late .att-modal-stat-card__num {
+  color: #92400e;
+}
+
+.att-modal-stat-card--excused {
+  background: #e1effe;
+  border-color: #b4c6fc;
+}
+.att-modal-stat-card--excused .att-modal-stat-card__num {
+  color: #1e429f;
+}
+
+.att-modal-stat-card--rate {
+  background: #eaf5ee;
+  border-color: #c4e3d1;
+}
+.att-modal-stat-card--rate .att-modal-stat-card__num {
+  color: #176b3a;
+}
+.att-modal-stat-card--rate .att-modal-stat-card__label {
+  color: #0d4f2b;
+}
+
+/* Section 3: Student Roster Table */
+.att-modal-roster-box {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.625rem;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.att-modal-roster-header {
+  padding: 0.625rem 0.875rem;
+  background: #f7faf8;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.att-modal-search-input {
+  height: 2.125rem;
+  padding: 0 0.75rem 0 2rem;
+  border-radius: 0.375rem;
+  border: 1px solid #cbd5e1;
+  font-size: 0.8125rem;
+  outline: none;
+  width: 240px;
+  background: #ffffff;
+  transition: all 150ms ease;
+}
+
+.att-modal-search-input:focus {
+  border-color: #176b3a;
+  box-shadow: 0 0 0 2px rgba(23, 107, 58, 0.15);
+}
+
+.att-modal-table-viewport {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.att-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.att-modal-table th {
+  position: sticky;
+  top: 0;
+  background: #f7faf8;
+  color: #374151;
+  font-weight: 700;
+  text-align: left;
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid #e5e7eb;
+  z-index: 5;
+}
+
+.att-modal-table td {
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+}
+
+.att-modal-table tr:hover td {
+  background: #f7faf8;
+}
+
+.att-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1875rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.att-status-pill--present {
+  background: #def7ec;
+  color: #03543f;
+}
+
+.att-status-pill--absent {
+  background: #fde8e8;
+  color: #9b1c1c;
+}
+
+.att-status-pill--late {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.att-status-pill--excused {
+  background: #e1effe;
+  color: #1e429f;
+}
+
+.att-status-pill--unmarked {
+  background: #f3f4f6;
+  color: #6b7280;
+}
