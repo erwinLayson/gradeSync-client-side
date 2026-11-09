@@ -310,7 +310,7 @@ export default function StudentClassroom() {
 
             {/* ==================== Tabs + quarter selector ==================== */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                <TabNav
+                <TabNav<DetailTab>
                     tabs={[
                         {
                             id: "activities",
@@ -324,7 +324,7 @@ export default function StudentClassroom() {
                         },
                     ]}
                     activeTab={activeTab}
-                    onChange={setActiveTab}
+                    onChange={(tabId) => setActiveTab(tabId)}
                     ariaLabel="Subject details tabs"
                 />
 

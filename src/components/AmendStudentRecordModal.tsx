@@ -245,7 +245,7 @@ export function AmendStudentRecordModal({
 
           {/* Navigation Tabs */}
           <div className="border-b border-slate-100 bg-slate-50/80 px-6 py-2.5 dark:border-slate-800 dark:bg-slate-850">
-            <TabNav
+            <TabNav<'grades' | 'attendance'>
               size="sm"
               tabs={[
                 {
@@ -260,7 +260,7 @@ export function AmendStudentRecordModal({
                 },
               ]}
               activeTab={activeTab}
-              onChange={setActiveTab}
+              onChange={(tabId) => setActiveTab(tabId)}
               ariaLabel="Amendment categories"
             />
           </div>

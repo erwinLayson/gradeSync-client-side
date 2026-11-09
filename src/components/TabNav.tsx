@@ -81,7 +81,7 @@ function renderTabIcon(
  * design system (primary emerald accents, raised white active pill, subtle neutral container).
  * Fully keyboard-accessible per WAI-ARIA tab pattern (Left/Right arrows, Home, End).
  */
-export function TabNav<T extends string = string>({
+export function TabNav<T extends string>({
   tabs,
   activeTab,
   onChange,

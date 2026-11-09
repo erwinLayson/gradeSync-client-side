@@ -292,7 +292,7 @@ export default function FacultyStudentRecords() {
             {/* ==================== View Switcher Tabs (for dual-role faculty) ==================== */}
             {isClassAdviser && subjects.length > 0 && (
                 <div className="mb-4">
-                    <TabNav
+                    <TabNav<"subjects" | "adviser">
                         tabs={[
                             {
                                 id: "subjects",
@@ -307,7 +307,7 @@ export default function FacultyStudentRecords() {
                             },
                         ]}
                         activeTab={viewMode}
-                        onChange={setViewMode}
+                        onChange={(tabId) => setViewMode(tabId)}
                         ariaLabel="Student records view modes"
                     />
                 </div>
