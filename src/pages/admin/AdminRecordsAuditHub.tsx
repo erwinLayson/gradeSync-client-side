@@ -4,6 +4,7 @@ import { FiActivity, FiFileText } from "react-icons/fi";
 
 import { PageHeader, PageShell } from "../../components/PageLayout";
 import { useUser } from "../../hooks/useUser";
+import { TabNav } from "../../components/TabNav";
 import RegisterAmendments from "../register/RegisterAmendments";
 import AdminActivityAudit from "./AdminActivityAudit";
 
@@ -83,32 +84,15 @@ export default function AdminRecordsAuditHub({ defaultTab }: AdminRecordsAuditHu
 
       {isAdmin && (
         <div className="records-audit-tabs-wrapper">
-          <nav className="records-audit-tabs" role="tablist" aria-label="Records and Audit Hub Tabs">
-            <button
-              type="button"
-              role="tab"
-              id="hub-tab-amendments"
-              aria-selected={activeTab === "amendments"}
-              aria-controls="hub-tabpanel-amendments"
-              className={`records-audit-tab ${activeTab === "amendments" ? "records-audit-tab--active" : ""}`}
-              onClick={() => handleTabChange("amendments")}
-            >
-              <FiFileText className="records-audit-tab__icon" aria-hidden="true" />
-              <span>Amendments</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              id="hub-tab-activity-audit"
-              aria-selected={activeTab === "activity-audit"}
-              aria-controls="hub-tabpanel-activity-audit"
-              className={`records-audit-tab ${activeTab === "activity-audit" ? "records-audit-tab--active" : ""}`}
-              onClick={() => handleTabChange("activity-audit")}
-            >
-              <FiActivity className="records-audit-tab__icon" aria-hidden="true" />
-              <span>Activity Logs</span>
-            </button>
-          </nav>
+          <TabNav
+            tabs={[
+              { id: "amendments", label: "Amendments", icon: FiFileText },
+              { id: "activity-audit", label: "Activity Logs", icon: FiActivity },
+            ]}
+            activeTab={activeTab}
+            onChange={handleTabChange}
+            ariaLabel="Records and Audit Hub Tabs"
+          />
         </div>
       )}
 
@@ -127,3 +111,4 @@ export default function AdminRecordsAuditHub({ defaultTab }: AdminRecordsAuditHu
     </PageShell>
   );
 }
+

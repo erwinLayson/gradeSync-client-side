@@ -35,6 +35,7 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import { EmptyState } from "../../components/EmptyState";
 import { ModalDialog } from "../../components/ModalDialog";
+import { TabNav } from "../../components/TabNav";
 
 // Main component
 export default function AdminClassrooms() {
@@ -1006,30 +1007,31 @@ return (
                     </div>
                 </div>
 
-                <div className="classrooms__tabs mt-4 flex gap-1 border-b">
-                    <button
-                        type="button"
-                        className={`classrooms__tab relative px-3 py-2.5 text-xs font-bold ${
-                            pageStatus === "view-students" ? "classrooms__tab--active" : ""
-                        }`}
-                        aria-pressed={pageStatus === "view-students"}
-                        onClick={() => setPageStatus("view-students")}
-                    >
-                        Student
-                    </button>
-                    <button
-                        type="button"
-                        className={`classrooms__tab relative px-3 py-2.5 text-xs font-bold ${
-                            pageStatus === "view-subjects" ? "classrooms__tab--active" : ""
-                        }`}
-                        aria-pressed={pageStatus === "view-subjects"}
-                        onClick={() => (
-                            setPageStatus("view-subjects"),
-                            fetchClassroomFacultiesWithSubject()
-                        )}
-                    >
-                        Subject
-                    </button>
+                <div className="mt-4">
+                    <TabNav
+                        tabs={[
+                            {
+                                id: "view-students",
+                                label: "Student",
+                                icon: FiUsers,
+                                count: (selectedClassroom.students ?? []).length,
+                            },
+                            {
+                                id: "view-subjects",
+                                label: "Subject",
+                                icon: FiBookOpen,
+                                count: (classroomFacultiesWithSubject ?? []).length,
+                            },
+                        ]}
+                        activeTab={pageStatus}
+                        onChange={(tabId) => {
+                            setPageStatus(tabId);
+                            if (tabId === "view-subjects") {
+                                fetchClassroomFacultiesWithSubject();
+                            }
+                        }}
+                        ariaLabel="Classroom detail view tabs"
+                    />
                 </div>
 
                 

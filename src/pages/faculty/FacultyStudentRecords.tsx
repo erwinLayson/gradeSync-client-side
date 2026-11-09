@@ -25,6 +25,7 @@ import { ModalDialog } from "../../components/ModalDialog";
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
 import { RequestAmendmentModal } from "../../components/RequestAmendmentModal";
 import { AmendStudentRecordModal } from "../../components/AmendStudentRecordModal";
+import { TabNav } from "../../components/TabNav";
 import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useMyAmendments } from "../../hooks/useMyAmendments";
@@ -290,29 +291,25 @@ export default function FacultyStudentRecords() {
         <PageShell className="faculty-records">
             {/* ==================== View Switcher Tabs (for dual-role faculty) ==================== */}
             {isClassAdviser && subjects.length > 0 && (
-                <div className="mb-4 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-100/80 p-1.5 dark:border-slate-800 dark:bg-slate-900/60">
-                    <button
-                        type="button"
-                        onClick={() => setViewMode("subjects")}
-                        className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${viewMode === "subjects"
-                                ? "bg-white text-emerald-700 shadow-sm dark:bg-slate-800 dark:text-emerald-400"
-                                : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-                            }`}
-                    >
-                        <FiBookOpen className="h-4 w-4" />
-                        My Assigned Subjects ({subjects.length})
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setViewMode("adviser")}
-                        className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${viewMode === "adviser"
-                                ? "bg-white text-emerald-700 shadow-sm dark:bg-slate-800 dark:text-emerald-400"
-                                : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-                            }`}
-                    >
-                        <FiUserCheck className="h-4 w-4" />
-                        Advised Class Matrix ({adviserRecords?.section ?? "Adviser"})
-                    </button>
+                <div className="mb-4">
+                    <TabNav
+                        tabs={[
+                            {
+                                id: "subjects",
+                                label: "My Assigned Subjects",
+                                icon: FiBookOpen,
+                                count: subjects.length,
+                            },
+                            {
+                                id: "adviser",
+                                label: `Advised Class Matrix (${adviserRecords?.section ?? "Adviser"})`,
+                                icon: FiUserCheck,
+                            },
+                        ]}
+                        activeTab={viewMode}
+                        onChange={setViewMode}
+                        ariaLabel="Student records view modes"
+                    />
                 </div>
             )}
 

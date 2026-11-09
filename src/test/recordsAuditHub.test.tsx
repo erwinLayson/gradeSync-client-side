@@ -7,11 +7,16 @@ import AdminRecordsAuditHub from "../pages/admin/AdminRecordsAuditHub";
 import * as amendmentApi from "../api/amendments";
 import * as activityAuditApi from "../api/activityAudit";
 
-let mockCurrentUser = {
+let mockCurrentUser: {
+  id: number;
+  email: string;
+  role: string;
+  facultyRole: string | null;
+} = {
   id: 1,
   email: "admin@gradesync.test",
-  role: "admin" as const,
-  facultyRole: null as string | null,
+  role: "admin",
+  facultyRole: null,
 };
 
 vi.mock("../hooks/useUser", () => ({
@@ -107,12 +112,18 @@ describe("AdminRecordsAuditHub (Option A: Tabbed Hub)", () => {
     };
 
     vi.mocked(amendmentApi.getAllAmendmentRequests).mockResolvedValue({
+      success: true,
+      message: "OK",
       data: mockRequests as any,
     });
     vi.mocked(activityAuditApi.fetchActivityAuditStats).mockResolvedValue({
+      success: true,
+      message: "OK",
       data: mockStats,
     });
     vi.mocked(activityAuditApi.fetchActivityAuditLogs).mockResolvedValue({
+      success: true,
+      message: "OK",
       data: {
         logs: mockLogs as any,
         total: 1,

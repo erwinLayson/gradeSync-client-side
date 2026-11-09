@@ -10,6 +10,7 @@ import {
 } from "react-icons/fi";
 import { getAPICall } from "../../api/api";
 import { PageHeader, PageSection, PageShell } from "../../components/PageLayout";
+import { TabNav } from "../../components/TabNav";
 import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 import { useUser } from "../../hooks/useUser";
@@ -262,31 +263,32 @@ export default function FacultyMyClass() {
             </div>
 
             {/* View toggle */}
-            <div className="flex items-center gap-2">
-                <button
-                    type="button"
-                    className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2 text-[0.8125rem] font-bold transition-colors ${
-                        viewMode === "roster"
-                            ? "border-blue-500 bg-blue-500 text-white"
-                            : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                    }`}
-                    onClick={() => setViewMode("roster")}
-                >
-                    <FiList aria-hidden="true" />
-                    Roster
-                </button>
-                <button
-                    type="button"
-                    className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2 text-[0.8125rem] font-bold transition-colors ${
-                        viewMode === "grades"
-                            ? "border-blue-500 bg-blue-500 text-white"
-                            : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                    }`}
-                    onClick={handleSwitchToGrades}
-                >
-                    <FiGrid aria-hidden="true" />
-                    Graded
-                </button>
+            <div>
+                <TabNav
+                    tabs={[
+                        {
+                            id: "roster",
+                            label: "Roster",
+                            icon: FiList,
+                            count: roster?.students?.length,
+                        },
+                        {
+                            id: "grades",
+                            label: "Graded",
+                            icon: FiGrid,
+                            count: studentGrades.length > 0 ? studentGrades.length : undefined,
+                        },
+                    ]}
+                    activeTab={viewMode}
+                    onChange={(tabId) => {
+                        if (tabId === "grades") {
+                            handleSwitchToGrades();
+                        } else {
+                            setViewMode(tabId);
+                        }
+                    }}
+                    ariaLabel="Classroom views"
+                />
             </div>
 
             {/* ==================== Roster View ==================== */}

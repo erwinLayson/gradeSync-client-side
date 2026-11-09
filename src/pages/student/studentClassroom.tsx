@@ -13,6 +13,7 @@ import {
 
 import { getAPICall } from "../../api/api";
 import { PageSection, PageShell } from "../../components/PageLayout";
+import { TabNav } from "../../components/TabNav";
 import Skeleton from "../../components/Skeleton";
 import { useAcademicSettings } from "../../hooks/useAcademicSettings";
 
@@ -309,30 +310,23 @@ export default function StudentClassroom() {
 
             {/* ==================== Tabs + quarter selector ==================== */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                <div className="flex gap-2 rounded-xl border border-neutral-200 bg-white p-1 shadow-sm">
-                    <button
-                        type="button"
-                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-4 py-2 text-[0.8125rem] font-semibold transition ${activeTab === "activities"
-                            ? "student-classes__tab--active"
-                            : "text-neutral-500 hover:text-neutral-800"
-                            }`}
-                        onClick={() => setActiveTab("activities")}
-                    >
-                        <FiClipboard aria-hidden="true" />
-                        Activities &amp; Scores
-                    </button>
-                    <button
-                        type="button"
-                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-4 py-2 text-[0.8125rem] font-semibold transition ${activeTab === "attendance"
-                            ? "student-classes__tab--active"
-                            : "text-neutral-500 hover:text-neutral-800"
-                            }`}
-                        onClick={() => setActiveTab("attendance")}
-                    >
-                        <FiCalendar aria-hidden="true" />
-                        Attendance
-                    </button>
-                </div>
+                <TabNav
+                    tabs={[
+                        {
+                            id: "activities",
+                            label: "Activities & Scores",
+                            icon: FiClipboard,
+                        },
+                        {
+                            id: "attendance",
+                            label: "Attendance",
+                            icon: FiCalendar,
+                        },
+                    ]}
+                    activeTab={activeTab}
+                    onChange={setActiveTab}
+                    ariaLabel="Subject details tabs"
+                />
 
                 <div className="flex items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1 shadow-sm" role="group" aria-label="Select quarter">
                     {quarters.map((quarter) => (

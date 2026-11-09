@@ -10,6 +10,7 @@ import {
   FiX,
 } from 'react-icons/fi';
 import { ModalDialog } from './ModalDialog';
+import { TabNav } from './TabNav';
 import { getSubjectStudentAmendData } from '../api/studentRecord';
 import { applyUnifiedSubjectAmendment } from '../api/amendments';
 import { toast } from '../helper/toast';
@@ -243,39 +244,25 @@ export function AmendStudentRecordModal({
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex border-b border-slate-100 bg-slate-50/80 px-6 pt-2 dark:border-slate-800 dark:bg-slate-850">
-            <button
-              type="button"
-              onClick={() => setActiveTab('grades')}
-              className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition ${
-                activeTab === 'grades'
-                  ? 'border-emerald-600 text-emerald-700 dark:border-emerald-400 dark:text-emerald-300'
-                  : 'border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-              }`}
-            >
-              Gradebook Assessment Scores
-              {changedAssessments.length > 0 && (
-                <span className="rounded-full bg-emerald-100 px-1.5 py-0.2 text-[10px] font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
-                  {changedAssessments.length}
-                </span>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('attendance')}
-              className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition ${
-                activeTab === 'attendance'
-                  ? 'border-emerald-600 text-emerald-700 dark:border-emerald-400 dark:text-emerald-300'
-                  : 'border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-              }`}
-            >
-              Subject Attendance
-              {changedAttendance.length > 0 && (
-                <span className="rounded-full bg-emerald-100 px-1.5 py-0.2 text-[10px] font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
-                  {changedAttendance.length}
-                </span>
-              )}
-            </button>
+          <div className="border-b border-slate-100 bg-slate-50/80 px-6 py-2.5 dark:border-slate-800 dark:bg-slate-850">
+            <TabNav
+              size="sm"
+              tabs={[
+                {
+                  id: "grades",
+                  label: "Gradebook Assessment Scores",
+                  count: changedAssessments.length > 0 ? changedAssessments.length : undefined,
+                },
+                {
+                  id: "attendance",
+                  label: "Subject Attendance",
+                  count: changedAttendance.length > 0 ? changedAttendance.length : undefined,
+                },
+              ]}
+              activeTab={activeTab}
+              onChange={setActiveTab}
+              ariaLabel="Amendment categories"
+            />
           </div>
 
           {/* Body Content */}
