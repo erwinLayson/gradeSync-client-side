@@ -239,7 +239,8 @@ export default function FacultyAttendance() {
 
     const isQuarterLocked = Boolean(
         settings?.submissionsLocked ||
-        (quarterFilter !== ALL_QUARTERS && currentQuarter && Number(quarterFilter) < currentQuarter)
+        (quarterFilter !== ALL_QUARTERS && currentQuarter && Number(quarterFilter) < currentQuarter) ||
+        (quarterFilter !== ALL_QUARTERS && matrix?.isSubjectSubmitted)
     );
 
     async function handleSaveAmendedAttendance(
@@ -881,10 +882,19 @@ export default function FacultyAttendance() {
                                 </span>
                                 <div>
                                     <h4 className="text-xs font-bold text-amber-900 dark:text-amber-200">
-                                        Quarter {quarterFilter} Attendance is Locked {settings?.submissionsLocked ? "(Submissions Locked)" : "(Past Quarter)"}
+                                        Quarter {quarterFilter} Attendance is Locked {
+                                            settings?.submissionsLocked
+                                                ? "(Submissions Locked)"
+                                                : matrix?.isSubjectSubmitted
+                                                ? "(Grades Submitted)"
+                                                : "(Past Quarter)"
+                                        }
                                     </h4>
                                     <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
-                                        Historical attendance records cannot be bulk-edited. To modify an individual student's attendance, click the amendment icon on their cell to submit an Amendment Request.
+                                        {matrix?.isSubjectSubmitted
+                                            ? "Quarter attendance records for this class subject have already been submitted. To modify an individual student's attendance, click the amendment icon on their cell to submit an Amendment Request."
+                                            : "Historical attendance records cannot be bulk-edited. To modify an individual student's attendance, click the amendment icon on their cell to submit an Amendment Request."
+                                        }
                                     </p>
                                 </div>
                             </div>
@@ -1128,7 +1138,7 @@ export default function FacultyAttendance() {
                                         <button
                                             type="button"
                                             onClick={handleBulkSaveAttendance}
-                                            disabled={savingBulk || unsavedCount === 0}
+                                            disabled={savingBulk || unsavedCount === 0 || !canEdit}
                                             className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold shadow-sm transition ${
                                                 unsavedCount > 0
                                                     ? "bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.98] ring-2 ring-emerald-400/50"
@@ -1288,8 +1298,9 @@ export default function FacultyAttendance() {
                                                             recordType: "attendance",
                                                             classSubjectId: selectedSubjectId,
                                                         });
-                                                        const isCellLocked = isQuarterLocked && !hasPermission;
-                                                        const isDisabled = (!canEdit && !hasPermission) || savingBulk;
+                                                        const isStudentLocked = isQuarterLocked || Boolean(student.isSubmitted);
+                                                        const isCellLocked = isStudentLocked && !hasPermission;
+                                                        const isDisabled = (!canEdit && !hasPermission) || isCellLocked || savingBulk;
 
                                                         return (
                                                             <td key={date} className="faculty-attendance__grid-cell px-1 py-1.5 text-center">
@@ -1310,7 +1321,7 @@ export default function FacultyAttendance() {
                                                                         }${isCellLocked ? " cursor-not-allowed bg-slate-100 opacity-70" : ""}`}
                                                                         onFocus={(e) => e.target.select()}
                                                                         onKeyDown={(e) => {
-                                                                            if (isQuarterLocked && hasPermission) {
+                                                                            if (isStudentLocked && hasPermission) {
                                                                                 if (e.key === "1") {
                                                                                     e.preventDefault();
                                                                                     handleSaveAmendedAttendance(student, date, "present");
@@ -1350,7 +1361,7 @@ export default function FacultyAttendance() {
                                                                         onChange={(e) => {
                                                                             const raw = e.target.value.trim();
                                                                             const char = raw.slice(-1);
-                                                                            if (isQuarterLocked && hasPermission) {
+                                                                            if (isStudentLocked && hasPermission) {
                                                                                 if (char === "1") {
                                                                                     handleSaveAmendedAttendance(student, date, "present");
                                                                                     focusCell(studentIndex + 1, dateIndex);
@@ -1471,7 +1482,7 @@ export default function FacultyAttendance() {
                                 <button
                                     type="button"
                                     onClick={handleBulkSaveAttendance}
-                                    disabled={savingBulk || unsavedCount === 0}
+                                    disabled={savingBulk || unsavedCount === 0 || !canEdit}
                                     className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-md hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
                                 >
                                     <FiSave className="text-xs" />

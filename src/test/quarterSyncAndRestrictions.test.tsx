@@ -124,6 +124,11 @@ vi.mock("../api/studentRecord", () => ({
 }));
 
 let lastGradebookQuarterRequested: number | null = null;
+let mockIsSubjectSubmitted = false;
+let mockGradebookStudents: any[] = [];
+let mockAssessments: any[] = [];
+let mockAttendanceIsSubjectSubmitted = false;
+let mockAttendanceStudents: any[] = [];
 
 vi.mock("../api/api", () => ({
     getAPICall: vi.fn().mockImplementation((url: string) => {
@@ -141,14 +146,15 @@ vi.mock("../api/api", () => ({
                     hasComponents: false,
                     components: [],
                     quarter: lastGradebookQuarterRequested,
-                    assessment: [],
+                    isSubjectSubmitted: mockIsSubjectSubmitted,
+                    assessment: mockAssessments,
                     gradingWeights: {
                         writtenWorkWeight: 40,
                         performanceTaskWeight: 40,
                         quarterlyAssessmentWeight: 20,
                         attendanceWeight: 0,
                     },
-                    student: [],
+                    student: mockGradebookStudents,
                 },
             });
         }
@@ -180,10 +186,11 @@ vi.mock("../api/api", () => ({
             return Promise.resolve({
                 data: {
                     classSubjectId: 101,
+                    isSubjectSubmitted: mockAttendanceIsSubjectSubmitted,
                     subjectName: "Science 10",
                     section: "Emerald",
                     dates: [],
-                    students: [],
+                    students: mockAttendanceStudents,
                     records: [],
                 },
             });
@@ -208,6 +215,11 @@ describe("Automatic Quarter Synchronization & Historical Restrictions", () => {
     beforeEach(() => {
         mockCurrentQuarter = 2;
         lastGradebookQuarterRequested = null;
+        mockIsSubjectSubmitted = false;
+        mockGradebookStudents = [];
+        mockAssessments = [];
+        mockAttendanceIsSubjectSubmitted = false;
+        mockAttendanceStudents = [];
         vi.clearAllMocks();
     });
 
@@ -339,5 +351,92 @@ describe("Automatic Quarter Synchronization & Historical Restrictions", () => {
         expect(options).toContain("3");
         expect(options).toContain("4");
         expect(quarterSelect.value).toBe("2");
+    });
+
+    it("FacultyGradebook locks the quarter and shows '(Grades Submitted)' when isSubjectSubmitted is true in current quarter", async () => {
+        mockIsSubjectSubmitted = true;
+        render(
+            <MemoryRouter initialEntries={["/faculty/classes/101/gradebook"]}>
+                <Routes>
+                    <Route path="/faculty/classes/:classId/gradebook" element={<FacultyGradebook />} />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        expect(await screen.findByText(/quarter 2 is locked \(grades submitted\)/i)).toBeInTheDocument();
+        const addItemButton = screen.getByRole("button", { name: /add item/i });
+        expect(addItemButton).toBeDisabled();
+        const saveAllButton = screen.getByRole("button", { name: /save all/i });
+        expect(saveAllButton).toBeDisabled();
+    });
+
+    it("FacultyGradebook disables inputs for submitted students while keeping unsubmitted students editable", async () => {
+        mockIsSubjectSubmitted = false;
+        mockAssessments = [
+            {
+                id: 10,
+                title: "Quiz 1",
+                type: "written_work",
+                maxScore: 100,
+                quarter: 2,
+                created_at: "2026-11-01",
+            },
+        ];
+        mockGradebookStudents = [
+            {
+                enrollmentId: 1,
+                studentId: 1,
+                studentLrn: "123456789001",
+                fullname: "Submitted Student",
+                scores: { 10: 95 },
+                totalScore: 95,
+                totalMaxScore: 100,
+                attendance: null,
+                quarterGrade: 95,
+                remarks: "Passed",
+                isSubmitted: true,
+            },
+            {
+                enrollmentId: 2,
+                studentId: 2,
+                studentLrn: "123456789002",
+                fullname: "Pending Student",
+                scores: { 10: 80 },
+                totalScore: 80,
+                totalMaxScore: 100,
+                attendance: null,
+                quarterGrade: 80,
+                remarks: "Passed",
+                isSubmitted: false,
+            },
+        ];
+
+        render(
+            <MemoryRouter initialEntries={["/faculty/classes/101/gradebook"]}>
+                <Routes>
+                    <Route path="/faculty/classes/:classId/gradebook" element={<FacultyGradebook />} />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        await screen.findByText("Submitted Student");
+        await screen.findByText("Pending Student");
+
+        const submittedInput = screen.getByLabelText(/submitted student score/i);
+        const pendingInput = screen.getByLabelText(/pending student score/i);
+
+        expect(submittedInput).toBeDisabled();
+        expect(pendingInput).not.toBeDisabled();
+    });
+
+    it("FacultyAttendance locks the quarter and shows '(Grades Submitted)' when isSubjectSubmitted is true in current quarter", async () => {
+        mockAttendanceIsSubjectSubmitted = true;
+        render(
+            <MemoryRouter>
+                <FacultyAttendance />
+            </MemoryRouter>
+        );
+
+        expect(await screen.findByText(/quarter 2 attendance is locked \(grades submitted\)/i)).toBeInTheDocument();
     });
 });

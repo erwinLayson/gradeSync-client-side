@@ -16,6 +16,8 @@ export interface AttendanceMatrixStudent {
     middlename?: string | null;
     lastname?: string;
     suffix?: string | null;
+    isSubmitted?: boolean;
+    isFrozen?: boolean;
 }
 
 /** One cell of the class-wide attendance matrix: a student on a date. */
@@ -35,6 +37,7 @@ export interface AttendanceMatrixCell {
  */
 export interface AttendanceMatrix {
     classSubjectId: number;
+    isSubjectSubmitted?: boolean;
     students: AttendanceMatrixStudent[];
     dates: string[];
     records: AttendanceMatrixCell[];

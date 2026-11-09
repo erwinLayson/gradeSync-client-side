@@ -65,6 +65,8 @@ interface StudentGradebookRow {
     remarks: string | null;
     // Per-component grades computed by the server for composite subjects (MAPEH).
     componentGrades?: ComponentGrade[] | null;
+    isSubmitted?: boolean;
+    isFrozen?: boolean;
 }
 
 /** One sub-component's server-computed grade (server: computeCompositeQuarterGrade). */
@@ -87,6 +89,7 @@ interface GradebookDetails {
     hasComponents: boolean;
     components: SubjectComponent[];
     quarter: number;
+    isSubjectSubmitted?: boolean;
     assessment: Assessment[];
     gradingWeights: GradeWeights;
     student: StudentGradebookRow[];
@@ -234,7 +237,8 @@ export default function FacultyGradebook() {
 
     const isQuarterLocked = Boolean(
         settings?.submissionsLocked ||
-        (currentQuarter && quarter < currentQuarter)
+        (currentQuarter && quarter < currentQuarter) ||
+        gradeBookDetails?.isSubjectSubmitted
     );
 
     // ================ Amendments & Scoped Permissions ================
@@ -409,6 +413,16 @@ export default function FacultyGradebook() {
 
     // ================= Score sheet handlers ================
     function handleScoreChange(enrollmentId: number, assessmentId: number, value: string) {
+        const student = students.find((s) => s.enrollmentId === enrollmentId);
+        const hasPermission = hasActivePermission({
+            enrollmentId,
+            quarter,
+            recordType: "gradebook_score",
+            classSubjectId: classSubjectId || gradeBookDetails?.classSubjectId,
+        });
+        const isStudentLocked = isQuarterLocked || Boolean(student?.isSubmitted);
+        if (isStudentLocked && !hasPermission) return;
+
         setDraftScores((prev) => {
             const row = { ...(prev[enrollmentId] ?? {}) };
             row[assessmentId] = value;
@@ -417,7 +431,7 @@ export default function FacultyGradebook() {
     }
 
     async function handleSaveScores() {
-        if (!gradeBookDetails || !isDirty || savingScores) return;
+        if (!gradeBookDetails || !isDirty || savingScores || isQuarterLocked) return;
         setSavingScores(true);
         try {
             const changedAssessmentIds = new Set<number>();
@@ -701,10 +715,19 @@ export default function FacultyGradebook() {
                         </span>
                         <div>
                             <h4 className="text-xs font-bold text-amber-900 dark:text-amber-200">
-                                Quarter {quarter} is locked {settings?.submissionsLocked ? "(Submissions Locked)" : "(Past Quarter)"}
+                                Quarter {quarter} is locked {
+                                    settings?.submissionsLocked
+                                        ? "(Submissions Locked)"
+                                        : gradeBookDetails?.isSubjectSubmitted
+                                        ? "(Grades Submitted)"
+                                        : "(Past Quarter)"
+                                }
                             </h4>
                             <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
-                                Scores for locked quarters cannot be bulk-edited. To modify an individual student's score, click the amendment icon on their score cell to submit a formal amendment request.
+                                {gradeBookDetails?.isSubjectSubmitted
+                                    ? "Quarter grades for this class subject have already been submitted. To modify an individual student's score, click the amendment icon on their score cell to submit a formal amendment request."
+                                    : "Scores for locked quarters cannot be bulk-edited. To modify an individual student's score, click the amendment icon on their score cell to submit a formal amendment request."
+                                }
                             </p>
                         </div>
                     </div>
@@ -1147,7 +1170,8 @@ export default function FacultyGradebook() {
                                                                 recordType: "gradebook_score",
                                                                 classSubjectId: gradeBookDetails?.classSubjectId,
                                                             });
-                                                            const isCellLocked = isQuarterLocked && !hasPermission;
+                                                            const isStudentLocked = isQuarterLocked || Boolean(student.isSubmitted);
+                                                            const isCellLocked = isStudentLocked && !hasPermission;
                                                             const currentVal = draftRow[assessment.id] ?? "";
 
                                                             return (
