@@ -71,6 +71,14 @@ const apiState = vi.hoisted(() => {
                 schoolYearsWithEnrollments: [],
             };
         }
+        if (path === "/analytics/student-rankings") {
+            return {
+                schoolYearId: 1,
+                quarter: 1,
+                gradeLevel: null,
+                groups: [],
+            };
+        }
         if (path === "/academic-settings" || path === "/students/current-quarter") {
             return {
                 id: 1,

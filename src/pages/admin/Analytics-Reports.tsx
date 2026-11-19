@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import {
     FiActivity,
+    FiAlertCircle,
     FiAward,
     FiBarChart2,
     FiBookOpen,
     FiCheckCircle,
+    FiChevronLeft,
+    FiChevronRight,
     FiInbox,
     FiLoader,
+    FiRefreshCw,
     FiUserCheck,
     FiUsers,
     FiXCircle
@@ -67,6 +71,29 @@ interface AnalyticsData {
     schoolYearsWithEnrollments: number[];
 }
 
+export interface StudentRankingItem {
+    rank: number;
+    studentId: number;
+    studentLrn: string;
+    studentName: string;
+    gradeLevel: number;
+    section: string;
+    generalAverage: number;
+}
+
+export interface GradeLevelRankingGroup {
+    gradeLevel: number;
+    totalEligible: number;
+    rankings: StudentRankingItem[];
+}
+
+export interface StudentQuarterlyRankingsData {
+    schoolYearId: number;
+    quarter: number;
+    gradeLevel: number | null;
+    groups: GradeLevelRankingGroup[];
+}
+
 const GRADES = [7, 8, 9, 10, 11, 12];
 
 function formatSchoolYear(year: SchoolYear): string {
@@ -88,6 +115,15 @@ export default function AnalyticsReports() {
     const [schoolYearId, setSchoolYearId] = useState<number | undefined>(undefined);
     const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
     const [loading, setLoading] = useState(true);
+
+    // ==================== Student Quarterly Rankings State ====================
+    const [rankingSchoolYearId, setRankingSchoolYearId] = useState<number | undefined>(undefined);
+    const [rankingQuarter, setRankingQuarter] = useState<number>(1);
+    const [rankingGradeLevel, setRankingGradeLevel] = useState<number | "all">("all");
+    const [rankingsData, setRankingsData] = useState<StudentQuarterlyRankingsData | null>(null);
+    const [rankingsLoading, setRankingsLoading] = useState<boolean>(true);
+    const [rankingsError, setRankingsError] = useState<string | null>(null);
+    const [pageByGradeLevel, setPageByGradeLevel] = useState<Record<number, number>>({});
 
     // Load the school-year options once. Defaults to the most recent school year
     // that actually has enrollments, so the dashboard opens with data.
@@ -144,6 +180,54 @@ export default function AnalyticsReports() {
             cancelled = true;
         };
     }, [schoolYearId]);
+
+    // Keep ranking filters synced when top-level defaults are resolved
+    useEffect(() => {
+        if (schoolYearId !== undefined) {
+            setRankingSchoolYearId((prev) => prev ?? schoolYearId);
+        }
+    }, [schoolYearId]);
+
+    useEffect(() => {
+        if (analytics?.quarter != null) {
+            setRankingQuarter((prev) => (prev === 1 ? analytics.quarter : prev));
+        }
+    }, [analytics?.quarter]);
+
+    // Fetch student rankings whenever ranking filters change
+    useEffect(() => {
+        if (rankingSchoolYearId === undefined) {
+            setRankingsLoading(false);
+            return;
+        }
+        let cancelled = false;
+        (async () => {
+            setRankingsLoading(true);
+            setRankingsError(null);
+            try {
+                const glParam = rankingGradeLevel !== "all" ? `&gradeLevel=${rankingGradeLevel}` : "";
+                const response = await getAPICall<StudentQuarterlyRankingsData>(
+                    `/analytics/student-rankings?schoolYearId=${rankingSchoolYearId}&quarter=${rankingQuarter}${glParam}`
+                );
+                if (!cancelled) {
+                    setRankingsData(response.data ?? null);
+                    setPageByGradeLevel({});
+                }
+            } catch {
+                if (!cancelled) {
+                    setRankingsError("Failed to load quarterly rankings. Please try again.");
+                    setRankingsData(null);
+                }
+            } finally {
+                if (!cancelled) {
+                    setRankingsLoading(false);
+                }
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [rankingSchoolYearId, rankingQuarter, rankingGradeLevel]);
 
     // Merge the (possibly sparse) live grade-level counts into a full G7-G12 series.
     const enrollmentSeries = useMemo(() => {
@@ -482,123 +566,253 @@ export default function AnalyticsReports() {
                 </PageSection>
             </div>
 
-            {/* ==================== Top performers + subject summary ==================== */}
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                <PageSection className="analytics__card" flush>
-                    <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
-                        <div className="min-w-0">
-                            <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Achievers</span>
-                            <h3 className="analytics__title mt-1 flex items-center gap-2 text-base font-bold">
-                                <FiAward className="text-[var(--warning)]" aria-hidden="true" />
-                                Top Performing Students
-                            </h3>
-                            <p className="analytics__subtitle mt-1 text-[0.8125rem]">Highest general averages this quarter</p>
-                        </div>
+            {/* ==================== Student Quarterly Rankings ==================== */}
+            <PageSection className="analytics__card mt-2" flush>
+                <div className="flex flex-wrap items-center justify-between gap-4 p-5 pb-4">
+                    <div className="min-w-0">
+                        <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Academic Standings</span>
+                        <h3 className="analytics__title mt-1 flex items-center gap-2 text-base font-bold sm:text-lg">
+                            <FiAward className="text-[var(--warning)]" aria-hidden="true" />
+                            Student Quarterly Rankings
+                        </h3>
+                        <p className="analytics__subtitle mt-1 text-[0.8125rem]">
+                            Official academic rankings calculated independently per grade level based strictly on finalized quarterly averages.
+                        </p>
                     </div>
 
-                    {loading ? (
-                        <div className="flex flex-col gap-2 p-5">
-                            {Array.from({ length: 5 }).map((_, index) => (
-                                <div key={index} className="flex items-center gap-4 px-1 py-1.5">
-                                    <SkeletonLine width="1.75rem" height="1.75rem" radius="0.5rem" />
-                                    <SkeletonLine width={`${30 + ((index * 17) % 30)}%`} height="0.875rem" />
-                                    <SkeletonLine width="20%" height="0.875rem" className="ml-auto" />
-                                    <SkeletonLine width="3.5rem" height="0.875rem" />
-                                </div>
-                            ))}
-                        </div>
-                    ) : !loading && (analytics?.topPerformers ?? []).length === 0 ? (
-                        <AnalyticsEmpty message="No graded students yet." />
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="analytics__table w-full min-w-[28rem] border-collapse text-sm">
-                                <thead>
-                                    <tr>
-                                        <th className="px-6 py-3">Rank</th>
-                                        <th className="px-6 py-3">Student</th>
-                                        <th className="px-6 py-3">Section</th>
-                                        <th className="px-6 py-3 text-right">General Average</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {(analytics?.topPerformers ?? []).map((row, index) => (
-                                        <tr key={row.studentId}>
-                                            <td className="px-6 py-3.5">
-                                                <span className={`analytics__rank inline-flex h-7 w-7 items-center justify-center text-[0.75rem] ${index < 3 ? `analytics__rank--${index + 1}` : "analytics__rank--rest"}`}>
-                                                    {index + 1}
-                                                </span>
-                                            </td>
-                                            <td className="analytics__cell--name px-6 py-3.5">{row.fullname}</td>
-                                            <td className="analytics__cell--muted px-6 py-3.5">{row.section}</td>
-                                            <td className="analytics__cell--mono px-6 py-3.5 text-right font-bold">{Number(row.grade).toFixed(1)}</td>
-                                        </tr>
-                                    ))}
-                                    {!loading && (analytics?.topPerformers ?? []).length === 0 && (
-                                        <tr>
-                                            <td colSpan={4} className="px-6 py-8 text-center">
-                                                <AnalyticsEmpty message="No graded students yet." compact />
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </PageSection>
-
-                <PageSection className="analytics__card" flush>
-                    <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-4">
-                        <div className="min-w-0">
-                            <span className="analytics__eyebrow text-[0.625rem] font-bold uppercase tracking-[0.12em]">Summary</span>
-                            <h3 className="analytics__title mt-1 text-base font-bold">Subject Summary</h3>
-                            <p className="analytics__subtitle mt-1 text-[0.8125rem]">Average scores and passing rates by subject</p>
-                        </div>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                        <table className="analytics__table w-full min-w-[28rem] border-collapse text-sm">
-                            <thead>
-                                <tr>
-                                    <th className="px-6 py-3">Subject</th>
-                                    <th className="px-6 py-3 text-right">Average</th>
-                                    <th className="px-6 py-3 text-right">Pass Rate</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {(analytics?.subjectPerformance ?? []).map((row) => (
-                                    <tr key={row.subject}>
-                                        <td className="analytics__cell--name px-6 py-3.5">{row.subject}</td>
-                                        <td className="analytics__cell--mono px-6 py-3.5 text-right font-bold">{row.score === null ? "—" : Number(row.score).toFixed(1)}</td>
-                                        <td className="px-6 py-3.5 text-right">
-                                            <span className="analytics__pass-chip inline-flex rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold">
-                                                {row.passRate === null ? "—" : `${row.passRate}%`}
-                                            </span>
-                                        </td>
-                                    </tr>
+                    {/* Filter controls */}
+                    <div className="flex flex-wrap items-center gap-2.5">
+                        <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700">
+                            <span className="hidden sm:inline text-gray-500">School Year:</span>
+                            <select
+                                aria-label="Filter rankings by School Year"
+                                className="analytics__select rounded-lg border px-2.5 py-1.5 text-xs font-medium"
+                                value={rankingSchoolYearId ?? ""}
+                                onChange={(e) => setRankingSchoolYearId(Number(e.target.value))}
+                            >
+                                {schoolYears.map((year) => (
+                                    <option key={year.id} value={year.id}>
+                                        {formatSchoolYear(year)}
+                                    </option>
                                 ))}
-                                {!loading && (analytics?.subjectPerformance ?? []).length === 0 && (
-                                    <tr>
-                                        <td colSpan={3} className="px-6 py-8 text-center">
-                                            <AnalyticsEmpty message="No subject scores recorded yet." compact />
-                                        </td>
-                                    </tr>
-                                )}
-                                {loading && (
-                                    <tr>
-                                        <td colSpan={3} className="px-6 py-8 text-center">
-                                            <div className="flex flex-col gap-2" aria-hidden="true">
-                                                {Array.from({ length: 4 }).map((_, index) => (
-                                                    <SkeletonLine key={index} width="100%" height="0.875rem" />
-                                                ))}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                            </select>
+                        </label>
+
+                        <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700">
+                            <span className="hidden sm:inline text-gray-500">Quarter:</span>
+                            <select
+                                aria-label="Filter rankings by Quarter"
+                                className="analytics__select rounded-lg border px-2.5 py-1.5 text-xs font-medium"
+                                value={rankingQuarter}
+                                onChange={(e) => setRankingQuarter(Number(e.target.value))}
+                            >
+                                <option value={1}>1st Quarter</option>
+                                <option value={2}>2nd Quarter</option>
+                                <option value={3}>3rd Quarter</option>
+                                <option value={4}>4th Quarter</option>
+                            </select>
+                        </label>
+
+                        <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700">
+                            <span className="hidden sm:inline text-gray-500">Grade Level:</span>
+                            <select
+                                aria-label="Filter rankings by Grade Level"
+                                className="analytics__select rounded-lg border px-2.5 py-1.5 text-xs font-medium"
+                                value={rankingGradeLevel}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setRankingGradeLevel(val === "all" ? "all" : Number(val));
+                                }}
+                            >
+                                <option value="all">All Grade Levels</option>
+                                {GRADES.map((grade) => (
+                                    <option key={grade} value={grade}>
+                                        Grade {grade}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
                     </div>
-                </PageSection>
-            </div>
+                </div>
+
+                {/* State handling */}
+                {rankingsLoading ? (
+                    <div className="flex flex-col gap-3 p-6" aria-hidden="true">
+                        <SkeletonLine width="25%" height="1.25rem" />
+                        {Array.from({ length: 5 }).map((_, index) => (
+                            <div key={index} className="flex items-center gap-4 py-2">
+                                <SkeletonLine width="2rem" height="2rem" radius="9999px" />
+                                <SkeletonLine width={`${30 + ((index * 13) % 25)}%`} height="1rem" />
+                                <SkeletonLine width="15%" height="1rem" />
+                                <SkeletonLine width="15%" height="1rem" />
+                                <SkeletonLine width="15%" height="1rem" className="ml-auto" />
+                            </div>
+                        ))}
+                    </div>
+                ) : rankingsError ? (
+                    <div className="flex flex-col items-center justify-center gap-3 px-6 py-10 text-center">
+                        <FiAlertCircle className="text-3xl text-[var(--error)]" aria-hidden="true" />
+                        <p className="text-sm font-medium text-gray-700">{rankingsError}</p>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (rankingSchoolYearId !== undefined) {
+                                    setRankingsLoading(true);
+                                    setRankingsError(null);
+                                    const glParam = rankingGradeLevel !== "all" ? `&gradeLevel=${rankingGradeLevel}` : "";
+                                    getAPICall<StudentQuarterlyRankingsData>(
+                                        `/analytics/student-rankings?schoolYearId=${rankingSchoolYearId}&quarter=${rankingQuarter}${glParam}`
+                                    )
+                                        .then((res) => {
+                                            setRankingsData(res.data ?? null);
+                                            setPageByGradeLevel({});
+                                        })
+                                        .catch(() => setRankingsError("Failed to load quarterly rankings. Please try again."))
+                                        .finally(() => setRankingsLoading(false));
+                                }
+                            }}
+                            className="analytics__pagination-btn mt-1"
+                        >
+                            <FiRefreshCw className="mr-1.5" aria-hidden="true" /> Retry
+                        </button>
+                    </div>
+                ) : !rankingsData || rankingsData.groups.length === 0 || rankingsData.groups.every((g) => g.totalEligible === 0) ? (
+                    <AnalyticsEmpty
+                        message={`No finalized quarterly averages found for ${
+                            rankingGradeLevel === "all" ? "any grade level" : `Grade ${rankingGradeLevel}`
+                        } in Quarter ${rankingQuarter} of the selected school year.`}
+                    />
+                ) : (
+                    <div className="space-y-6 pb-4">
+                        {rankingsData.groups
+                            .filter((group) => rankingGradeLevel === "all" || group.gradeLevel === rankingGradeLevel)
+                            .map((group) => {
+                                const PAGE_SIZE = 10;
+                                const currentPage = pageByGradeLevel[group.gradeLevel] ?? 1;
+                                const totalPages = Math.max(1, Math.ceil(group.rankings.length / PAGE_SIZE));
+                                const pagedRankings = group.rankings.slice(
+                                    (currentPage - 1) * PAGE_SIZE,
+                                    currentPage * PAGE_SIZE
+                                );
+
+                                return (
+                                    <div key={group.gradeLevel} className="border-t first:border-t-0">
+                                        {/* Grade level section heading */}
+                                        <div className="analytics__group-header flex flex-wrap items-center justify-between gap-2 px-6 py-3">
+                                            <div className="flex items-center gap-2.5">
+                                                <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[var(--primary-light)] text-xs font-bold text-[var(--primary-dark)]">
+                                                    G{group.gradeLevel}
+                                                </span>
+                                                <h4 className="text-sm font-bold text-gray-900">
+                                                    Grade {group.gradeLevel}
+                                                </h4>
+                                            </div>
+                                            <span className="analytics__chip inline-flex items-center px-2.5 py-0.5 text-xs font-semibold">
+                                                {group.totalEligible} {group.totalEligible === 1 ? "eligible student" : "eligible students"}
+                                            </span>
+                                        </div>
+
+                                        {group.rankings.length === 0 ? (
+                                            <div className="px-6 py-8 text-center text-sm text-[var(--text-muted)]">
+                                                No finalized quarterly averages for Grade {group.gradeLevel} in Quarter {rankingQuarter}.
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="overflow-x-auto">
+                                                    <table className="analytics__table w-full min-w-[36rem] border-collapse text-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th className="w-16 px-6 py-3 text-center">Rank</th>
+                                                                <th className="px-6 py-3">Student Name</th>
+                                                                <th className="px-6 py-3">Student ID</th>
+                                                                <th className="px-6 py-3">Grade Level</th>
+                                                                <th className="px-6 py-3">Section / Classroom</th>
+                                                                <th className="px-6 py-3 text-right">General Average</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {pagedRankings.map((row) => (
+                                                                <tr key={row.studentId}>
+                                                                    <td className="px-6 py-3.5 text-center">
+                                                                        <span
+                                                                            className={`analytics__rank inline-flex h-7 w-7 items-center justify-center text-[0.75rem] ${
+                                                                                row.rank === 1
+                                                                                    ? "analytics__rank--1"
+                                                                                    : row.rank === 2
+                                                                                    ? "analytics__rank--2"
+                                                                                    : row.rank === 3
+                                                                                    ? "analytics__rank--3"
+                                                                                    : "analytics__rank--rest"
+                                                                            }`}
+                                                                            title={`Rank ${row.rank}`}
+                                                                        >
+                                                                            {row.rank}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="analytics__cell--name px-6 py-3.5">{row.studentName}</td>
+                                                                    <td className="analytics__cell--mono px-6 py-3.5 text-xs text-gray-600">
+                                                                        {row.studentLrn || row.studentId}
+                                                                    </td>
+                                                                    <td className="analytics__cell--muted px-6 py-3.5">Grade {row.gradeLevel}</td>
+                                                                    <td className="analytics__cell--muted px-6 py-3.5">{row.section}</td>
+                                                                    <td className="analytics__cell--mono px-6 py-3.5 text-right font-bold text-gray-900">
+                                                                        {row.generalAverage.toFixed(2)}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                {totalPages > 1 && (
+                                                    <div className="flex flex-wrap items-center justify-between gap-3 border-t px-6 py-3 text-xs text-gray-600">
+                                                        <span>
+                                                            Showing {(currentPage - 1) * PAGE_SIZE + 1} to{" "}
+                                                            {Math.min(currentPage * PAGE_SIZE, group.totalEligible)} of {group.totalEligible} students
+                                                        </span>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <button
+                                                                type="button"
+                                                                className="analytics__pagination-btn"
+                                                                disabled={currentPage <= 1}
+                                                                onClick={() =>
+                                                                    setPageByGradeLevel((prev) => ({
+                                                                        ...prev,
+                                                                        [group.gradeLevel]: currentPage - 1
+                                                                    }))
+                                                                }
+                                                                aria-label={`Previous page for Grade ${group.gradeLevel}`}
+                                                            >
+                                                                <FiChevronLeft className="mr-1" aria-hidden="true" /> Previous
+                                                            </button>
+                                                            <span className="px-2 font-medium">
+                                                                Page {currentPage} of {totalPages}
+                                                            </span>
+                                                            <button
+                                                                type="button"
+                                                                className="analytics__pagination-btn"
+                                                                disabled={currentPage >= totalPages}
+                                                                onClick={() =>
+                                                                    setPageByGradeLevel((prev) => ({
+                                                                        ...prev,
+                                                                        [group.gradeLevel]: currentPage + 1
+                                                                    }))
+                                                                }
+                                                                aria-label={`Next page for Grade ${group.gradeLevel}`}
+                                                            >
+                                                                Next <FiChevronRight className="ml-1" aria-hidden="true" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                    </div>
+                )}
+            </PageSection>
 
             <p className="analytics__subtitle flex items-center gap-2 px-1 text-[0.75rem]">
                 <FiBarChart2 aria-hidden="true" />
