@@ -33,6 +33,8 @@ export default function FacultyDashboard() {
         error,
     } = useFacultyOverview(currentQuarter);
 
+    const hasAdvisoryClass = (adviserClasses?.length ?? 0) > 0;
+
     // ==================== Loading state ====================
     if (loading) {
         return (
@@ -120,22 +122,24 @@ export default function FacultyDashboard() {
                             </div>
                         </div>
 
-                        <div className="faculty-dashboard__actions grid grid-cols-2 gap-3 p-5">
-                            <button
-                                type="button"
-                                className="faculty-dashboard__action flex cursor-pointer flex-col gap-3 rounded-xl border p-4 text-left"
-                                onClick={() => navigate("/faculty/my-class")}
-                            >
-                                <span className="faculty-dashboard__action-icon inline-flex h-10 w-10 items-center justify-center rounded-lg text-base" aria-hidden="true">
-                                    <FiHome />
-                                </span>
-                                <span className="min-w-0">
-                                    <span className="faculty-dashboard__action-title block text-[0.8125rem] font-bold">My Class</span>
-                                    <span className="faculty-dashboard__action-meta mt-0.5 block text-[0.6875rem]">
-                                        View your advised class &amp; grades
+                        <div className={`faculty-dashboard__actions grid ${hasAdvisoryClass ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-3"} gap-3 p-5`}>
+                            {hasAdvisoryClass && (
+                                <button
+                                    type="button"
+                                    className="faculty-dashboard__action flex cursor-pointer flex-col gap-3 rounded-xl border p-4 text-left"
+                                    onClick={() => navigate("/faculty/my-class")}
+                                >
+                                    <span className="faculty-dashboard__action-icon inline-flex h-10 w-10 items-center justify-center rounded-lg text-base" aria-hidden="true">
+                                        <FiHome />
                                     </span>
-                                </span>
-                            </button>
+                                    <span className="min-w-0">
+                                        <span className="faculty-dashboard__action-title block text-[0.8125rem] font-bold">My Class</span>
+                                        <span className="faculty-dashboard__action-meta mt-0.5 block text-[0.6875rem]">
+                                            View your advised class &amp; grades
+                                        </span>
+                                    </span>
+                                </button>
+                            )}
 
                             <button
                                 type="button"

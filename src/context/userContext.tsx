@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { getAPICall, postAPICall } from "../api/api";
 import type { User } from "../constant/users";
+import { invalidateTeacherAdvisoryClassCache } from "../hooks/useTeacherAdvisoryClass";
 import { UserContext } from "./userContextDefinition";
 
 export function UserContextProvider({
@@ -28,6 +29,7 @@ export function UserContextProvider({
         } catch {
             setUser(null);
             localStorage.removeItem("user");
+            invalidateTeacherAdvisoryClassCache();
         } finally {
             setLoading(false);
         }
@@ -46,6 +48,7 @@ export function UserContextProvider({
             await postAPICall("/users/logout", {});
             setUser(null);
             localStorage.removeItem("user");
+            invalidateTeacherAdvisoryClassCache();
             return true;
         } catch {
             return false;

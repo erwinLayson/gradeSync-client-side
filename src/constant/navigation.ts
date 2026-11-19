@@ -15,9 +15,22 @@ import {
   FaUserGraduate,
   FaUsersCog,
 } from "react-icons/fa";
+import type { IconType } from "react-icons";
 
 import { ROLES, type UserRoles } from "./users";
 import { FACULTY_ROLES } from "./faculties";
+
+export interface NavigationSection {
+  label: string;
+  path: string;
+  icon: IconType;
+  requiresAdvisory?: boolean;
+}
+
+export interface NavigationGroup {
+  title: string;
+  sections: NavigationSection[];
+}
 
 
 export const DASHBOARD_PATH = {
@@ -104,13 +117,13 @@ export const DASHBOARD_LINKS = {
     {
       title: "Main",
       sections: [
-        { label: "Dashboard", path: "/faculty/dashboard",icon: FaHome,},
-        { label: "Attendance",path: "/faculty/attendance",icon: FaClipboardCheck},
-        { label: "My Class",  path: "/faculty/my-class", icon: FaSchool},
-        { label: "Gradebook",  path: "/faculty/classes", icon: FaClipboardCheck},
-        { label: "Student Records", path: "/faculty/student-records", icon: FaClipboardList},
+        { label: "Dashboard", path: "/faculty/dashboard", icon: FaHome },
+        { label: "Attendance", path: "/faculty/attendance", icon: FaClipboardCheck },
+        { label: "My Class", path: "/faculty/my-class", icon: FaSchool, requiresAdvisory: true },
+        { label: "Gradebook", path: "/faculty/classes", icon: FaClipboardCheck },
+        { label: "Student Records", path: "/faculty/student-records", icon: FaClipboardList },
         { label: "My Amendments", path: "/faculty/amendments", icon: FaClipboardCheck },
-        { label: "Reports", path: "/faculty/reports", icon: FaChartLine}
+        { label: "Reports", path: "/faculty/reports", icon: FaChartLine, requiresAdvisory: true },
       ] 
     },
     {
@@ -188,3 +201,20 @@ export const DASHBOARD_LINKS = {
 }
 
 export const SCHOOL_NAME = "Abang Suizu Integrated School";
+
+/**
+ * Returns navigation groups for teaching faculty filtered by advisory class status.
+ * If the teacher does not have an advisory class, links marked with `requiresAdvisory`
+ * (e.g. "My Class", "Reports") are hidden.
+ */
+export function getTeacherDashboardLinks(hasAdvisoryClass: boolean): NavigationGroup[] {
+  if (hasAdvisoryClass) {
+    return DASHBOARD_LINKS.teacher;
+  }
+  return DASHBOARD_LINKS.teacher
+    .map((group) => ({
+      ...group,
+      sections: group.sections.filter((section) => !section.requiresAdvisory),
+    }))
+    .filter((group) => group.sections.length > 0);
+}

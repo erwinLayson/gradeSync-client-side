@@ -1,15 +1,22 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { FiChevronsLeft, FiChevronsRight, FiLogOut } from "react-icons/fi";
-import { DASHBOARD_LINKS, SCHOOL_NAME, navRoleFor, roleLabelFor } from "../constant/navigation";
+import {
+  DASHBOARD_LINKS,
+  SCHOOL_NAME,
+  getTeacherDashboardLinks,
+  navRoleFor,
+  roleLabelFor,
+} from "../constant/navigation";
 
 import { useSchoolInfo } from "../hooks/useSchoolInfo";
+import { useTeacherAdvisoryClass } from "../hooks/useTeacherAdvisoryClass";
 import { ConfirmDialog } from "./ConfirmDialog";
 import "../style/sidebar.css";
 
 // ================== Hooks ===============
 import { useAuth } from "../hooks/useAuth";
-import {useUser} from "../hooks/useUser";
+import { useUser } from "../hooks/useUser";
 
 const FALLBACK_SCHOOL_LOGO =
   "https://depedtacurong.org/wp-content/uploads/2024/02/241134825_394178255747167_6128050800374409151_n-1024x1024.jpg";
@@ -24,8 +31,9 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const navigate = useNavigate();
   const { loading, logout } = useAuth();
-  const {user} = useUser();
+  const { user } = useUser();
   const { schoolName, schoolLogo } = useSchoolInfo();
+  const { hasAdvisoryClass, loading: advisoryLoading } = useTeacherAdvisoryClass();
   const [loggingOut, setLoggingOut] = useState(false);
   const logoutTriggerRef = useRef<HTMLButtonElement>(null);
   const navRef = useRef<HTMLElement>(null);
@@ -67,8 +75,19 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
     }
   }
 
-  const navGroups = user ? DASHBOARD_LINKS[navRoleFor(user)] : DASHBOARD_LINKS.admin;
+  const role = user ? navRoleFor(user) : "admin";
+  const isTeacher = role === "teacher";
+
+  const navGroups = useMemo(() => {
+    if (!user) return DASHBOARD_LINKS.admin;
+    if (isTeacher) {
+      return getTeacherDashboardLinks(hasAdvisoryClass);
+    }
+    return DASHBOARD_LINKS[role];
+  }, [user, isTeacher, role, hasAdvisoryClass]);
+
   const roleLabel = user ? roleLabelFor(user) : "";
+  const isNavLoading = loading || (isTeacher && advisoryLoading);
 
   return (
     <aside
@@ -113,7 +132,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
 
       {/* ===== Navigation ===== */}
       <nav ref={navRef} aria-label="Primary" className="sidebar__nav">
-        {loading ? (
+        {isNavLoading ? (
           <div className="sidebar__skeleton" aria-hidden="true">
             <div className="sidebar__skeleton-bar" />
             <div className="sidebar__skeleton-bar" />
