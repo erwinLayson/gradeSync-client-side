@@ -116,13 +116,6 @@ const mockRankingsAllGrades = {
     ],
 };
 
-const mockRankingsGrade7Only = {
-    schoolYearId: 2,
-    quarter: 1,
-    gradeLevel: 7,
-    groups: [mockRankingsAllGrades.groups[0]!],
-};
-
 const mockRankingsManyStudents = {
     schoolYearId: 2,
     quarter: 1,
@@ -149,7 +142,9 @@ describe("Admin Reports & Analytics — Student Quarterly Rankings", () => {
         vi.clearAllMocks();
     });
 
-    const setupMocks = (rankingsResponse = mockRankingsAllGrades) => {
+    const setupMocks = (
+        rankingsResponse: typeof mockRankingsAllGrades | typeof mockRankingsManyStudents = mockRankingsAllGrades
+    ) => {
         vi.mocked(apiModule.getAPICall).mockImplementation(async (url: string) => {
             if (url === "/schoolYear") {
                 return { success: true, message: "ok", data: mockSchoolYears };

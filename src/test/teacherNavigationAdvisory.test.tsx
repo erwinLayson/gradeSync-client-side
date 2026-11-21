@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
-import { DASHBOARD_LINKS, getTeacherDashboardLinks } from "../constant/navigation";
+import { getTeacherDashboardLinks } from "../constant/navigation";
 import { Sidebar } from "../components/Sidebar";
 import FacultyDashboard from "../pages/faculty/FacultyDashboard";
 

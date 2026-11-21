@@ -33,8 +33,8 @@ let mockDashboardState: RegisterDashboardData = {
   academicContext: {
     activeSchoolYear: {
       id: 1,
-      startYear: 2026,
-      endYear: 2027,
+      startYear: "2026",
+      endYear: "2027",
       isActive: true,
     },
     currentQuarter: 2,
@@ -86,8 +86,8 @@ describe("RegisterDashboard Component", () => {
       academicContext: {
         activeSchoolYear: {
           id: 1,
-          startYear: 2026,
-          endYear: 2027,
+          startYear: "2026",
+          endYear: "2027",
           isActive: true,
         },
         currentQuarter: 2,
